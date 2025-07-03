@@ -16,3 +16,7 @@ Imports:
     methods,
     raster,
     sf
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
