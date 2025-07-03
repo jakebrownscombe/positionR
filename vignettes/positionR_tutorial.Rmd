@@ -58,19 +58,93 @@ poly_sf <- st_sfc(poly, crs = "+proj=utm +zone=10 +datum=WGS84")
 
 print(paste("Raster dimensions:", nrow(r), "x", ncol(r)))
 print(paste("Polygon area:", round(st_area(poly_sf)), "m²"))
+
+
+
+create_lake_raster <- function(nrows = 50, ncols = 50, max_depth = 25) {
+  # Create coordinate matrices
+  x <- seq(-1, 1, length.out = ncols)
+  y <- seq(-1, 1, length.out = nrows)
+  coords <- expand.grid(x = x, y = y)
+  
+  # Create a lake-like shape using multiple radial functions
+  # Main lake body (circular with some elongation)
+  dist_main <- sqrt((coords$x * 0.8)^2 + (coords$y * 1.2)^2)
+  
+  # Add some bays and inlets using sine waves
+  angle <- atan2(coords$y, coords$x)
+  boundary_variation <- 0.15 * sin(4 * angle) + 0.1 * sin(7 * angle)
+  
+  # Create the lake boundary (values inside lake)
+  lake_boundary <- 0.9 + boundary_variation
+  is_lake <- dist_main < lake_boundary
+  
+  # Create depth based on distance from center with realistic profile
+  depth <- ifelse(is_lake, 
+                  max_depth * (1 - (dist_main / lake_boundary)^1.5), 
+                  0)
+  
+  # Add some underwater features (ridges and depressions)
+  underwater_features <- 2 * sin(coords$x * 3) * cos(coords$y * 2) + 
+                        1.5 * sin(coords$x * 5 + coords$y * 3)
+  depth <- ifelse(is_lake, 
+                  pmax(0.5, depth + underwater_features * (depth > 5)), 
+                  0)
+  
+  # Convert to raster
+  depth_matrix <- matrix(depth, nrow = nrows, ncol = ncols, byrow = TRUE)
+  lake_raster <- raster(depth_matrix)
+  extent(lake_raster) <- c(0, 2000, 0, 2000)  # 2km x 2km lake
+  crs(lake_raster) <- "+proj=utm +zone=10 +datum=WGS84"
+  
+  return(lake_raster)
+}
+
+# Create the lake raster
+lake_r <- create_lake_raster(nrows = 40, ncols = 40, max_depth = 30)
+
+# Create a polygon version of the lake for comparison
+lake_poly_coords <- matrix(c(300, 400,
+                            1700, 300,
+                            1800, 1200,
+                            1200, 1700,
+                            400, 1600,
+                            200, 1000,
+                            300, 400), ncol = 2, byrow = TRUE)
+lake_poly <- st_polygon(list(lake_poly_coords))
+lake_poly_sf <- st_sfc(lake_poly, crs = "+proj=utm +zone=10 +datum=WGS84")
+
+print(paste("Lake raster dimensions:", nrow(lake_r), "x", ncol(lake_r)))
+print(paste("Max depth:", round(max(values(lake_r), na.rm = TRUE), 1), "m"))
+print(paste("Lake polygon area:", round(as.numeric(st_area(lake_poly_sf)) / 1000000, 2), "km²"))
+
+# Plot the lake raster to see what we created
+library(ggplot2)
+lake_df <- as.data.frame(lake_r, xy = TRUE)
+lake_df <- lake_df[lake_df$layer > 0, ]  # Only show water areas
+
+ggplot(lake_df, aes(x = x, y = y, fill = layer)) +
+  geom_raster() +
+  scale_fill_gradient2(low = "navy", mid = "blue", high = "lightblue", 
+                       midpoint = 15, name = "Depth (m)") +
+  coord_equal() +
+  theme_minimal() +
+  labs(title = "Simulated Lake Bathymetry", 
+       subtitle = "Deeper areas in dark blue, shallow areas in light blue")
 ```
 
 
 ```{r generate-points}
+devtools::load_all()
 #generate points based on raster or polygon
-points_regular <- generate_exact_regular_points(r, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
-points_spaced <- generate_spaced_points(r, spacing = 100, seed = 123) #regular set spacing
-points_random <- generate_random_points(r, n_points = 100, seed = 123) #random locations 
+points_regular <- generate_exact_regular_points(lake_r, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
+points_spaced <- generate_spaced_points(lake_r, spacing = 1000, seed = 123) #regular set spacing
+points_random <- generate_random_points(lake_r, n_points = 100, seed = 123) #random locations 
 
 #plot generated points
-plot_points_on_input(r, points_regular)
-plot_points_on_input(r, points_spaced)
-plot_points_on_input(r, points_random)
+plot_points_on_input(lake_r, points_regular)
+plot_points_on_input(lake_r, points_spaced)
+plot_points_on_input(lake_r, points_random)
 ```
 
 

@@ -263,17 +263,13 @@ generate_random_points <- function(input_obj, n_points, seed = NULL) {
 #'
 #' @export
 plot_points_on_input <- function(input_obj, points_sf) {
-
   # Prepare the input
   prep <- prepare_polygon(input_obj)
-
   # Get number of points
   n_points <- nrow(points_sf)
-
   # Get method info from attributes
   method_info <- attr(points_sf, "method_info")
   if (is.null(method_info)) method_info <- ""
-
   # Create subtitle with point count and method info
   subtitle <- paste0(n_points, " points generated", method_info)
 
@@ -281,16 +277,20 @@ plot_points_on_input <- function(input_obj, points_sf) {
     # Plot raster with points
     raster_df <- raster::as.data.frame(prep$original, xy = TRUE)
 
+    # Get raster extent for proper scaling
+    raster_extent <- raster::extent(prep$original)
+
     p <- ggplot2::ggplot() +
       ggplot2::geom_raster(data = raster_df, ggplot2::aes(x = x, y = y, fill = layer)) +
       ggplot2::geom_sf(data = points_sf, color = "green", size = 2) +
       ggplot2::scale_fill_gradient(low = "blue4", high = "cornflowerblue", na.value = "transparent") +
-      ggplot2::coord_sf(expand = FALSE) +
+      ggplot2::coord_sf(xlim = c(raster_extent@xmin, raster_extent@xmax),
+                        ylim = c(raster_extent@ymin, raster_extent@ymax),
+                        expand = FALSE) +
       ggplot2::theme_minimal() +
       ggplot2::labs(title = "Generated Points on Raster",
                     subtitle = subtitle,
                     fill = "Depth (m)")
-
   } else {
     # Plot polygon with points
     p <- ggplot2::ggplot() +
@@ -301,6 +301,5 @@ plot_points_on_input <- function(input_obj, points_sf) {
       ggplot2::labs(title = "Generated Points on Polygon",
                     subtitle = subtitle)
   }
-
   return(p)
 }
