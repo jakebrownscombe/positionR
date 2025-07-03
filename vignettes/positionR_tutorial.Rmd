@@ -61,6 +61,20 @@ print(paste("Polygon area:", round(st_area(poly_sf)), "m²"))
 ```
 
 
+```{r generate-points}
+#generate points based on raster or polygon
+points_regular <- generate_exact_regular_points(r, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
+points_spaced <- generate_spaced_points(r, spacing = 100, seed = 123) #regular set spacing
+points_random <- generate_random_points(r, n_points = 100, seed = 123) #random locations 
+
+#plot generated points
+plot_points_on_input(r, points_regular)
+#plot_points_on_input(r, points_spaced)
+#plot_points_on_input(r, points_random)
+```
+
+
+
 
 ```{r session-info}
 sessionInfo()

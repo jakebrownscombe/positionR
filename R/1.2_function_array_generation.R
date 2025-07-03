@@ -279,7 +279,7 @@ plot_points_on_input <- function(input_obj, points_sf) {
 
   if (prep$type == "raster") {
     # Plot raster with points
-    raster_df <- as.data.frame(prep$original, xy = TRUE)
+    raster_df <- raster::as.data.frame(prep$original, xy = TRUE)
 
     p <- ggplot2::ggplot() +
       ggplot2::geom_raster(data = raster_df, ggplot2::aes(x = x, y = y, fill = layer)) +
