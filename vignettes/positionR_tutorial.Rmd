@@ -27,7 +27,7 @@ This package provides tools for generating different types of point patterns wit
 ## Setup
 
 ```{r setup}
-library(yourpackagename)  # Replace with your actual package name
+library(positionR)  # Replace with your actual package name
 library(raster)
 library(sf)
 library(ggplot2)
