@@ -135,8 +135,9 @@ ggplot(lake_df, aes(x = x, y = y, fill = layer)) +
 
 
 ```{r generate-points}
-devtools::load_all()
+
 #generate points based on raster or polygon
+#using example polygon of Stoney Lake, Ontario, Canada included in package
 points_regular <- generate_exact_regular_points(lake_r, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
 points_spaced <- generate_spaced_points(lake_r, spacing = 1000, seed = 123) #regular set spacing
 points_random <- generate_random_points(lake_r, n_points = 100, seed = 123) #random locations 
