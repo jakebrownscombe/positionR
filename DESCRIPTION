@@ -1,5 +1,5 @@
 Package: positionR
-Title: 
+Title: PositionR
 Version: 0.0.0.9000
 Authors@R: 
     person("Jacob", "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre"))
