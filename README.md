@@ -1,7 +1,7 @@
 # <img src="man/figures/logo.png" align="left" height="120" alt="" />
 
 
-positionR
+#positionR
 Acoustic Telemetry System Design and Fish Movement Simulation
 positionR is an R package for designing acoustic telemetry systems and simulating fish movement with realistic detection patterns. The package provides tools for receiver placement optimization, detection efficiency modeling, and fish track simulation with detection events.
 Features
@@ -18,21 +18,21 @@ Install the development version from GitHub:
 r# Install devtools if you haven't already
 install.packages("devtools")
 
-# Install positionR
+## Install positionR
 devtools::install_github("yourusername/positionR", build_vignettes = TRUE)
 Quick Start
 rlibrary(positionR)
 
-# Load example depth data (included with package)
+## Load example depth data (included with package)
 data(depth_raster)
 
-# 1. Generate receiver station locations
+## 1. Generate receiver station locations
 stations <- generate_random_points(depth_raster, n_points = 6, seed = 123)
 
-# 2. Calculate distances between stations and all raster cells
+## 2. Calculate distances between stations and all raster cells
 distances <- calculate_station_distances(depth_raster, stations, max_distance = 500)
 
-# 3. Create detection efficiency model
+## 3. Create detection efficiency model
 de_model <- create_logistic_curve_depth(
   min_depth = 2, max_depth = 30,
   d50_min_depth = 50, d95_min_depth = 20,
@@ -40,7 +40,7 @@ de_model <- create_logistic_curve_depth(
   plot = FALSE
 )
 
-# 4. Calculate system detection probabilities
+## 4. Calculate system detection probabilities
 detection_system <- calculate_detection_system(
   distance_frame = distances,
   receiver_frame = stations,
@@ -48,7 +48,7 @@ detection_system <- calculate_detection_system(
   output_type = "cumulative"
 )
 
-# 5. Simulate fish tracks with detections
+## 5. Simulate fish tracks with detections
 fish_tracks <- simulate_fish_tracks(
   raster = depth_raster,
   detection_system = detection_system$data,
@@ -57,35 +57,40 @@ fish_tracks <- simulate_fish_tracks(
   n_steps = 100
 )
 
-# 6. Visualize results
+## 6. Visualize results
 plot_fish_tracks(fish_tracks, depth_raster, stations)
 
-# 7. Analyze detection performance
+## 7. Analyze detection performance
 analyze_detection_performance(fish_tracks)
-Core Functions
-Receiver Placement
+
+
+
+##Core Functions
+
+
+##Receiver Placement
 
 generate_exact_regular_points() - Generate specific number of regularly spaced points
 generate_spaced_points() - Generate points with defined spacing
 generate_random_points() - Generate randomly distributed points
 
-Detection Modeling
+##Detection Modeling
 
 create_logistic_curve_depth() - Build detection efficiency models varying with distance and depth
 calculate_station_distances() - Calculate cost-weighted distances from receivers to all locations
 calculate_detection_system() - Compute system-wide detection probabilities
 
-Movement Simulation
+##Movement Simulation
 
 simulate_fish_tracks() - Generate realistic fish movement paths with detection events
 plot_fish_tracks() - Visualize tracks, detections, and receiver performance
 
-Analysis
+##Analysis
 
 calculate_detection_summaries() - Compute detection rate statistics
 analyze_detection_performance() - Comprehensive detection analysis with plots
 
-Workflow
+##Workflow
 The typical workflow follows these steps:
 
 Design receiver array using point generation functions
@@ -109,7 +114,7 @@ Movement Ecology: Study fish movement patterns and habitat use
 Detection Modeling: Understand factors affecting acoustic detection range
 Simulation Studies: Test system performance under different scenarios
 
-Vignette
+##Vignette
 For detailed examples and tutorials, see the package vignette:
 rvignette("positionR_tutorial", package = "positionR")
 Dependencies
@@ -122,21 +127,18 @@ dplyr - Data manipulation
 gdistance - Cost-distance calculations
 circular - Circular statistics for movement modeling
 
-Citation
+##Citation
 If you use positionR in your research, please cite:
-[Your Name] ([Year]). positionR: Acoustic Telemetry System Design and Fish Movement Simulation. 
-R package version [version]. https://github.com/[username]/positionR
-Contributing
+Brownscombe, J.W. (2025). positionR: Acoustic Telemetry System Design and Fish Movement Simulation. 
+R package version [version]. https://github.com/jakebrownscombe/positionR
+
+##Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
-License
-This project is licensed under [Your License] - see the LICENSE file for details.
+
+
 Contact
 
-Author: [Your Name]
-Email: [your.email@domain.com]
-GitHub: @yourusername
+Author: Dr. Jacob Brownscombe
+Email: jakebrownscombe@gmail.com
+GitHub: @jakebrownscombe
 
-Acknowledgments
-
-Thanks to contributors and the acoustic telemetry community
-Built with R and the amazing ecosystem of spatial analysis packages
