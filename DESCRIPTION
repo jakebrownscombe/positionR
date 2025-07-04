@@ -12,10 +12,16 @@ RoxygenNote: 7.3.1
 URL: https://github.com/jakebrownscombe/positionR
 BugReports: https://github.com/jakebrownscombe/positionR/issues
 Imports: 
+    dplyr,
+    gdistance,
     ggplot2,
     methods,
+    patchwork,
     raster,
-    sf
+    scales,
+    sf,
+    stats,
+    tidyr
 Suggests: 
     knitr,
     rmarkdown

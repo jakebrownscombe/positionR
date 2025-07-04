@@ -18,11 +18,13 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-This package provides tools for generating different types of point patterns within spatial boundaries (rasters or polygons). You can create:
+positionR provides a series of tools for acoustic telemetry studies:
 
-- Regular grid patterns with exact point counts
-- Regular grid patterns with specified spacing
-- Random point distributions
+- generating acoustic receiver arrays with different layouts
+- defining receiver detection range models
+- estimating shortest path distances from receivers to raster cells across study systems
+- predicting receiver array detection efficiency across study systems based on defined detection range models
+
 
 ## Setup
 
@@ -35,7 +37,15 @@ library(ggplot2)
 # Set seed for reproducible results
 set.seed(123)
 ```
-s
+
+
+## Generate receiver arrays
+
+These functions generate receiver array layouts within spatial boundaries (rasters or polygons). You can create:
+
+- Regular grid patterns based on specified receiver counts (generate_exact_regular_points)
+- Regular grid patterns with specified receiver spacing (generate_spaced_points)
+- Random distributions based on specified receiver numbers (generate_random_points)
 
 
 ```{r generate-receiver-locations}
@@ -43,7 +53,6 @@ s
 #generate points based on raster or polygon
 #using example polygon of Stoney Lake, Ontario, Canada included in package
 
-devtools::load_all()
 data("depth_raster")
 points_regular <- generate_exact_regular_points(depth_raster, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
 points_spaced <- generate_spaced_points(depth_raster, spacing = 1000, seed = 123) #regular set spacing
@@ -60,6 +69,158 @@ plot_points_on_input(depth_raster, points_random)
 
 
 
-```{r session-info}
-sessionInfo()
+
+```{r receiver-raster-distance-estimation}
+
+# calculate shortest path distances from receivers to raster cells, 
+# which is useful for predicting detection efficiency from range models 
+
+station_distances_df <- calculate_station_distances(raster = depth_raster, 
+                                                    receiver_frame = points_regular, 
+                                                    max_distance = 30000)
+
+#plot check for a few receivers
+ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==1), 
+                ggplot2::aes(x, y, fill=cost_distance)) +
+  ggplot2::geom_raster() +
+  ggplot2::scale_fill_viridis_c(option="magma", name="Distance (m)") +
+  ggplot2::geom_point(data=points_regular %>% dplyr::filter(point_id==1), 
+                     ggplot2::aes(x,y), col="green", size=4, inherit.aes = FALSE) +
+  ggplot2::theme_minimal() +
+  ggplot2::coord_sf()
+
+ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==100), 
+                ggplot2::aes(x, y, fill=cost_distance)) +
+  ggplot2::geom_raster() +
+  ggplot2::scale_fill_viridis_c(option="magma", name="Distance (m)") +
+  ggplot2::geom_point(data=points_regular %>% dplyr::filter(point_id==100), 
+                     ggplot2::aes(x,y), col="green", size=4, inherit.aes = FALSE) +
+  ggplot2::theme_minimal() +
+  ggplot2::coord_sf()
+
 ```
+
+
+
+
+```{r generate-detection-range-model}
+
+# It is more optimal to have information on detection range for your study system/receiver array from in situ range testing. 
+# If you lack this, it can be estimated with this function by setting:
+# - min/max depth 
+# - d50 for each depth (distance of 50% detection efficiency)
+# - d95 for each depth (distance of 95% detection efficiency)
+
+# these could be estimated from existing literature from similar systems. The example below is representative of inland lakes,
+# in which range is generally fairly high.
+
+logistic_DE <- create_logistic_curve_depth(
+ min_depth = 1, 
+ max_depth = 35,
+ d50_min_depth = 100, 
+ d95_min_depth = 300,
+ d50_max_depth = 800, 
+ d95_max_depth = 1500,
+ plot = TRUE,              
+ return_model = TRUE,
+ return_object = TRUE
+)
+
+#logistic_DE$log_model #the fitted model, can be used for predictions
+#logistic_DE$line_plot #plots also saved, this is the line plot 
+
+```
+
+
+
+
+
+```{r predict-detection-efficiency}
+
+# Use detection range model to predict detection efficiency for each receiver in the system based on distance and depth
+# these predictions are useful for calculating animal positions and habitat selection below
+station_distances_df$DE_pred <- stats::predict(logistic_DE$log_model, 
+                                        newdata = station_distances_df %>% 
+                                         dplyr::rename(dist_m = cost_distance) %>% 
+                                         dplyr::mutate(depth_m = abs(raster_value)),
+                                        type = "response")
+
+# plot check for one station
+ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==1), 
+                ggplot2::aes(x, y, fill=DE_pred)) +
+  ggplot2::geom_raster()+
+  ggplot2::scale_fill_viridis_c(option="magma")
+
+# system level predictions of detection efficiency. This is more relevant to tracking system design
+# can select "cumulative", "3_plus" or "both" for output type.
+# 3_plus (and both) take some time, cumulative is fast. just calculating cumulative here
+system_DE <- calculate_detection_system(distance_frame = station_distances_df, 
+                                        receiver_frame = points_regular, 
+                                        model = logistic_DE$log_model, 
+                                        output_type = "cumulative", 
+                                        plots = TRUE)
+
+# key outputs are:
+# system_DE$data #the output data
+# system_DE$plots$cumulative #plot 
+# system_DE$plots$prob_3_plus #plot if set, not currently calculated
+
+
+```
+
+
+
+```{r predict-detection-efficiency, fig.width=7, fig.height=5}
+
+# Simulate correlated random walks and estimate detections based on reciever array and detection range models
+
+# Generate fish tracks with detections
+fish_simulation <- simulate_fish_tracks(
+ raster = depth_raster, #depth raster used for detection efficiency calcs above
+ detection_system = system_DE$data, #predicted system wide detection efficiency 
+ station_distances = station_distances_df, #distance info 
+ n_paths = 10,
+ n_steps = 100,
+ step_length_mean = 50,     # Mean step length in meters
+ step_length_sd = 30,        # SD of step lengths
+ turning_angle_mean = 0,     # Mean turning angle (0 = straight)
+ turning_angle_sd = 30,      # SD of turning angles in degrees
+ time_step = 60,             # Seconds between steps
+ detection_type = "cumulative",  # just single detections with 'cumulative'
+ seed = 123
+)
+
+# The data
+#fish_simulation$tracks #the tracks
+#fish_simulation$detections  # System-level detections
+#fish_simulation$station_detections  # Individual receiver detections 
+
+
+#basic tracks plot
+raster_df <- raster::as.data.frame(depth_raster, xy = TRUE)
+ggplot2::ggplot() +
+  ggplot2::geom_raster(data = raster_df, ggplot2::aes(x = x, y = y, fill = layer)) +
+  ggplot2::scale_fill_gradient(low = "blue4", high = "cornflowerblue", 
+                              na.value = "transparent", name = "Depth") +
+  ggplot2::geom_path(data = fish_simulation$tracks, 
+                    ggplot2::aes(x = x, y = y, group = path_id, color = factor(path_id)), 
+                    linewidth = 0.8) +
+  ggplot2::scale_color_discrete(name = "Path ID") +
+  ggplot2::theme_minimal() +
+  ggplot2::coord_sf()
+
+
+
+# Plot detection results
+plot_fish_tracks(fish_simulation, #sim outputs
+                 depth_raster, #depth raster
+                 points_regular, #receiver array used
+                 show_detections = TRUE)
+
+
+# Detection performance analysis 
+detection_performance <- analyze_detection_performance(fish_simulation)
+
+```
+
+
