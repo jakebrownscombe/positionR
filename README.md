@@ -1,3 +1,3 @@
-# positionR <img src="man/figures/logo.png" align="right" height="120" alt="" />
+# positionR <img src="man/figures/logo.png" align="left" height="120" alt="" />
 
 
