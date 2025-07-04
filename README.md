@@ -1,7 +1,7 @@
 # <img src="man/figures/logo.png" align="left" height="120" alt="" />
 
 
-#positionR
+## positionR
 Acoustic Telemetry System Design and Fish Movement Simulation
 positionR is an R package for designing acoustic telemetry systems and simulating fish movement with realistic detection patterns. The package provides tools for receiver placement optimization, detection efficiency modeling, and fish track simulation with detection events.
 Features
