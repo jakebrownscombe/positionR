@@ -170,7 +170,7 @@ system_DE <- calculate_detection_system(distance_frame = station_distances_df,
 
 
 
-```{r predict-detection-efficiency, fig.width=7, fig.height=5}
+```{r simulate-movements-detections, fig.width=7, fig.height=5}
 
 # Simulate correlated random walks and estimate detections based on reciever array and detection range models
 
