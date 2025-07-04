@@ -77,6 +77,60 @@ generate_exact_regular_points <- function(input_obj, n_points, seed = NULL) {
   return(regular_points_sf)
 }
 
+
+
+
+
+
+
+#' Prepare polygon from various spatial input types
+#'
+#' This helper function converts different spatial object types (raster, sf, sp)
+#' into a standardized sf polygon format for further processing. For rasters,
+#' it creates a polygon only from areas with actual data (non-NA values).
+#'
+#' @param input_obj A spatial object. Can be a RasterLayer, RasterBrick, RasterStack,
+#'   sf/sfc object, or SpatialPolygons/SpatialPolygonsDataFrame.
+#'
+#' @return A list with three elements:
+#'   \item{polygon}{An sf polygon object representing the data boundary}
+#'   \item{type}{Character string indicating input type ("raster" or "polygon")}
+#'   \item{original}{The original input object}
+#'
+#' @details
+#' For raster inputs, the function creates a mask of non-NA values and converts
+#' only those areas to polygons using dissolve = TRUE. This ensures that points
+#' are only generated within areas that contain actual data.
+#'
+#' @keywords internal
+prepare_polygon <- function(input_obj) {
+  if (inherits(input_obj, c("RasterLayer", "RasterBrick", "RasterStack"))) {
+    # Convert raster to polygon - but only areas with actual data
+    # First, create a mask of non-NA values
+    raster_mask <- !is.na(input_obj)
+
+    # Convert mask to polygon (this gives us only the data area)
+    raster_poly <- raster::rasterToPolygons(raster_mask, fun = function(x) x == 1, dissolve = TRUE)
+    polygon_sf <- sf::st_as_sf(raster_poly)
+
+    # Keep only geometry to avoid attribute warnings
+    polygon_sf <- sf::st_geometry(polygon_sf)
+    polygon_sf <- sf::st_sf(geometry = polygon_sf)
+
+    return(list(polygon = polygon_sf, type = "raster", original = input_obj))
+  } else if (inherits(input_obj, c("sf", "sfc"))) {
+    # Already a polygon
+    return(list(polygon = input_obj, type = "polygon", original = input_obj))
+  } else if (inherits(input_obj, c("SpatialPolygons", "SpatialPolygonsDataFrame"))) {
+    # Convert sp to sf
+    polygon_sf <- sf::st_as_sf(input_obj)
+    return(list(polygon = polygon_sf, type = "polygon", original = input_obj))
+  } else {
+    stop("Input must be a raster (RasterLayer) or polygon (sf, sp)")
+  }
+}
+
+
 #' Generate points with specified spacing within spatial boundaries
 #'
 #' Creates a grid of points with a user-defined spacing within the boundaries
@@ -112,13 +166,10 @@ generate_exact_regular_points <- function(input_obj, n_points, seed = NULL) {
 #'
 #' @export
 generate_spaced_points <- function(input_obj, spacing, seed = NULL) {
-
   if (!is.null(seed)) set.seed(seed)
-
   # Prepare the polygon
   prep <- prepare_polygon(input_obj)
   polygon_sf <- prep$polygon
-
   # Get extent
   if (prep$type == "raster") {
     ext <- raster::extent(prep$original)
@@ -126,40 +177,34 @@ generate_spaced_points <- function(input_obj, spacing, seed = NULL) {
     bbox <- sf::st_bbox(polygon_sf)
     ext <- raster::extent(bbox["xmin"], bbox["xmax"], bbox["ymin"], bbox["ymax"])
   }
-
   # Generate regular grid with specified spacing
   x_seq <- seq(ext@xmin + spacing/2, ext@xmax - spacing/2, by = spacing)
   y_seq <- seq(ext@ymin + spacing/2, ext@ymax - spacing/2, by = spacing)
-
   # Create all combinations
   grid_points <- expand.grid(x = x_seq, y = y_seq)
-
   # Convert to sf points
   grid_sf <- sf::st_as_sf(grid_points, coords = c("x", "y"), crs = sf::st_crs(polygon_sf))
-
-  # Keep only points within the polygon
+  # Keep only points within the polygon (now this is the actual data area!)
   points_within <- sf::st_intersection(grid_sf, polygon_sf)
-
   # Extract coordinates
   coords <- sf::st_coordinates(points_within)
   points_within$x <- coords[,1]
   points_within$y <- coords[,2]
-
   # Add point ID
   points_within$point_id <- 1:nrow(points_within)
-
   # Extract values if input was raster
   if (prep$type == "raster") {
     points_sp <- methods::as(points_within, "Spatial")
     raster_values <- raster::extract(prep$original, points_sp)
     points_within$raster_value <- raster_values
   }
-
   # Add method info as attribute
   attr(points_within, "method_info") <- paste0(" (", spacing, "m spacing)")
-
   return(points_within)
 }
+
+
+
 
 #' Generate random points within spatial boundaries
 #'

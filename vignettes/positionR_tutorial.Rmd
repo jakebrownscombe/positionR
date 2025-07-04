@@ -38,15 +38,18 @@ set.seed(123)
 s
 
 
-```{r generate-points}
+```{r generate-receiver-locations}
 
 #generate points based on raster or polygon
 #using example polygon of Stoney Lake, Ontario, Canada included in package
 
+devtools::load_all()
 data("depth_raster")
 points_regular <- generate_exact_regular_points(depth_raster, n_points = 100, seed = 123) #regular spacing of set # of points (actual number may vary slightly)
 points_spaced <- generate_spaced_points(depth_raster, spacing = 1000, seed = 123) #regular set spacing
 points_random <- generate_random_points(depth_raster, n_points = 100, seed = 123) #random locations 
+
+points_spaced #note this has depth values for each point generated
 
 #plot generated points
 plot_points_on_input(depth_raster, points_regular)
