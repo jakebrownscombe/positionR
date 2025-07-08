@@ -24,6 +24,7 @@ positionR provides a series of tools for acoustic telemetry studies:
 - defining receiver detection range models
 - estimating shortest path distances from receivers to raster cells across study systems
 - predicting receiver array detection efficiency across study systems based on defined detection range models
+- generating correlated random walks to simulate animal movements, and generate detections based on the range model 
 
 
 ## Setup
@@ -65,6 +66,7 @@ plot_points_on_input(depth_raster, points_regular)
 plot_points_on_input(depth_raster, points_spaced)
 plot_points_on_input(depth_raster, points_random)
 ```
+
 
 
 
@@ -117,10 +119,10 @@ ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==100),
 logistic_DE <- create_logistic_curve_depth(
  min_depth = 1, 
  max_depth = 35,
- d50_min_depth = 100, 
- d95_min_depth = 300,
- d50_max_depth = 800, 
- d95_max_depth = 1500,
+ d50_min_depth = 500, 
+ d95_min_depth = 1000,
+ d50_max_depth = 1000, 
+ d95_max_depth = 2000,
  plot = TRUE,              
  return_model = TRUE,
  return_object = TRUE
@@ -146,10 +148,12 @@ station_distances_df$DE_pred <- stats::predict(logistic_DE$log_model,
                                         type = "response")
 
 # plot check for one station
-ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==1), 
+ggplot2::ggplot(station_distances_df %>% dplyr::filter(station_no==10), 
                 ggplot2::aes(x, y, fill=DE_pred)) +
   ggplot2::geom_raster()+
   ggplot2::scale_fill_viridis_c(option="magma")
+
+
 
 # system level predictions of detection efficiency. This is more relevant to tracking system design
 # can select "cumulative", "3_plus" or "both" for output type.
@@ -224,3 +228,61 @@ detection_performance <- analyze_detection_performance(fish_simulation)
 ```
 
 
+
+
+```{r positioning, fig.width=7, fig.height=5}
+
+# calculate detection fields for detected receivers and non-detected receivers 
+positioning_results <- calculate_fish_positions(
+  station_detections = fish_simulation$station_detections, # fish detections
+  station_distances_df = station_distances_df,    # distances from each station to each raster cell
+  receiver_stations = points_regular,             # receiver stations
+  de_model = logistic_DE$log_model,               # Apply DE model
+  bin_size_seconds = 3600,                        # 1 hour
+  detection_weight = 0.5,                         # default 0.5 (equal weighting)
+  non_detection_weight = 0.5,                     # default 0.5 (equal weighting)
+  max_non_detection_distance = 2000,              # including non-detecting receivers 2km from detection
+  normalization_method = "min_max",               # default, other options available 
+  fish_id_col = "path_id",                        # Specify fish ID column
+  time_col = "time_seconds",                      # Specify time column
+  station_col = "station_id",                     # Specify station column
+  verbose = TRUE                                  # Full verbose output
+)
+
+
+# Plot each panel separately (for R markdown output, can do type='all')
+fish_select <- 1
+time_select <- 0
+
+plot_fish_positions(
+  positioning_results = positioning_results,
+  depth_raster_df = depth_raster,                # Optional depth data
+  fish_select = fish_select,                     # Fish ID to plot
+  time_select = time_select,                     # Time bin to plot
+  prob_threshold = 0.05,                          # Minimum probability to display
+  plot_type = "detection",                       # 'detection', 'non_detection', 'integrated', or 'all'
+  return_list = FALSE                            # Return combined plot
+)
+
+plot_fish_positions(
+  positioning_results = positioning_results,
+  depth_raster_df = depth_raster,                # Optional depth data
+  fish_select = fish_select,                     # Fish ID to plot
+  time_select = time_select,                     # Time bin to plot
+  plot_type = "non_detection",                   # 'detection', 'non_detection', 'integrated', or 'all'
+  return_list = FALSE                            # Return combined plot
+)
+
+plot_fish_positions(
+  positioning_results = positioning_results,
+  depth_raster_df = depth_raster,                # Optional depth data
+  fish_select = fish_select,                     # Fish ID to plot
+  time_select = time_select,                     # Time bin to plot
+  prob_threshold = 0.05,                         # Minimum probability to display
+  detection_threshold = 0.05,                    # added to limit integrated probabilities to within higher probability detection areas
+  plot_type = "integrated",                      # 'detection', 'non_detection', 'integrated', or 'all'
+  return_list = FALSE                            # Return combined plot
+)
+
+
+```
