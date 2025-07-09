@@ -183,7 +183,7 @@ fish_simulation <- simulate_fish_tracks(
  raster = depth_raster, #depth raster used for detection efficiency calcs above
  detection_system = system_DE$data, #predicted system wide detection efficiency 
  station_distances = station_distances_df, #distance info 
- n_paths = 10,
+ n_paths = 1,
  n_steps = 100,
  step_length_mean = 50,     # Mean step length in meters
  step_length_sd = 30,        # SD of step lengths
@@ -284,5 +284,51 @@ plot_fish_positions(
   return_list = FALSE                            # Return combined plot
 )
 
+
+```
+
+
+
+```{r particle filtering}
+
+movement_params <- list(
+  step_length_mean = 50,     # Same default as simulate_fish_tracks
+  step_length_sd = 20,       # Same default
+  turning_angle_mean = 0,    # Same default (degrees)
+  turning_angle_sd = 45      # Same default (degrees)
+)
+
+
+# Extract parameters from your simulation
+sim_params <- fish_simulation$parameters
+
+# Use directly in particle filter
+pf_results <- particle_filter_positioning(
+  detection_data = fish_simulation$station_detections,
+  station_coords = points_regular,
+  de_model = logistic_DE$log_model,
+  boundary_raster = depth_raster,
+  n_cores = 12,
+  movement_params = list(
+    step_length_mean = sim_params$step_length_mean,      # 50
+    step_length_sd = sim_params$step_length_sd,          # 20  
+    turning_angle_mean = sim_params$turning_angle_mean,  # 0
+    turning_angle_sd = sim_params$turning_angle_sd       # 45
+  ),
+  n_particles = 10
+)
+
+```
+
+```{r particle filtering plot, fig.width=7, fig.height=5}
+
+plot_particle_filter_results(
+  pf_results = pf_results,
+  fish_select = 1,
+  station_coords = points_regular,
+  detection_data = fish_simulation$station_detections,
+  depth_raster_df = depth_raster,
+  actual_track = fish_simulation$fish_tracks  
+)
 
 ```
