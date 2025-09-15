@@ -15,7 +15,8 @@ Invisibly returns NULL. Called for side effect of printing summary report.
 }
 \description{
 Displays a formatted report of detection performance statistics including
-overall rates, summary statistics, and individual path performance.
+overall rates, summary statistics, individual path performance, and
+receiver-specific performance.
 }
 \details{
 The printed report includes:
@@ -23,6 +24,7 @@ The printed report includes:
 \item Overall detection performance across all paths
 \item Summary statistics (mean, median, range, standard deviation)
 \item Individual path performance breakdown
+\item Individual receiver performance breakdown
 }
 }
 \examples{

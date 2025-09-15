@@ -9,12 +9,15 @@ plot_fish_tracks(
   raster,
   receiver_frame = NULL,
   show_detections = TRUE,
-  path_alpha = 0.7
+  path_alpha = 0.7,
+  color_by = "path_id",
+  point_size = 1.5,
+  sample_rate = 1
 )
 }
 \arguments{
 \item{simulation_results}{List output from \code{\link{simulate_fish_tracks}}
-containing tracks, detections, and station_detections.}
+containing tracks and station_detections.}
 
 \item{raster}{A RasterLayer object used as the background for plotting.}
 
@@ -25,6 +28,15 @@ Default is NULL.}
 Default is TRUE.}
 
 \item{path_alpha}{Numeric. Transparency level for path lines (0-1). Default is 0.7.}
+
+\item{color_by}{Character. What to color the tracks by: "path_id" (default),
+"behavioral_state" (if behavioral states used), or "spawning_phase" (if spawning behavior used).
+Default is "path_id".}
+
+\item{point_size}{Numeric. Size of points when plotting states/phases. Default is 1.5.}
+
+\item{sample_rate}{Numeric. Fraction of points to plot (1 = all points, 0.1 = 10\% of points).
+Useful for long tracks to reduce overplotting. Default is 1.}
 }
 \value{
 A ggplot2 object showing fish tracks, detection events, and receiver stations.
@@ -57,7 +69,6 @@ the visualization based on available data (tracks only vs. full detection simula
 # Generate and plot fish tracks
 fish_sim <- simulate_fish_tracks(
   raster = depth_raster,
-  detection_system = detection_sys$data,
   station_distances = distances,
   n_paths = 2,
   n_steps = 100

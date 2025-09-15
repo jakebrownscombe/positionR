@@ -7,9 +7,11 @@
 #' @param raster A RasterLayer object representing the study area. Non-NA cells
 #'   are treated as valid locations for distance calculations.
 #' @param receiver_frame An sf object containing receiver station locations.
-#'   Must have a 'point_id' column for station identification.
+#'   Must have a column for station identification (default is 'point_id').
 #' @param max_distance Numeric. Maximum distance (in map units) for calculations.
 #'   Distances beyond this threshold are set to NA. Default is NULL (no limit).
+#' @param station_col Character. Name of the column containing station identifiers.
+#'   Default is "point_id". Supports both numeric and character station IDs.
 #'
 #' @return A data frame in long format with the following columns:
 #'   \item{cell_id}{Unique identifier for each raster cell}
@@ -38,10 +40,10 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Generate receiver stations
+#' # Generate receiver stations with numeric IDs (default)
 #' stations <- generate_random_points(depth_raster, n_points = 5, seed = 123)
 #'
-#' # Calculate distances with no maximum limit
+#' # Calculate distances with default point_id column
 #' distances <- calculate_station_distances(depth_raster, stations)
 #'
 #' # Calculate distances with 1000m maximum
@@ -49,6 +51,15 @@
 #'   raster = depth_raster,
 #'   receiver_frame = stations,
 #'   max_distance = 1000
+#' )
+#'
+#' # Use with character station IDs
+#' # Assuming stoney_rx_deploy has a 'station_id' column with character IDs
+#' distances_char <- calculate_station_distances(
+#'   raster = depth_raster,
+#'   receiver_frame = stoney_rx_deploy,
+#'   max_distance = 3000,
+#'   station_col = "station_id"  # Specify the column with station IDs
 #' )
 #'
 #' # Analyze tortuosity patterns
@@ -67,7 +78,21 @@
 #' @export
 calculate_station_distances <- function(raster,
                                         receiver_frame,
-                                        max_distance = NULL) {
+                                        max_distance = NULL,
+                                        station_col = "point_id") {
+
+  # Validate inputs
+  if (!station_col %in% names(receiver_frame)) {
+    stop("Column '", station_col, "' not found in receiver_frame. ",
+         "Available columns: ", paste(names(receiver_frame), collapse = ", "))
+  }
+  
+  # Get station IDs from specified column
+  station_ids <- receiver_frame[[station_col]]
+  if (any(duplicated(station_ids))) {
+    stop("Station IDs in column '", station_col, "' must be unique. ",
+         "Found duplicates: ", paste(station_ids[duplicated(station_ids)], collapse = ", "))
+  }
 
   # Create uniform cost surface
   cost_raster <- raster
@@ -96,8 +121,9 @@ calculate_station_distances <- function(raster,
 
   # Calculate cost distances from each station
   for (i in 1:nrow(receiver_frame)) {
+    current_station_id <- station_ids[i]
     cat("Calculating distances for station", i, "of", nrow(receiver_frame),
-        "(ID:", receiver_frame$point_id[i], ")\n")
+        "(ID:", current_station_id, ")\n")
 
     # Get single point
     single_point <- points_sp[i, ]
@@ -123,9 +149,11 @@ calculate_station_distances <- function(raster,
       straight_distances[straight_distances > max_distance] <- NA
     }
 
-    # Add to results dataframe
-    cost_col_name <- paste0("cost_dist_station_", receiver_frame$point_id[i])
-    straight_col_name <- paste0("straight_dist_station_", receiver_frame$point_id[i])
+    # Add to results dataframe with sanitized column names
+    # Replace any non-standard characters in station ID for column naming
+    safe_station_id <- gsub("[^[:alnum:]_]", "_", as.character(current_station_id))
+    cost_col_name <- paste0("cost_dist_station_", safe_station_id)
+    straight_col_name <- paste0("straight_dist_station_", safe_station_id)
 
     results_df[[cost_col_name]] <- cost_distances
     results_df[[straight_col_name]] <- straight_distances
@@ -138,14 +166,23 @@ calculate_station_distances <- function(raster,
   cost_cols <- grep("^cost_dist_station_", names(results_df), value = TRUE)
   straight_cols <- grep("^straight_dist_station_", names(results_df), value = TRUE)
 
+  # Create a mapping of safe column names back to original station IDs
+  station_mapping <- data.frame(
+    safe_name = gsub("[^[:alnum:]_]", "_", as.character(station_ids)),
+    original_id = station_ids,
+    stringsAsFactors = FALSE
+  )
+
   # Pivot cost distances to long format
   cost_long <- results_df %>%
     dplyr::select(cell_id, x, y, raster_value, dplyr::all_of(cost_cols)) %>%
     tidyr::pivot_longer(cols = dplyr::all_of(cost_cols),
                         names_to = "station_col",
                         values_to = "cost_distance") %>%
-    dplyr::mutate(station_no = as.numeric(gsub("cost_dist_station_", "", station_col))) %>%
-    dplyr::select(-station_col)
+    dplyr::mutate(safe_name = gsub("cost_dist_station_", "", station_col)) %>%
+    dplyr::left_join(station_mapping, by = "safe_name") %>%
+    dplyr::rename(station_no = original_id) %>%
+    dplyr::select(-station_col, -safe_name)
 
   # Pivot straight distances to long format
   straight_long <- results_df %>%
@@ -153,15 +190,24 @@ calculate_station_distances <- function(raster,
     tidyr::pivot_longer(cols = dplyr::all_of(straight_cols),
                         names_to = "station_col",
                         values_to = "straight_distance") %>%
-    dplyr::mutate(station_no = as.numeric(gsub("straight_dist_station_", "", station_col))) %>%
-    dplyr::select(-station_col)
+    dplyr::mutate(safe_name = gsub("straight_dist_station_", "", station_col)) %>%
+    dplyr::left_join(station_mapping, by = "safe_name") %>%
+    dplyr::rename(station_no = original_id) %>%
+    dplyr::select(-station_col, -safe_name)
 
   # Combine cost and straight distances
   final_df <- cost_long %>%
     dplyr::left_join(straight_long, by = c("cell_id", "station_no")) %>%
     dplyr::mutate(tortuosity = cost_distance / straight_distance) %>%
+    dplyr::filter(!is.na(cost_distance)) %>%
     dplyr::select(cell_id, x, y, raster_value, station_no, cost_distance, straight_distance, tortuosity) %>%
     dplyr::arrange(station_no, cell_id)
+
+  cat("Distance calculations complete!\n")
+  cat("Result contains", nrow(final_df), "station-cell combinations\n")
+  cat("Station IDs (", class(final_df$station_no), "):", 
+      paste(head(unique(final_df$station_no), 5), collapse = ", "),
+      if(length(unique(final_df$station_no)) > 5) "..." else "", "\n")
 
   return(final_df)
 }

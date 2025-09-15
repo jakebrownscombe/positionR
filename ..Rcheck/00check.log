@@ -1,0 +1,1432 @@
+* using log directory ‘/Users/jacobbrownscombe/Dropbox/DFO/DFO_JWB/positionR_git/positionR/..Rcheck’
+* using R version 4.2.1 (2022-06-23)
+* using platform: aarch64-apple-darwin20 (64-bit)
+* using session charset: UTF-8
+* using option ‘--no-manual’
+* checking for file ‘./DESCRIPTION’ ... OK
+* this is package ‘positionR’ version ‘1.0.0’
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... NOTE
+Found the following hidden files and directories:
+  .DS_Store
+  .Rhistory
+  .gitignore
+  R/.DS_Store
+  data/.DS_Store
+  vignettes/.DS_Store
+  vignettes/.Rhistory
+  vignettes/.gitignore
+  ..Rcheck
+  .Rproj.user
+  .claude
+  .git
+These were most likely included in error. See section ‘Package
+structure’ in the ‘Writing R Extensions’ manual.
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘positionR’ can be installed ... WARNING
+Found the following significant warnings:
+  Warning: package ‘dplyr’ was built under R version 4.2.3
+See ‘/Users/jacobbrownscombe/Dropbox/DFO/DFO_JWB/positionR_git/positionR/..Rcheck/00install.out’ for details.
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Checking should be performed on sources prepared by ‘R CMD build’.
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... WARNING
+Found the following directory with the name of a check directory:
+  ./..Rcheck
+Most likely, these were included erroneously.
+* checking R files for non-ASCII characters ... WARNING
+Found the following files with non-ASCII characters:
+  1.6_function_walks_detections.R
+  1.7.4_function_track_UD.R
+Portable packages must use only ASCII characters in their R code,
+except perhaps in comments.
+Use \uxxxx escapes for other characters.
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'library' or 'require' call not declared from: ‘ggplot2’
+'library' or 'require' call to ‘ggplot2’ in package code.
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+Namespaces in Imports field not imported from:
+  ‘ggnewscale’ ‘patchwork’ ‘randomForest’
+  All declared Imports should be used.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+aggregate_detections_for_prediction: no visible global function
+  definition for ‘%>%’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘fish_id’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘time_period’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘station_id’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘n_detections’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘detection_prob’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘distance_to_station’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘detection_date’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘station_no’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘cell_id’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘x’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘y’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘raster_value’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘cost_distance’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘straight_distance’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘tortuosity’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘first_detection_time’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘last_detection_time’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘mean_detection_prob’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘total_distance’
+aggregate_detections_for_prediction: no visible binding for global
+  variable ‘DE_pred’
+aggregate_non_detections: no visible global function definition for
+  ‘%>%’
+aggregate_non_detections: no visible binding for global variable
+  ‘fish_id’
+aggregate_non_detections: no visible binding for global variable
+  ‘time_period’
+aggregate_non_detections: no visible binding for global variable
+  ‘station_id’
+aggregate_non_detections: no visible binding for global variable
+  ‘detection_prob’
+aggregate_non_detections: no visible binding for global variable
+  ‘distance_to_station’
+aggregate_non_detections: no visible binding for global variable
+  ‘detection_date’
+aggregate_non_detections: no visible binding for global variable
+  ‘station_no’
+aggregate_non_detections: no visible binding for global variable
+  ‘cell_id’
+aggregate_non_detections: no visible binding for global variable ‘x’
+aggregate_non_detections: no visible binding for global variable ‘y’
+aggregate_non_detections: no visible binding for global variable
+  ‘raster_value’
+aggregate_non_detections: no visible binding for global variable
+  ‘cost_distance’
+aggregate_non_detections: no visible binding for global variable
+  ‘straight_distance’
+aggregate_non_detections: no visible binding for global variable
+  ‘tortuosity’
+aggregate_non_detections: no visible binding for global variable
+  ‘n_detections’
+aggregate_non_detections: no visible binding for global variable
+  ‘first_detection_time’
+aggregate_non_detections: no visible binding for global variable
+  ‘last_detection_time’
+aggregate_non_detections: no visible binding for global variable
+  ‘mean_detection_prob’
+aggregate_non_detections: no visible binding for global variable
+  ‘total_distance’
+aggregate_non_detections: no visible binding for global variable
+  ‘DE_pred’
+aggregate_probability: no visible global function definition for ‘%>%’
+aggregate_probability: no visible binding for global variable ‘cell_id’
+aggregate_probability: no visible binding for global variable ‘x’
+aggregate_probability: no visible binding for global variable ‘y’
+aggregate_probability: no visible binding for global variable ‘type’
+aggregate_probability: no visible binding for global variable ‘fish_id’
+aggregate_probability: no visible binding for global variable
+  ‘time_period’
+aggregate_probability: no visible binding for global variable
+  ‘DE_pred_normalized’
+aggregate_probability: no visible binding for global variable
+  ‘n_detections’
+aggregate_probability: no visible binding for global variable
+  ‘weighted_mean_DE_normalized’
+aggregate_probability: no visible binding for global variable ‘det_max’
+aggregate_probability: no visible binding for global variable ‘det_min’
+aggregate_probability: no visible binding for global variable
+  ‘det_range’
+aggregate_probability: no visible binding for global variable
+  ‘non_det_DE_normalized’
+aggregate_probability: no visible binding for global variable
+  ‘non_det_max’
+aggregate_probability: no visible binding for global variable
+  ‘non_det_min’
+aggregate_probability: no visible binding for global variable
+  ‘non_det_range’
+aggregate_probability: no visible binding for global variable
+  ‘weighted_mean_DE_normalized_scaled’
+aggregate_probability: no visible binding for global variable
+  ‘non_det_DE_normalized_scaled’
+aggregate_probability: no visible binding for global variable
+  ‘detections’
+aggregate_probability: no visible binding for global variable
+  ‘integrated_prob’
+analyze_behavioral_temperature: no visible global function definition
+  for ‘%>%’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘path_id’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘temp_bin’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘behavioral_state’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘n_steps’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘water_temp_c’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘time_spent’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘total_time_bin’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘mean_temp’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘total_time’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘step’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘next_state’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘n_transitions’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘total_from_state’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘proportion’
+analyze_behavioral_temperature: no visible binding for global variable
+  ‘transition_prob’
+analyze_depth_selection: no visible global function definition for
+  ‘%>%’
+analyze_depth_selection: no visible global function definition for
+  ‘filter’
+analyze_depth_selection: no visible binding for global variable
+  ‘fish_id’
+analyze_depth_selection: no visible binding for global variable
+  ‘time_period’
+analyze_depth_selection: no visible binding for global variable ‘type’
+analyze_depth_selection: no visible global function definition for
+  ‘group_by’
+analyze_depth_selection: no visible binding for global variable
+  ‘depth_bin’
+analyze_depth_selection: no visible global function definition for
+  ‘summarise’
+analyze_depth_selection: no visible global function definition for ‘n’
+analyze_depth_selection: no visible binding for global variable
+  ‘n_presence’
+analyze_depth_selection: no visible binding for global variable
+  ‘total_points’
+analyze_depth_selection: no visible binding for global variable
+  ‘depth_m’
+analyze_depth_selection: no visible global function definition for
+  ‘mutate’
+analyze_depth_selection: no visible binding for global variable
+  ‘n_absence’
+analyze_depth_selection: no visible binding for global variable
+  ‘availability_prop’
+analyze_depth_selection: no visible binding for global variable
+  ‘use_prop’
+analyze_depth_selection: no visible binding for global variable
+  ‘selection_ratio’
+analyze_depth_selection: no visible global function definition for
+  ‘median’
+analyze_depth_selection: no visible global function definition for ‘sd’
+analyze_depth_selection: no visible global function definition for
+  ‘quantile’
+analyze_depth_selection: no visible global function definition for
+  ‘wilcox.test’
+analyze_positioning_performance: no visible global function definition
+  for ‘%>%’
+analyze_positioning_performance: no visible binding for global variable
+  ‘fish_id’
+analyze_positioning_performance: no visible binding for global variable
+  ‘time_period’
+analyze_positioning_performance: no visible binding for global variable
+  ‘integrated_prob’
+analyze_single_dataset: no visible global function definition for
+  ‘complete.cases’
+analyze_single_dataset: no visible global function definition for ‘%>%’
+analyze_single_dataset: no visible global function definition for
+  ‘sample_n’
+analyze_single_dataset: no visible global function definition for
+  ‘randomForest’
+analyze_single_dataset: no visible global function definition for
+  ‘importance’
+calculate_95_ellipse_area: no visible global function definition for
+  ‘cov’
+calculate_95_ellipse_area: no visible global function definition for
+  ‘qchisq’
+calculate_detection_summaries: no visible global function definition
+  for ‘%>%’
+calculate_detection_summaries: no visible binding for global variable
+  ‘path_id’
+calculate_detection_summaries: no visible binding for global variable
+  ‘step’
+calculate_detection_summaries: no visible binding for global variable
+  ‘time_seconds’
+calculate_detection_summaries: no visible binding for global variable
+  ‘x’
+calculate_detection_summaries: no visible binding for global variable
+  ‘y’
+calculate_detection_summaries: no visible binding for global variable
+  ‘detected’
+calculate_detection_summaries: no visible binding for global variable
+  ‘detected_steps’
+calculate_detection_summaries: no visible binding for global variable
+  ‘total_steps’
+calculate_detection_summaries: no visible binding for global variable
+  ‘station_id’
+calculate_detection_summaries: no visible binding for global variable
+  ‘detections’
+calculate_detection_summaries: no visible binding for global variable
+  ‘total_opportunities’
+calculate_detection_summaries: no visible binding for global variable
+  ‘detection_prob’
+calculate_detection_summaries: no visible global function definition
+  for ‘median’
+calculate_detection_summaries: no visible global function definition
+  for ‘sd’
+calculate_detection_system: no visible global function definition for
+  ‘%>%’
+calculate_detection_system: no visible binding for global variable
+  ‘station_no’
+calculate_detection_system: no visible binding for global variable
+  ‘cost_distance’
+calculate_detection_system: no visible binding for global variable
+  ‘raster_value’
+calculate_detection_system: no visible binding for global variable
+  ‘cell_id’
+calculate_detection_system: no visible binding for global variable ‘x’
+calculate_detection_system: no visible binding for global variable ‘y’
+calculate_detection_system: no visible binding for global variable
+  ‘DE_pred’
+calculate_detection_system: no visible binding for global variable
+  ‘cumulative_prob’
+calculate_detection_system: no visible binding for global variable
+  ‘prob_3_plus’
+calculate_fish_positions: no visible global function definition for
+  ‘%>%’
+calculate_fish_positions: no visible global function definition for
+  ‘setNames’
+calculate_fish_positions: no visible global function definition for
+  ‘:=’
+calculate_fish_positions: no visible binding for global variable
+  ‘station_id_int’
+calculate_fish_positions: no visible binding for global variable
+  ‘fish_id_int’
+calculate_fish_positions: no visible binding for global variable
+  ‘station_id’
+calculate_fish_positions: no visible binding for global variable
+  ‘point_id’
+calculate_fish_positions: no visible binding for global variable
+  ‘start_date’
+calculate_fish_positions: no visible binding for global variable
+  ‘end_date’
+calculate_fish_positions: no visible binding for global variable
+  ‘station_no’
+calculate_fish_positions: no visible binding for global variable
+  ‘cost_distance’
+calculate_fish_positions: no visible binding for global variable
+  ‘raster_value’
+calculate_fish_positions: no visible binding for global variable
+  ‘cell_id’
+calculate_fish_positions: no visible binding for global variable
+  ‘DE_pred’
+calculate_fish_positions: no visible binding for global variable
+  ‘time_period’
+calculate_fish_positions: no visible global function definition for
+  ‘case_when’
+calculate_fish_positions: no visible binding for global variable
+  ‘time_period_posix’
+calculate_fish_positions: no visible binding for global variable
+  ‘time_period_label’
+calculate_fish_positions: no visible binding for global variable
+  ‘time_aggregation_method’
+calculate_fish_positions: no visible binding for global variable
+  ‘detected’
+calculate_fish_positions: no visible binding for global variable
+  ‘detection_date’
+calculate_fish_positions: no visible global function definition for
+  ‘calculate_station_de_characteristics’
+calculate_fish_positions: no visible global function definition for
+  ‘apply_information_weighting’
+calculate_fish_positions: no visible binding for global variable
+  ‘fish_id’
+calculate_fish_positions: no visible binding for global variable
+  ‘fish_id_char’
+calculate_fish_positions: no visible binding for global variable ‘X’
+calculate_fish_positions: no visible binding for global variable ‘Y’
+calculate_fish_positions: no visible binding for global variable ‘x’
+calculate_fish_positions: no visible binding for global variable ‘y’
+calculate_overall_partial_dependence_single: no visible global function
+  definition for ‘predict’
+calculate_overall_partial_dependence_single: no visible global function
+  definition for ‘%>%’
+calculate_overall_partial_dependence_single: no visible global function
+  definition for ‘group_by’
+calculate_overall_partial_dependence_single: no visible global function
+  definition for ‘sym’
+calculate_overall_partial_dependence_single: no visible global function
+  definition for ‘summarise’
+calculate_overall_partial_dependence_single: no visible binding for
+  global variable ‘prob_presence’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘predict’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘%>%’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘group_by’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘sym’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘summarise’
+calculate_partial_dependence_fish_single: no visible binding for global
+  variable ‘prob_presence’
+calculate_partial_dependence_fish_single: no visible global function
+  definition for ‘mutate’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘predict’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘%>%’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘group_by’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘sym’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘summarise’
+calculate_partial_dependence_time_single: no visible binding for global
+  variable ‘prob_presence’
+calculate_partial_dependence_time_single: no visible global function
+  definition for ‘mutate’
+calculate_space_use: no visible global function definition for ‘%>%’
+calculate_space_use: no visible binding for global variable ‘.data’
+calculate_space_use_single: no visible global function definition for
+  ‘%>%’
+calculate_station_distances: no visible global function definition for
+  ‘%>%’
+calculate_station_distances: no visible binding for global variable
+  ‘cell_id’
+calculate_station_distances: no visible binding for global variable ‘x’
+calculate_station_distances: no visible binding for global variable ‘y’
+calculate_station_distances: no visible binding for global variable
+  ‘raster_value’
+calculate_station_distances: no visible binding for global variable
+  ‘original_id’
+calculate_station_distances: no visible binding for global variable
+  ‘safe_name’
+calculate_station_distances: no visible binding for global variable
+  ‘cost_distance’
+calculate_station_distances: no visible binding for global variable
+  ‘straight_distance’
+calculate_station_distances: no visible binding for global variable
+  ‘station_no’
+calculate_station_distances: no visible global function definition for
+  ‘head’
+calculate_threshold_summary_stats: no visible global function
+  definition for ‘%>%’
+calculate_threshold_summary_stats: no visible binding for global
+  variable ‘method’
+calculate_threshold_summary_stats: no visible binding for global
+  variable ‘threshold’
+calculate_threshold_summary_stats: no visible binding for global
+  variable ‘area_ratio’
+calculate_threshold_summary_stats: no visible global function
+  definition for ‘median’
+calculate_threshold_summary_stats: no visible global function
+  definition for ‘sd’
+calculate_threshold_summary_stats: no visible binding for global
+  variable ‘overlap_percentage’
+calculate_track_overlap: no visible global function definition for
+  ‘%>%’
+calculate_track_overlap: no visible binding for global variable
+  ‘fish_id’
+calculate_track_overlap: no visible binding for global variable
+  ‘time_period_label’
+compare_space_use_thresholds: no visible global function definition for
+  ‘%>%’
+compare_space_use_thresholds: no visible binding for global variable
+  ‘fish_id’
+compare_space_use_thresholds: no visible binding for global variable
+  ‘time_period_label’
+compare_space_use_thresholds: no visible binding for global variable
+  ‘positioning_area_hectares’
+compare_space_use_thresholds: no visible binding for global variable
+  ‘track_area_hectares’
+compare_space_use_thresholds: no visible binding for global variable
+  ‘area_difference_hectares’
+create_comparison_analysis: no visible global function definition for
+  ‘ggplot’
+create_comparison_analysis: no visible global function definition for
+  ‘aes’
+create_comparison_analysis: no visible global function definition for
+  ‘sym’
+create_comparison_analysis: no visible binding for global variable
+  ‘prob_presence’
+create_comparison_analysis: no visible binding for global variable
+  ‘method’
+create_comparison_analysis: no visible global function definition for
+  ‘geom_line’
+create_comparison_analysis: no visible global function definition for
+  ‘geom_hline’
+create_comparison_analysis: no visible global function definition for
+  ‘labs’
+create_comparison_analysis: no visible global function definition for
+  ‘scale_color_manual’
+create_comparison_analysis: no visible global function definition for
+  ‘theme_minimal’
+create_comparison_analysis: no visible global function definition for
+  ‘theme’
+create_comparison_analysis: no visible global function definition for
+  ‘element_text’
+create_comparison_analysis: no visible global function definition for
+  ‘approx’
+create_comparison_analysis: no visible binding for global variable
+  ‘difference’
+create_comparison_analysis: no visible global function definition for
+  ‘geom_ribbon’
+create_comparison_analysis: no visible global function definition for
+  ‘cor’
+create_ellipse_polygon: no visible global function definition for ‘cov’
+create_ellipse_polygon: no visible global function definition for
+  ‘qchisq’
+create_ellipse_polygon_data: no visible global function definition for
+  ‘cov’
+create_ellipse_polygon_data: no visible global function definition for
+  ‘qchisq’
+create_logistic_curve_depth: no visible binding for global variable
+  ‘dist_m’
+create_logistic_curve_depth: no visible binding for global variable
+  ‘DE’
+create_logistic_curve_depth: no visible binding for global variable
+  ‘depth_m’
+create_non_detections: no visible global function definition for ‘%>%’
+create_non_detections: no visible global function definition for
+  ‘all_of’
+create_non_detections: no visible binding for global variable
+  ‘point_id’
+create_non_detections: no visible binding for global variable
+  ‘station_x’
+create_non_detections: no visible binding for global variable
+  ‘station_y’
+create_non_detections: no visible binding for global variable
+  ‘raster_value’
+create_non_detections: no visible binding for global variable
+  ‘time_period’
+create_non_detections: no visible binding for global variable ‘fish_id’
+create_non_detections: no visible binding for global variable
+  ‘detection_date’
+create_non_detections: no visible binding for global variable
+  ‘station_id’
+create_non_detections: no visible binding for global variable
+  ‘start_date’
+create_non_detections: no visible binding for global variable
+  ‘end_date’
+create_non_detections: no visible binding for global variable ‘depth’
+create_non_detections: no visible binding for global variable
+  ‘candidate_x’
+create_non_detections: no visible binding for global variable
+  ‘detecting_x’
+create_non_detections: no visible binding for global variable
+  ‘candidate_y’
+create_non_detections: no visible binding for global variable
+  ‘detecting_y’
+create_non_detections: no visible binding for global variable
+  ‘distance_between_stations’
+create_non_detections: no visible binding for global variable
+  ‘candidate_station_id’
+create_non_detections: no visible binding for global variable
+  ‘candidate_depth’
+create_non_detections: no visible global function definition for
+  ‘any_of’
+create_non_detections: no visible binding for global variable ‘.’
+create_non_detections: no visible binding for global variable ‘x’
+create_non_detections: no visible binding for global variable ‘y’
+create_non_detections: no visible binding for global variable
+  ‘distance_to_station’
+create_non_detections: no visible binding for global variable
+  ‘detection_prob’
+create_non_detections: no visible binding for global variable
+  ‘detected’
+create_single_fish_plot: no visible global function definition for
+  ‘ggplot’
+create_single_fish_plot: no visible global function definition for
+  ‘geom_line’
+create_single_fish_plot: no visible global function definition for
+  ‘aes’
+create_single_fish_plot: no visible global function definition for
+  ‘sym’
+create_single_fish_plot: no visible binding for global variable
+  ‘prob_presence’
+create_single_fish_plot: no visible binding for global variable
+  ‘fish_id_factor’
+create_single_fish_plot: no visible global function definition for
+  ‘geom_hline’
+create_single_fish_plot: no visible global function definition for
+  ‘labs’
+create_single_fish_plot: no visible global function definition for
+  ‘theme_minimal’
+create_single_fish_plot: no visible global function definition for
+  ‘theme’
+create_single_fish_plot: no visible global function definition for
+  ‘element_text’
+create_single_overall_plot: no visible global function definition for
+  ‘ggplot’
+create_single_overall_plot: no visible global function definition for
+  ‘aes’
+create_single_overall_plot: no visible global function definition for
+  ‘sym’
+create_single_overall_plot: no visible binding for global variable
+  ‘prob_presence’
+create_single_overall_plot: no visible global function definition for
+  ‘geom_line’
+create_single_overall_plot: no visible global function definition for
+  ‘geom_hline’
+create_single_overall_plot: no visible global function definition for
+  ‘labs’
+create_single_overall_plot: no visible global function definition for
+  ‘theme_minimal’
+create_single_overall_plot: no visible global function definition for
+  ‘theme’
+create_single_overall_plot: no visible global function definition for
+  ‘element_text’
+create_single_time_plot: no visible global function definition for
+  ‘ggplot’
+create_single_time_plot: no visible global function definition for
+  ‘geom_line’
+create_single_time_plot: no visible global function definition for
+  ‘aes’
+create_single_time_plot: no visible global function definition for
+  ‘sym’
+create_single_time_plot: no visible binding for global variable
+  ‘prob_presence’
+create_single_time_plot: no visible binding for global variable
+  ‘time_period_factor’
+create_single_time_plot: no visible global function definition for
+  ‘geom_hline’
+create_single_time_plot: no visible global function definition for
+  ‘labs’
+create_single_time_plot: no visible global function definition for
+  ‘theme_minimal’
+create_single_time_plot: no visible global function definition for
+  ‘theme’
+create_single_time_plot: no visible global function definition for
+  ‘element_text’
+create_single_time_plot: no visible global function definition for
+  ‘scale_color_viridis_d’
+create_space_use_summary: no visible global function definition for
+  ‘%>%’
+create_space_use_summary: no visible binding for global variable
+  ‘n_points’
+create_threshold_comparison_plots: no visible binding for global
+  variable ‘threshold’
+create_threshold_comparison_plots: no visible binding for global
+  variable ‘area_ratio’
+create_threshold_comparison_plots: no visible binding for global
+  variable ‘fish_id’
+create_threshold_comparison_plots: no visible binding for global
+  variable ‘overlap_percentage’
+generate_absences_available_habitat: no visible global function
+  definition for ‘runif’
+generate_absences_buffer_zone: no visible global function definition
+  for ‘runif’
+generate_absences_random_cells: no visible global function definition
+  for ‘runif’
+generate_absences_system_wide: no visible global function definition
+  for ‘generate_absences’
+generate_exact_regular_points: no visible global function definition
+  for ‘median’
+generate_points_bounding_box_method: no visible global function
+  definition for ‘runif’
+generate_points_constrained_hull: no visible global function definition
+  for ‘runif’
+generate_points_convex_hull: no visible global function definition for
+  ‘runif’
+generate_points_ellipse: no visible global function definition for
+  ‘cov’
+generate_points_ellipse: no visible global function definition for
+  ‘qchisq’
+generate_points_ellipse: no visible global function definition for
+  ‘runif’
+generate_points_grid_cells: no visible global function definition for
+  ‘runif’
+generate_random_points_in_space_use: no visible global function
+  definition for ‘%>%’
+generate_random_points_in_space_use: no visible binding for global
+  variable ‘fish_id’
+generate_random_points_in_space_use: no visible binding for global
+  variable ‘time_period_numeric’
+generate_random_points_in_space_use: no visible binding for global
+  variable ‘time_period’
+generate_random_points_in_space_use: no visible binding for global
+  variable ‘time_period_date’
+generate_regular_points: no visible global function definition for
+  ‘median’
+generate_simple_raster_absences: no visible global function definition
+  for ‘runif’
+generate_space_use_absences: no visible global function definition for
+  ‘%>%’
+generate_space_use_absences: no visible global function definition for
+  ‘runif’
+generate_space_use_absences_simple: no visible global function
+  definition for ‘%>%’
+normalize_DE_by_station: no visible global function definition for
+  ‘%>%’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_max’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_min’
+normalize_DE_by_station: no visible global function definition for ‘:=’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_range’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_sd’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_mean’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_mad’
+normalize_DE_by_station: no visible binding for global variable
+  ‘station_median’
+plot_behavioral_states: no visible binding for global variable
+  ‘time_converted’
+plot_behavioral_states: no visible binding for global variable
+  ‘state_numeric’
+plot_behavioral_states: no visible binding for global variable
+  ‘path_id’
+plot_behavioral_states: no visible binding for global variable
+  ‘water_temp_c’
+plot_behavioral_states: no visible binding for global variable
+  ‘behavioral_state’
+plot_comparative_results: no visible global function definition for
+  ‘plot_layout’
+plot_comparative_results: no visible global function definition for
+  ‘plot_annotation’
+plot_comparative_results: no visible global function definition for
+  ‘theme’
+plot_comparative_results: no visible global function definition for
+  ‘element_text’
+plot_depth_comparison: no visible global function definition for
+  ‘ggplot’
+plot_depth_comparison: no visible global function definition for
+  ‘aes_string’
+plot_depth_comparison: no visible global function definition for
+  ‘geom_boxplot’
+plot_depth_comparison: no visible global function definition for
+  ‘position_dodge’
+plot_depth_comparison: no visible global function definition for
+  ‘scale_fill_manual’
+plot_depth_comparison: no visible global function definition for ‘labs’
+plot_depth_comparison: no visible global function definition for
+  ‘theme_minimal’
+plot_depth_comparison: no visible global function definition for
+  ‘theme’
+plot_depth_comparison: no visible global function definition for
+  ‘geom_violin’
+plot_depth_comparison: no visible global function definition for
+  ‘geom_point’
+plot_depth_comparison: no visible global function definition for
+  ‘geom_smooth’
+plot_depth_comparison: no visible global function definition for
+  ‘scale_color_manual’
+plot_depth_comparison: no visible global function definition for
+  ‘scale_x_datetime’
+plot_depth_selection: no visible global function definition for ‘%>%’
+plot_depth_selection: no visible global function definition for
+  ‘filter’
+plot_depth_selection: no visible binding for global variable ‘fish_id’
+plot_depth_selection: no visible binding for global variable
+  ‘time_period’
+plot_depth_selection: no visible global function definition for
+  ‘ggplot’
+plot_depth_selection: no visible global function definition for ‘aes’
+plot_depth_selection: no visible binding for global variable ‘depth_m’
+plot_depth_selection: no visible binding for global variable ‘type’
+plot_depth_selection: no visible global function definition for
+  ‘geom_histogram’
+plot_depth_selection: no visible global function definition for
+  ‘scale_fill_manual’
+plot_depth_selection: no visible global function definition for ‘labs’
+plot_depth_selection: no visible global function definition for
+  ‘theme_minimal’
+plot_depth_selection: no visible global function definition for ‘theme’
+plot_depth_selection: no visible global function definition for
+  ‘geom_boxplot’
+plot_depth_selection: no visible global function definition for
+  ‘geom_density’
+plot_depth_selection: no visible global function definition for
+  ‘group_by’
+plot_depth_selection: no visible global function definition for
+  ‘across’
+plot_depth_selection: no visible global function definition for
+  ‘all_of’
+plot_depth_selection: no visible global function definition for
+  ‘summarise’
+plot_depth_selection: no visible global function definition for
+  ‘mutate’
+plot_depth_selection: no visible binding for global variable
+  ‘n_absence’
+plot_depth_selection: no visible binding for global variable
+  ‘n_presence’
+plot_depth_selection: no visible binding for global variable
+  ‘availability_prop’
+plot_depth_selection: no visible binding for global variable ‘use_prop’
+plot_depth_selection: no visible global function definition for
+  ‘ungroup’
+plot_depth_selection: no visible binding for global variable
+  ‘selection_ratio’
+plot_depth_selection: no visible binding for global variable
+  ‘depth_mid’
+plot_depth_selection: no visible global function definition for
+  ‘geom_col’
+plot_depth_selection: no visible global function definition for
+  ‘geom_hline’
+plot_depth_selection: no visible global function definition for
+  ‘facet_grid’
+plot_depth_selection: no visible binding for global variable
+  ‘label_both’
+plot_depth_selection: no visible global function definition for
+  ‘facet_wrap’
+plot_depth_spatial: no visible global function definition for ‘%>%’
+plot_depth_spatial: no visible global function definition for ‘filter’
+plot_depth_spatial: no visible binding for global variable ‘fish_id’
+plot_depth_spatial: no visible binding for global variable
+  ‘time_period’
+plot_depth_spatial: no visible global function definition for ‘ggplot’
+plot_depth_spatial: no visible global function definition for
+  ‘geom_raster’
+plot_depth_spatial: no visible global function definition for ‘aes’
+plot_depth_spatial: no visible binding for global variable ‘x’
+plot_depth_spatial: no visible binding for global variable ‘y’
+plot_depth_spatial: no visible binding for global variable ‘values’
+plot_depth_spatial: no visible global function definition for
+  ‘scale_alpha_continuous’
+plot_depth_spatial: no visible global function definition for
+  ‘geom_point’
+plot_depth_spatial: no visible binding for global variable ‘depth_m’
+plot_depth_spatial: no visible binding for global variable ‘type’
+plot_depth_spatial: no visible global function definition for
+  ‘scale_color_viridis_c’
+plot_depth_spatial: no visible global function definition for
+  ‘scale_shape_manual’
+plot_depth_spatial: no visible global function definition for
+  ‘coord_fixed’
+plot_depth_spatial: no visible global function definition for ‘labs’
+plot_depth_spatial: no visible global function definition for
+  ‘theme_minimal’
+plot_depth_spatial: no visible global function definition for ‘theme’
+plot_detection_rates: no visible binding for global variable ‘path_id’
+plot_detection_rates: no visible binding for global variable
+  ‘detection_rate’
+plot_detection_rates: no visible binding for global variable
+  ‘station_id’
+plot_detection_rates: no visible binding for global variable
+  ‘mean_detection_prob’
+plot_detection_rates: no visible global function definition for ‘%>%’
+plot_detection_rates: no visible binding for global variable ‘step’
+plot_detection_rates: no visible binding for global variable
+  ‘time_seconds’
+plot_detection_rates: no visible binding for global variable ‘x’
+plot_detection_rates: no visible binding for global variable ‘y’
+plot_detection_rates: no visible binding for global variable ‘detected’
+plot_detection_rates: no visible binding for global variable
+  ‘cumulative_detections’
+plot_detection_rates: no visible binding for global variable
+  ‘cumulative_rate’
+plot_fish_positions: no visible global function definition for ‘%>%’
+plot_fish_positions: no visible binding for global variable ‘fish_id’
+plot_fish_positions: no visible binding for global variable
+  ‘time_period’
+plot_fish_positions: no visible binding for global variable
+  ‘time_period_posix’
+plot_fish_positions: no visible binding for global variable
+  ‘time_period_label’
+plot_fish_positions: no visible binding for global variable
+  ‘station_id’
+plot_fish_positions: no visible binding for global variable
+  ‘n_detections’
+plot_fish_positions: no visible binding for global variable ‘detected’
+plot_fish_positions: no visible binding for global variable ‘station_x’
+plot_fish_positions: no visible binding for global variable ‘station_y’
+plot_fish_positions: no visible binding for global variable ‘x’
+plot_fish_positions: no visible binding for global variable ‘y’
+plot_fish_positions : create_base_plot: no visible binding for global
+  variable ‘x’
+plot_fish_positions : create_base_plot: no visible binding for global
+  variable ‘y’
+plot_fish_positions : add_station_elements: no visible binding for
+  global variable ‘x’
+plot_fish_positions : add_station_elements: no visible binding for
+  global variable ‘y’
+plot_fish_positions : add_station_elements: no visible binding for
+  global variable ‘station_x’
+plot_fish_positions : add_station_elements: no visible binding for
+  global variable ‘station_y’
+plot_fish_positions : add_station_elements: no visible binding for
+  global variable ‘n_detections’
+plot_fish_positions : apply_formatting: no visible global function
+  definition for ‘%>%’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘x’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘y’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘fish_id’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘datetime’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘station_id’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘station_x.x’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘station_y.x’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘detected’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘n_detections’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘station_x’
+plot_fish_positions : apply_formatting: no visible binding for global
+  variable ‘station_y’
+plot_fish_positions: no visible binding for global variable
+  ‘weighted_mean_DE_normalized’
+plot_fish_positions: no visible binding for global variable
+  ‘weighted_mean_DE_normalized_scaled’
+plot_fish_positions: no visible binding for global variable
+  ‘non_det_DE_normalized’
+plot_fish_positions: no visible binding for global variable
+  ‘non_det_DE_normalized_scaled’
+plot_fish_positions: no visible binding for global variable
+  ‘integrated_prob’
+plot_fish_tracks: no visible binding for global variable ‘x’
+plot_fish_tracks: no visible binding for global variable ‘y’
+plot_fish_tracks: no visible binding for global variable ‘layer’
+plot_fish_tracks: no visible binding for global variable ‘path_id’
+plot_fish_tracks: no visible binding for global variable
+  ‘behavioral_state’
+plot_fish_tracks: no visible binding for global variable
+  ‘spawning_phase’
+plot_fish_tracks: no visible global function definition for ‘%>%’
+plot_fish_tracks: no visible binding for global variable ‘step’
+plot_fish_tracks: no visible binding for global variable ‘time_seconds’
+plot_fish_tracks: no visible binding for global variable ‘detected’
+plot_fish_tracks: no visible binding for global variable ‘station_id’
+plot_fish_tracks: no visible binding for global variable
+  ‘detection_count’
+plot_points_on_input: no visible binding for global variable ‘x’
+plot_points_on_input: no visible binding for global variable ‘y’
+plot_points_on_input: no visible binding for global variable ‘layer’
+plot_presence_absence_space_use: no visible global function definition
+  for ‘%>%’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘fish_id’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘time_period_date’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘time_period_label’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘time_period_numeric’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘time_period’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘x’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘y’
+plot_presence_absence_space_use: no visible binding for global variable
+  ‘values’
+plot_space_use: no visible global function definition for ‘%>%’
+plot_space_use: no visible binding for global variable ‘method’
+plot_space_use: no visible binding for global variable ‘area_hectares’
+plot_space_use: no visible binding for global variable ‘fish_id’
+plot_space_use_map: no visible global function definition for ‘%>%’
+plot_space_use_map: no visible binding for global variable ‘fish_id’
+plot_space_use_map: no visible binding for global variable
+  ‘time_period_label’
+plot_space_use_map: no visible binding for global variable
+  ‘time_period’
+plot_space_use_map: no visible binding for global variable ‘x’
+plot_space_use_map: no visible binding for global variable ‘y’
+plot_space_use_map: no visible binding for global variable ‘values’
+plot_space_use_map: no visible binding for global variable ‘cell_id’
+plot_space_use_method_comparison: no visible global function definition
+  for ‘%>%’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘fish_id’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘time_period_label’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘time_period’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘x’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘y’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘values’
+plot_space_use_method_comparison: no visible binding for global
+  variable ‘method’
+plot_space_use_points: no visible global function definition for ‘%>%’
+plot_space_use_points: no visible binding for global variable
+  ‘time_period_date’
+plot_space_use_points: no visible binding for global variable
+  ‘time_period_label’
+plot_space_use_points: no visible binding for global variable
+  ‘time_period_numeric’
+plot_space_use_points: no visible binding for global variable
+  ‘time_period’
+plot_space_use_points: no visible binding for global variable ‘x’
+plot_space_use_points: no visible binding for global variable ‘y’
+plot_space_use_points: no visible binding for global variable ‘values’
+plot_space_use_points: no visible binding for global variable ‘cell_id’
+prepare_detection_data_for_wade: no visible global function definition
+  for ‘head’
+prepare_detection_data_for_wade: no visible global function definition
+  for ‘%>%’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘fish_id’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘detection_timestamp_utc’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘deploy_datetime_UTC’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘recover_datetime_UTC’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘station_id’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘x’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘y’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘time_period’
+prepare_detection_data_for_wade: no visible global function definition
+  for ‘n’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘n_detections’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘detected’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘path_id’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘datetime’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘detection_prob’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘distance_to_station’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘station_x’
+prepare_detection_data_for_wade: no visible binding for global variable
+  ‘station_y’
+sample_points_from_probabilities: no visible global function definition
+  for ‘%>%’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘fish_id’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘time_period’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘time_period_label’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘.data’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘time_period_posix’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘x’
+sample_points_from_probabilities: no visible binding for global
+  variable ‘y’
+sample_points_from_system_de: no visible global function definition for
+  ‘%>%’
+sample_points_from_system_de: no visible binding for global variable
+  ‘fish_id’
+sample_points_from_system_de: no visible binding for global variable
+  ‘time_period’
+sample_points_from_system_de: no visible binding for global variable
+  ‘time_period_label’
+sample_points_from_system_de: no visible binding for global variable
+  ‘time_period_posix’
+sample_points_from_system_de: no visible binding for global variable
+  ‘.data’
+sample_points_from_system_de: no visible binding for global variable
+  ‘x’
+sample_points_from_system_de: no visible binding for global variable
+  ‘y’
+sample_points_from_track_grid: no visible global function definition
+  for ‘%>%’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘fish_id’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘time_period_label’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘time_period_posix’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘grid_x’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘grid_y’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘count’
+sample_points_from_track_grid: no visible binding for global variable
+  ‘.data’
+simulate_fish_tracks: no visible global function definition for ‘data’
+simulate_fish_tracks: no visible binding for global variable
+  ‘species_behavioral_params’
+simulate_fish_tracks: no visible binding for global variable
+  ‘daily_temperature’
+simulate_fish_tracks: no visible global function definition for ‘%>%’
+simulate_fish_tracks: no visible binding for global variable
+  ‘start_date’
+simulate_fish_tracks: no visible binding for global variable ‘end_date’
+simulate_fish_tracks: no visible binding for global variable
+  ‘station_no’
+simulate_fish_tracks: no visible binding for global variable
+  ‘cost_distance’
+simulate_fish_tracks: no visible binding for global variable
+  ‘raster_value’
+simulate_fish_tracks: no visible binding for global variable ‘cell_id’
+simulate_fish_tracks: no visible binding for global variable ‘DE_pred’
+simulate_fish_tracks: no visible binding for global variable ‘x’
+simulate_fish_tracks: no visible binding for global variable ‘y’
+simulate_fish_tracks: no visible global function definition for ‘runif’
+simulate_fish_tracks: no visible binding for global variable
+  ‘time_seconds’
+simulate_fish_tracks: no visible binding for global variable ‘datetime’
+simulate_fish_tracks: no visible binding for global variable
+  ‘station_id’
+simulate_fish_tracks: no visible binding for global variable
+  ‘distance_to_station’
+simulate_fish_tracks: no visible binding for global variable
+  ‘detection_prob’
+simulate_fish_tracks: no visible binding for global variable ‘detected’
+standardize_track_data_for_points: no visible global function
+  definition for ‘%>%’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘time_period_numeric’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘time_period’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘time_period_date’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘fish_id’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘x’
+standardize_track_data_for_points: no visible binding for global
+  variable ‘y’
+standardize_track_data_space: no visible global function definition for
+  ‘%>%’
+standardize_track_data_space: no visible binding for global variable
+  ‘fish_id’
+standardize_track_data_space: no visible binding for global variable
+  ‘time_period’
+standardize_track_data_space: no visible binding for global variable
+  ‘x’
+standardize_track_data_space: no visible binding for global variable
+  ‘y’
+summarize_space_use_points: no visible global function definition for
+  ‘%>%’
+summarize_space_use_points: no visible binding for global variable
+  ‘fish_id’
+summarize_space_use_points: no visible binding for global variable
+  ‘time_period’
+summarize_space_use_points: no visible binding for global variable
+  ‘method’
+summarize_space_use_points: no visible binding for global variable
+  ‘space_use_area_hectares’
+summarize_space_use_points: no visible binding for global variable ‘x’
+summarize_space_use_points: no visible binding for global variable ‘y’
+summarize_space_use_points: no visible global function definition for
+  ‘sd’
+summarize_space_use_points: no visible binding for global variable
+  ‘max_x’
+summarize_space_use_points: no visible binding for global variable
+  ‘min_x’
+summarize_space_use_points: no visible binding for global variable
+  ‘max_y’
+summarize_space_use_points: no visible binding for global variable
+  ‘min_y’
+test_raster_absence_generation: no visible global function definition
+  for ‘runif’
+Undefined global functions or variables:
+  %>% . .data := DE DE_pred DE_pred_normalized X Y across aes
+  aes_string all_of any_of apply_information_weighting approx
+  area_difference_hectares area_hectares area_ratio availability_prop
+  behavioral_state calculate_station_de_characteristics candidate_depth
+  candidate_station_id candidate_x candidate_y case_when cell_id
+  complete.cases coord_fixed cor cost_distance count cov
+  cumulative_detections cumulative_prob cumulative_rate
+  daily_temperature data datetime deploy_datetime_UTC depth depth_bin
+  depth_m depth_mid det_max det_min det_range detected detected_steps
+  detecting_x detecting_y detection_count detection_date detection_prob
+  detection_rate detection_timestamp_utc detections difference dist_m
+  distance_between_stations distance_to_station element_text end_date
+  facet_grid facet_wrap filter first_detection_time fish_id
+  fish_id_char fish_id_factor fish_id_int generate_absences
+  geom_boxplot geom_col geom_density geom_histogram geom_hline
+  geom_line geom_point geom_raster geom_ribbon geom_smooth geom_violin
+  ggplot grid_x grid_y group_by head importance integrated_prob
+  label_both labs last_detection_time layer max_x max_y
+  mean_detection_prob mean_temp median method min_x min_y mutate n
+  n_absence n_detections n_points n_presence n_steps n_transitions
+  next_state non_det_DE_normalized non_det_DE_normalized_scaled
+  non_det_max non_det_min non_det_range original_id overlap_percentage
+  path_id plot_annotation plot_layout point_id position_dodge
+  positioning_area_hectares predict prob_3_plus prob_presence
+  proportion qchisq quantile randomForest raster_value
+  recover_datetime_UTC runif safe_name sample_n scale_alpha_continuous
+  scale_color_manual scale_color_viridis_c scale_color_viridis_d
+  scale_fill_manual scale_shape_manual scale_x_datetime sd
+  selection_ratio setNames space_use_area_hectares spawning_phase
+  species_behavioral_params start_date state_numeric station_id
+  station_id_int station_mad station_max station_mean station_median
+  station_min station_no station_range station_sd station_x station_x.x
+  station_y station_y.x step straight_distance summarise sym temp_bin
+  theme theme_minimal threshold time_aggregation_method time_converted
+  time_period time_period_date time_period_factor time_period_label
+  time_period_numeric time_period_posix time_seconds time_spent
+  tortuosity total_distance total_from_state total_opportunities
+  total_points total_steps total_time total_time_bin
+  track_area_hectares transition_prob type ungroup use_prop values
+  water_temp_c weighted_mean_DE_normalized
+  weighted_mean_DE_normalized_scaled wilcox.test x y
+Consider adding
+  importFrom("stats", "approx", "complete.cases", "cor", "cov", "filter",
+             "median", "predict", "qchisq", "quantile", "runif", "sd",
+             "setNames", "step", "wilcox.test")
+  importFrom("utils", "data", "head")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... WARNING
+Missing link or links in documentation object 'calculate_prob_3_plus.Rd':
+  ‘P(X=0) + P(X=1) + P(X=2)’
+
+Missing link or links in documentation object 'prepare_detection_data_for_wade.Rd':
+  ‘prepare_detection_data_for_particle_filter’
+
+See section 'Cross-references' in the 'Writing R Extensions' manual.
+* checking for missing documentation entries ... WARNING
+Warning: package ‘sp’ was built under R version 4.2.3
+Undocumented code objects:
+  ‘daily_temperature’ ‘depth_raster’ ‘species_behavioral_params’
+  ‘station_info’ ‘temporal_info’
+Undocumented data sets:
+  ‘daily_temperature’ ‘depth_raster’ ‘species_behavioral_params’
+  ‘station_info’ ‘temporal_info’
+All user-level objects in a package should have documentation entries.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'analyze_single_dataset'
+  ‘data’ ‘dataset_name’ ‘formula’ ‘sample_size’ ‘ntree’
+  ‘depth_variable’ ‘fish_id_variable’ ‘time_variable’ ‘type_variable’
+  ‘n_depth_points’ ‘create_plots’
+
+Undocumented arguments in documentation object 'calculate_95_ellipse_area'
+  ‘x_coords’ ‘y_coords’
+
+Undocumented arguments in documentation object 'calculate_constrained_convex_hull_area'
+  ‘x_coords’ ‘y_coords’ ‘grid_resolution’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'calculate_constrained_convex_hull_area_with_data'
+  ‘x_coords’ ‘y_coords’ ‘grid_resolution’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'calculate_convex_hull_area'
+  ‘x_coords’ ‘y_coords’
+
+Undocumented arguments in documentation object 'calculate_fish_positions'
+  ‘weighting_method’ ‘percentile_cutoff’ ‘temporal_grouping’
+  ‘dampening_factor’
+
+Undocumented arguments in documentation object 'calculate_grid_cell_usage'
+  ‘x_coords’ ‘y_coords’ ‘grid_resolution’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'calculate_grid_cell_usage_with_data'
+  ‘x_coords’ ‘y_coords’ ‘grid_resolution’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'calculate_group_space_use'
+  ‘group_data’ ‘methods’ ‘grid_resolution’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'calculate_space_use'
+  ‘prob_column’ ‘prob_thresholds’
+
+Undocumented arguments in documentation object 'calculate_space_use_zoom'
+  ‘track_points’ ‘space_use_spatial_data’ ‘method’ ‘buffer_factor’
+
+Undocumented arguments in documentation object 'calculate_threshold_summary_stats'
+  ‘area_comparison’ ‘track_overlap’ ‘methods’
+
+Undocumented arguments in documentation object 'calculate_track_overlap'
+  ‘spatial_data’ ‘reference_tracks’ ‘method’
+
+Undocumented arguments in documentation object 'create_comparison_analysis'
+  ‘positioning_results’ ‘space_use_results’ ‘depth_variable’
+
+Undocumented arguments in documentation object 'create_constrained_grid_raster_data'
+  ‘track_points’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'create_ellipse_polygon'
+  ‘x_coords’ ‘y_coords’ ‘n_points’
+
+Undocumented arguments in documentation object 'create_ellipse_polygon_data'
+  ‘x_coords’ ‘y_coords’ ‘method’ ‘n_points’
+
+Undocumented arguments in documentation object 'create_grid_cell_polygons'
+  ‘center_x’ ‘center_y’ ‘grid_resolution’
+
+Undocumented arguments in documentation object 'create_grid_polygon'
+  ‘x_coords’ ‘y_coords’ ‘grid_resolution’
+
+Undocumented arguments in documentation object 'create_grid_raster_data'
+  ‘track_points’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'create_space_use_polygon'
+  ‘track_points’ ‘method’
+
+Undocumented arguments in documentation object 'create_space_use_polygon_data'
+  ‘x_coords’ ‘y_coords’ ‘method’
+
+Undocumented arguments in documentation object 'create_space_use_summary'
+  ‘space_use_df’ ‘methods’ ‘grouping_vars’
+
+Undocumented arguments in documentation object 'create_threshold_comparison_plots'
+  ‘area_comparison’ ‘track_overlap’ ‘plot_by_fish’
+
+Undocumented arguments in documentation object 'extract_absence_time_info'
+  ‘space_use_points’ ‘space_use_results’
+
+Undocumented arguments in documentation object 'extract_space_use_time_info'
+  ‘space_use_results’
+
+Undocumented arguments in documentation object 'generate_absences_available_habitat'
+  ‘presence_points’ ‘space_use_results’ ‘track_data’ ‘fish_id’
+  ‘time_period’ ‘n_points’ ‘reference_raster’ ‘exclude_space_use’
+  ‘time_bin_info’
+
+Undocumented arguments in documentation object 'generate_absences_buffer_zone'
+  ‘presence_points’ ‘buffer_distance’ ‘n_points’ ‘reference_raster’
+  ‘exclude_space_use’
+
+Undocumented arguments in documentation object 'generate_absences_random_cells'
+  ‘presence_points’ ‘n_points’ ‘reference_raster’ ‘exclude_space_use’
+
+Undocumented arguments in documentation object 'generate_absences_system_wide'
+  ‘presence_points’ ‘system_data’ ‘prob_threshold’ ‘n_points’
+  ‘reference_raster’
+
+Undocumented arguments in documentation object 'generate_points_bounding_box_method'
+  ‘track_data’ ‘n_points’ ‘method’
+
+Undocumented arguments in documentation object 'generate_points_constrained_hull'
+  ‘track_data’ ‘n_points’ ‘reference_raster’ ‘method’
+
+Undocumented arguments in documentation object 'generate_points_convex_hull'
+  ‘track_data’ ‘n_points’ ‘method’
+
+Undocumented arguments in documentation object 'generate_points_ellipse'
+  ‘track_data’ ‘n_points’ ‘method’
+
+Undocumented arguments in documentation object 'generate_points_grid_cells'
+  ‘track_data’ ‘n_points’ ‘reference_raster’ ‘method’
+
+Undocumented arguments in documentation object 'generate_simple_raster_absences'
+  ‘reference_raster’ ‘n_points’
+
+Undocumented arguments in documentation object 'generate_space_use_absences'
+  ‘space_use_results’ ‘track_data’ ‘absence_method’ ‘buffer_distance’
+  ‘system_data’ ‘cumulative_prob_threshold’ ‘exclude_space_use’
+
+Undocumented arguments in documentation object 'generate_space_use_absences_simple'
+  ‘space_use_points’ ‘reference_raster’ ‘n_points_ratio’
+
+Undocumented arguments in documentation object 'get_raster_cells_as_polygons'
+  ‘raster_obj’ ‘cell_indices’
+
+Undocumented arguments in documentation object 'get_space_use_exclusion_cells'
+  ‘track_data’ ‘method’ ‘reference_raster’
+
+Undocumented arguments in documentation object 'line_intersects_box'
+  ‘x1’ ‘y1’ ‘x2’ ‘y2’ ‘xmin’ ‘ymin’ ‘xmax’ ‘ymax’
+
+Undocumented arguments in documentation object 'plot_space_use'
+  ‘space_use_results’ ‘method_compare’ ‘plot_type’ ‘track_data’
+  ‘fish_select’ ‘time_select’ ‘method_select’ ‘background_raster’
+  ‘time_aggregation’ ‘point_type’
+
+Undocumented arguments in documentation object 'plot_space_use_map'
+  ‘space_use_results’ ‘track_data’ ‘fish_select’ ‘time_select’
+  ‘method_select’ ‘background_raster’ ‘time_aggregation’ ‘point_type’
+
+Undocumented arguments in documentation object 'point_in_polygon'
+  ‘px’ ‘py’ ‘poly_x’ ‘poly_y’
+
+Undocumented arguments in documentation object 'standardize_track_data_for_points'
+  ‘track_data’ ‘time_bin_info’
+
+Undocumented arguments in documentation object 'standardize_track_data_space'
+  ‘track_data’ ‘time_aggregation’
+
+Undocumented arguments in documentation object 'test_cells_in_polygon'
+  ‘raster_obj’ ‘cell_indices’ ‘poly_x’ ‘poly_y’
+
+Undocumented arguments in documentation object 'test_cells_in_polygon_full'
+  ‘raster_obj’ ‘cell_indices’ ‘poly_x’ ‘poly_y’
+
+Undocumented arguments in documentation object 'test_cells_in_polygon_simple'
+  ‘raster_obj’ ‘cell_indices’ ‘poly_x’ ‘poly_y’
+
+Undocumented arguments in documentation object 'test_raster_absence_generation'
+  ‘reference_raster’ ‘n_test_points’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... WARNING
+Files not of a type allowed in a ‘data’ directory:
+  ‘README_data_formats.md’
+Please use e.g. ‘inst/extdata’ for non-R data files
+
+* checking data for non-ASCII characters ... NOTE
+  Note: found 1 marked UTF-8 string
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking files in ‘vignettes’ ... WARNING
+Files in the 'vignettes' directory but no files in 'inst/doc':
+  ‘Array_Design_Simulation.R’, ‘Array_Design_Simulation.Rmd’,
+    ‘Array_Design_Simulation.html’, ‘Simulation_Advanced.R’,
+    ‘WADE_Field_App.R’, ‘WADE_Simulation.R’, ‘WADE_Simulation.Rmd’,
+    ‘WADE_Simulation.html’
+Files named as vignettes but with no recognized vignette engine:
+   ‘vignettes/WADE_Simulation.Rmd’
+(Is a VignetteBuilder field missing?)
+* checking examples ... OK
+* checking for unstated dependencies in vignettes ... OK
+* checking package vignettes in ‘inst/doc’ ... WARNING
+Directory 'inst/doc' does not exist.
+Package vignette without corresponding single PDF/HTML:
+   ‘Array_Design_Simulation.Rmd’
+
+* checking running R code from vignettes ... NONE
+  ‘Array_Design_Simulation.Rmd’ using ‘UTF-8’... OK
+* checking re-building of vignette outputs ... OK
+* DONE
+Status: 10 WARNINGs, 4 NOTEs

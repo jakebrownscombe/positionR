@@ -1,0 +1,1087 @@
+
+R version 4.2.1 (2022-06-23) -- "Funny-Looking Kid"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: aarch64-apple-darwin20 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "positionR"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> library('positionR')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("analyze_behavioral_temperature")
+> ### * analyze_behavioral_temperature
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: analyze_behavioral_temperature
+> ### Title: Analyze behavioral state patterns by temperature bins
+> ### Aliases: analyze_behavioral_temperature
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Analyze behavioral patterns by temperature
+> ##D temp_analysis <- analyze_behavioral_temperature(fish_sim)
+> ##D 
+> ##D # View the plots
+> ##D print(temp_analysis$plots$time_in_state)
+> ##D print(temp_analysis$plots$transition_probs)
+> ##D 
+> ##D # Access the data
+> ##D behavioral_data <- temp_analysis$data
+> ##D 
+> ##D # Custom temperature bins
+> ##D analysis_10bins <- analyze_behavioral_temperature(fish_sim, n_temp_bins = 10)
+> ##D 
+> ##D # Individual fish analysis
+> ##D individual_analysis <- analyze_behavioral_temperature(fish_sim, by_fish_id = TRUE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("analyze_detection_performance")
+> ### * analyze_detection_performance
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: analyze_detection_performance
+> ### Title: Comprehensive detection performance analysis with summary and
+> ###   plots
+> ### Aliases: analyze_detection_performance
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Complete analysis with plots
+> ##D analysis <- analyze_detection_performance(fish_simulation)
+> ##D 
+> ##D # Access overall detection rate
+> ##D overall_rate <- analysis$statistics$overall$detection_percentage
+> ##D 
+> ##D # Access individual plots
+> ##D path_plot <- analysis$plots$by_path
+> ##D station_plot <- analysis$plots$by_station
+> ##D distribution_plot <- analysis$plots$distribution
+> ##D 
+> ##D # Analysis without plots (faster)
+> ##D stats_only <- analyze_detection_performance(fish_simulation, create_plots = FALSE)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("analyze_positioning_performance")
+> ### * analyze_positioning_performance
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: analyze_positioning_performance
+> ### Title: Analyze positioning performance from acoustic telemetry
+> ### Aliases: analyze_positioning_performance
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate positions
+> ##D results <- calculate_fish_positions(station_detections, distances, stations)
+> ##D 
+> ##D # Analyze performance
+> ##D performance <- analyze_positioning_performance(results)
+> ##D 
+> ##D # View overall performance
+> ##D performance$overall
+> ##D 
+> ##D # View detailed metrics
+> ##D head(performance$by_fish_time)
+> ##D 
+> ##D # Get summary statistics
+> ##D performance$summary_stats
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("calculate_detection_summaries")
+> ### * calculate_detection_summaries
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: calculate_detection_summaries
+> ### Title: Calculate detection rate summaries from fish track simulations
+> ### Aliases: calculate_detection_summaries
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Simulate fish tracks with detections
+> ##D fish_sim <- simulate_fish_tracks(
+> ##D   raster = depth_raster,
+> ##D   station_distances = distances,
+> ##D   n_paths = 5,
+> ##D   n_steps = 100
+> ##D )
+> ##D 
+> ##D # Calculate detection summaries
+> ##D detection_stats <- calculate_detection_summaries(fish_sim)
+> ##D 
+> ##D # Access overall performance
+> ##D overall_rate <- detection_stats$overall$detection_percentage
+> ##D 
+> ##D # Access per-path performance
+> ##D path_performance <- detection_stats$by_path
+> ##D 
+> ##D # Access per-station performance
+> ##D station_performance <- detection_stats$by_station
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("calculate_detection_system")
+> ### * calculate_detection_system
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: calculate_detection_system
+> ### Title: Calculate detection system probabilities and create
+> ###   visualization
+> ### Aliases: calculate_detection_system
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate receiver stations and calculate distances
+> ##D stations <- generate_random_points(depth_raster, n_points = 6, seed = 123)
+> ##D distances <- calculate_station_distances(depth_raster, stations, max_distance = 500)
+> ##D 
+> ##D # Create detection efficiency model
+> ##D de_model <- create_logistic_curve_depth(
+> ##D   min_depth = 2, max_depth = 30,
+> ##D   d50_min_depth = 50, d95_min_depth = 20,
+> ##D   d50_max_depth = 150, d95_max_depth = 60,
+> ##D   plot = FALSE
+> ##D )
+> ##D 
+> ##D # Calculate system detection probabilities
+> ##D detection_system <- calculate_detection_system(
+> ##D   distance_frame = distances,
+> ##D   receiver_frame = stations,
+> ##D   model = de_model$log_model,
+> ##D   output_type = "both"
+> ##D )
+> ##D 
+> ##D # Extract results
+> ##D detection_data <- detection_system$data
+> ##D positioning_plot <- detection_system$plots$prob_3_plus
+> ##D 
+> ##D # Calculate only positioning probabilities without plots
+> ##D positioning_only <- calculate_detection_system(
+> ##D   distance_frame = distances,
+> ##D   receiver_frame = stations,
+> ##D   model = de_model$log_model,
+> ##D   output_type = "3_plus",
+> ##D   plots = FALSE
+> ##D )
+> ## End(Not run)
+> 
+> ## Not run: 
+> ##D # With character station IDs and deployment filtering
+> ##D target_date <- as.Date("2023-07-15")
+> ##D 
+> ##D system_DE <- calculate_detection_system(
+> ##D   distance_frame = station_distances,  # From calculate_station_distances
+> ##D   receiver_frame = stoney_rx_deploy,   # With deployment information
+> ##D   model = logistic_DE$log_model,
+> ##D   target_date = target_date,
+> ##D   output_type = "both",
+> ##D   station_col = "station_id",
+> ##D   deploy_col = "deploy_datetime_UTC",
+> ##D   recover_col = "recover_datetime_UTC"
+> ##D )
+> ##D 
+> ##D # Check which stations were active
+> ##D print(system_DE$active_stations)
+> ##D print(paste("Active stations:", system_DE$n_active_stations))
+> ##D 
+> ##D # Use all stations (no date filtering)
+> ##D system_DE_all <- calculate_detection_system(
+> ##D   distance_frame = station_distances,
+> ##D   receiver_frame = stoney_rx_deploy,
+> ##D   model = logistic_DE$log_model,
+> ##D   target_date = NULL,  # No filtering
+> ##D   output_type = "cumulative"
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("calculate_fish_positions")
+> ### * calculate_fish_positions
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: calculate_fish_positions
+> ### Title: Calculate fish positions from acoustic telemetry data
+> ### Aliases: calculate_fish_positions
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Basic positioning analysis (backward compatible)
+> ##D results <- calculate_fish_positions(
+> ##D   station_detections = fish_tracks$detections,
+> ##D   station_distances_df = distances,
+> ##D   receiver_stations = stations,
+> ##D   bin_size_seconds = 3600
+> ##D )
+> ##D 
+> ##D # POSIX datetime aggregation by day
+> ##D results <- calculate_fish_positions(
+> ##D   station_detections = fish_tracks$detections,
+> ##D   station_distances_df = distances,
+> ##D   receiver_stations = stations,
+> ##D   time_col = "datetime",
+> ##D   time_aggregation = "day"
+> ##D )
+> ##D 
+> ##D # POSIX datetime aggregation by hour
+> ##D results <- calculate_fish_positions(
+> ##D   station_detections = fish_tracks$detections,
+> ##D   station_distances_df = distances,
+> ##D   receiver_stations = stations,
+> ##D   time_col = "datetime",
+> ##D   time_aggregation = "hour"
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("calculate_station_distances")
+> ### * calculate_station_distances
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: calculate_station_distances
+> ### Title: Calculate cost distances from receiver stations to all raster
+> ###   cells
+> ### Aliases: calculate_station_distances
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate receiver stations with numeric IDs (default)
+> ##D stations <- generate_random_points(depth_raster, n_points = 5, seed = 123)
+> ##D 
+> ##D # Calculate distances with default point_id column
+> ##D distances <- calculate_station_distances(depth_raster, stations)
+> ##D 
+> ##D # Calculate distances with 1000m maximum
+> ##D distances_limited <- calculate_station_distances(
+> ##D   raster = depth_raster,
+> ##D   receiver_frame = stations,
+> ##D   max_distance = 1000
+> ##D )
+> ##D 
+> ##D # Use with character station IDs
+> ##D # Assuming stoney_rx_deploy has a 'station_id' column with character IDs
+> ##D distances_char <- calculate_station_distances(
+> ##D   raster = depth_raster,
+> ##D   receiver_frame = stoney_rx_deploy,
+> ##D   max_distance = 3000,
+> ##D   station_col = "station_id"  # Specify the column with station IDs
+> ##D )
+> ##D 
+> ##D # Analyze tortuosity patterns
+> ##D library(dplyr)
+> ##D tortuosity_summary <- distances %>%
+> ##D   group_by(station_no) %>%
+> ##D   summarise(
+> ##D     mean_tortuosity = mean(tortuosity, na.rm = TRUE),
+> ##D     max_cost_dist = max(cost_distance, na.rm = TRUE)
+> ##D   )
+> ## End(Not run)
+> 
+> ## Not run: 
+> ##D # With numeric station IDs (default)
+> ##D stations_numeric <- generate_random_points(depth_raster, n_points = 5, seed = 123)
+> ##D distances_numeric <- calculate_station_distances(depth_raster, stations_numeric)
+> ##D 
+> ##D # With character station IDs
+> ##D stations_char <- stoney_rx_deploy  # Has character station_id column
+> ##D distances_char <- calculate_station_distances(
+> ##D   raster = depth_raster,
+> ##D   receiver_frame = stations_char,
+> ##D   max_distance = 3000,
+> ##D   station_col = "station_id"
+> ##D )
+> ##D 
+> ##D # Verify station ID preservation
+> ##D unique(distances_char$station_no)  # Should show character IDs
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("compare_space_use_thresholds")
+> ### * compare_space_use_thresholds
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: compare_space_use_thresholds
+> ### Title: Compare Space Use Results Across Multiple Probability Thresholds
+> ### Aliases: compare_space_use_thresholds
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate positioning results with multiple thresholds
+> ##D multi_results <- calculate_space_use(
+> ##D   track_data = position_points_coords,
+> ##D   prob_column = "probability",
+> ##D   prob_thresholds = c(0.1, 0.2, 0.3, 0.4, 0.5),
+> ##D   methods = c("constrained_convex_hull", "grid_cell_count")
+> ##D )
+> ##D 
+> ##D # Calculate reference track-based space use
+> ##D track_results <- calculate_space_use(
+> ##D   track_data = fish_simulation$tracks,
+> ##D   methods = c("constrained_convex_hull", "grid_cell_count")
+> ##D )
+> ##D 
+> ##D # Compare results
+> ##D comparison <- compare_space_use_thresholds(
+> ##D   multi_threshold_results = multi_results,
+> ##D   reference_tracks = fish_simulation$tracks,
+> ##D   reference_space_use = track_results
+> ##D )
+> ##D 
+> ##D # View area ratio plots
+> ##D print(comparison$plots$area_ratio_boxplot)
+> ##D print(comparison$plots$area_ratio_by_fish)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("create_logistic_curve_depth")
+> ### * create_logistic_curve_depth
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: create_logistic_curve_depth
+> ### Title: generate detection range models Create logistic curve for
+> ###   detection efficiency with depth extrapolation
+> ### Aliases: create_logistic_curve_depth
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Create a basic detection efficiency model
+> ##D de_model <- create_logistic_curve_depth(
+> ##D   min_depth = 2,
+> ##D   max_depth = 30,
+> ##D   d50_min_depth = 50,
+> ##D   d95_min_depth = 20,
+> ##D   d50_max_depth = 150,
+> ##D   d95_max_depth = 60
+> ##D )
+> ##D 
+> ##D # Use the model to predict detection efficiency
+> ##D efficiency <- de_model$func(dist_m = 100, depth_m = 15)
+> ##D 
+> ##D # Generate custom predictions
+> ##D custom_grid <- de_model$predict_grid(
+> ##D   dist_range = seq(0, 200, by = 10),
+> ##D   depth_range = seq(5, 25, by = 2)
+> ##D )
+> ##D 
+> ##D # Create model without plots
+> ##D de_model_quiet <- create_logistic_curve_depth(
+> ##D   min_depth = 2, max_depth = 30,
+> ##D   d50_min_depth = 50, d95_min_depth = 20,
+> ##D   d50_max_depth = 150, d95_max_depth = 60,
+> ##D   plot = FALSE
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("generate_random_points")
+> ### * generate_random_points
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: generate_random_points
+> ### Title: Generate random points within spatial boundaries
+> ### Aliases: generate_random_points
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate 100 random points in a raster
+> ##D r <- raster::raster(matrix(1:100, 10, 10))
+> ##D points <- generate_random_points(r, n_points = 100, seed = 456)
+> ##D 
+> ##D # Generate random points in a polygon
+> ##D poly <- sf::st_sfc(sf::st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,1), c(0,0)))))
+> ##D points <- generate_random_points(poly, n_points = 50)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("generate_regular_points")
+> ### * generate_regular_points
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: generate_regular_points
+> ### Title: Generate regular points within spatial boundaries
+> ### Aliases: generate_regular_points generate_exact_regular_points
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate 50 regular points in a raster
+> ##D r <- raster::raster(matrix(1:100, 10, 10))
+> ##D points <- generate_regular_points(r, n_points = 50, seed = 123)
+> ##D 
+> ##D # Generate points in a polygon
+> ##D poly <- sf::st_sfc(sf::st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,1), c(0,0)))))
+> ##D points <- generate_regular_points(poly, n_points = 25)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("generate_spaced_points")
+> ### * generate_spaced_points
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: generate_spaced_points
+> ### Title: Generate points with specified spacing within spatial boundaries
+> ### Aliases: generate_spaced_points
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate points every 500 meters
+> ##D r <- raster::raster(matrix(1:100, 10, 10))
+> ##D points <- generate_spaced_points(r, spacing = 500, seed = 123)
+> ##D 
+> ##D # Generate points in a polygon with 100m spacing
+> ##D poly <- sf::st_sfc(sf::st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,1), c(0,0)))))
+> ##D points <- generate_spaced_points(poly, spacing = 100)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("plot_behavioral_states")
+> ### * plot_behavioral_states
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: plot_behavioral_states
+> ### Title: Plot behavioral states over time with temperature coloring
+> ### Aliases: plot_behavioral_states
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Simulate fish with behavioral states
+> ##D fish_sim <- simulate_fish_tracks(
+> ##D   raster = depth_raster,
+> ##D   station_distances = distances,
+> ##D   species = "Walleye",
+> ##D   fish_size_cm = 45,
+> ##D   n_paths = 3,
+> ##D   n_steps = 200
+> ##D )
+> ##D 
+> ##D # Plot behavioral states with temperature
+> ##D plot_behavioral_states(fish_sim)
+> ##D 
+> ##D # Plot without temperature background
+> ##D plot_behavioral_states(fish_sim, show_temperature = FALSE)
+> ##D 
+> ##D # Plot as single panel with time in minutes
+> ##D plot_behavioral_states(fish_sim, facet_by_path = FALSE, time_units = "minutes")
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("plot_detection_rates")
+> ### * plot_detection_rates
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: plot_detection_rates
+> ### Title: Create visualization plots of detection rate performance
+> ### Aliases: plot_detection_rates
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate detection statistics
+> ##D detection_stats <- calculate_detection_summaries(fish_simulation)
+> ##D 
+> ##D # Create all available plots
+> ##D plots <- plot_detection_rates(detection_stats, fish_simulation)
+> ##D 
+> ##D # Display individual plots
+> ##D print(plots$by_path)
+> ##D print(plots$by_station)
+> ##D print(plots$distribution)
+> ##D print(plots$time_series)
+> ##D 
+> ##D # Create plots without time series
+> ##D basic_plots <- plot_detection_rates(detection_stats)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("plot_fish_positions")
+> ### * plot_fish_positions
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: plot_fish_positions
+> ### Title: Plot fish position estimates from acoustic telemetry
+> ### Aliases: plot_fish_positions
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate positions
+> ##D results <- calculate_fish_positions(station_detections, distances, stations)
+> ##D 
+> ##D # Create all plots for all time periods (default)
+> ##D plot_fish_positions(results, depth_raster_df = depth_data)
+> ##D 
+> ##D # Create only integrated probability plot for all time
+> ##D plot_fish_positions(results, plot_type = "integrated")
+> ##D 
+> ##D # Select specific time using numeric value
+> ##D plot_fish_positions(results, time_select = 3600)
+> ##D 
+> ##D # Select time using date string
+> ##D plot_fish_positions(results, time_select = "2024-07-01")
+> ##D 
+> ##D # Select time using datetime string
+> ##D plot_fish_positions(results, time_select = "2024-07-01 15:00")
+> ##D 
+> ##D # Select time using POSIXct object
+> ##D plot_fish_positions(results, time_select = as.POSIXct("2024-07-01 15:00:00"))
+> ##D 
+> ##D # Customize actual track point size
+> ##D plot_fish_positions(results, actual_track_size = 2.5)
+> ##D 
+> ##D # Get individual plots as list
+> ##D plot_fish_positions(results, return_list = TRUE)
+> ##D plots$detection
+> ##D plots$integrated
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("plot_fish_tracks")
+> ### * plot_fish_tracks
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: plot_fish_tracks
+> ### Title: Plot simulated fish tracks with detection events
+> ### Aliases: plot_fish_tracks
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Generate and plot fish tracks
+> ##D fish_sim <- simulate_fish_tracks(
+> ##D   raster = depth_raster,
+> ##D   station_distances = distances,
+> ##D   n_paths = 2,
+> ##D   n_steps = 100
+> ##D )
+> ##D 
+> ##D # Basic plot
+> ##D plot_fish_tracks(fish_sim, depth_raster, stations)
+> ##D 
+> ##D # Plot without detection events
+> ##D plot_fish_tracks(fish_sim, depth_raster, stations, show_detections = FALSE)
+> ##D 
+> ##D # Customize path transparency
+> ##D plot_fish_tracks(fish_sim, depth_raster, stations, path_alpha = 0.5)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("plot_points_on_input")
+> ### * plot_points_on_input
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: plot_points_on_input
+> ### Title: Plot generated points on spatial input object
+> ### Aliases: plot_points_on_input
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Plot points on a raster
+> ##D r <- raster::raster(matrix(1:100, 10, 10))
+> ##D points <- generate_random_points(r, n_points = 50)
+> ##D plot_points_on_input(r, points)
+> ##D 
+> ##D # Plot points on a polygon
+> ##D poly <- sf::st_sfc(sf::st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,1), c(0,0)))))
+> ##D points <- generate_spaced_points(poly, spacing = 0.2)
+> ##D plot_points_on_input(poly, points)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("prepare_detection_data_for_wade")
+> ### * prepare_detection_data_for_wade
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: prepare_detection_data_for_wade
+> ### Title: Prepare real fish detection data for WADE positioning
+> ### Aliases: prepare_detection_data_for_wade
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Prepare data for a specific fish with daily aggregation
+> ##D wade_data <- prepare_detection_data_for_wade(
+> ##D   fish_detections = stoney_fish_detections,
+> ##D   station_deployments = stoney_rx_deploy,
+> ##D   selected_fish_id = "Walleye-1512985",
+> ##D   time_aggregation = "day"
+> ##D )
+> ##D 
+> ##D # Check for deployment warnings
+> ##D if (length(wade_data$deployment_warnings) > 0) {
+> ##D   cat("Deployment warnings:\n")
+> ##D   cat(paste(wade_data$deployment_warnings, collapse = "\n"))
+> ##D }
+> ##D 
+> ##D # Use with WADE positioning
+> ##D results <- calculate_fish_positions(
+> ##D   station_detections = wade_data$station_detections,
+> ##D   station_distances_df = station_distances,
+> ##D   station_info = wade_data$station_info,
+> ##D   # ... other parameters
+> ##D )
+> ##D 
+> ##D # Hourly aggregation for fine-scale analysis
+> ##D wade_data_hourly <- prepare_detection_data_for_wade(
+> ##D   fish_detections = stoney_fish_detections,
+> ##D   station_deployments = stoney_rx_deploy,
+> ##D   selected_fish_id = "Walleye-1512985",
+> ##D   time_aggregation = "hour",
+> ##D   start_time = as.POSIXct("2023-10-15 00:00:00", tz = "UTC"),
+> ##D   end_time = as.POSIXct("2023-10-17 00:00:00", tz = "UTC")
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("print_detection_summary")
+> ### * print_detection_summary
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: print_detection_summary
+> ### Title: Print detection summary report in readable format
+> ### Aliases: print_detection_summary
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate and print detection summaries
+> ##D detection_stats <- calculate_detection_summaries(fish_simulation)
+> ##D print_detection_summary(detection_stats)
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("sample_points_from_probabilities")
+> ### * sample_points_from_probabilities
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: sample_points_from_probabilities
+> ### Title: Sample points from position probability surfaces
+> ### Aliases: sample_points_from_probabilities
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Calculate fish positions first
+> ##D positioning_results <- calculate_fish_positions(station_detections, distances, stations)
+> ##D 
+> ##D # Sample 100 points per fish-time combination for all data
+> ##D sampled_points <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   prob_column = "weighted_mean_DE_normalized_scaled",
+> ##D   n_points = 100,
+> ##D   seed = 123
+> ##D )
+> ##D 
+> ##D # Sample from multiple specific fish and time periods
+> ##D multi_samples <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   prob_column = "integrated_prob",
+> ##D   n_points = 50,
+> ##D   fish_select = c(1, 2, 3),
+> ##D   time_select = c("2025-07-15", "2025-07-16", "2025-07-17"),
+> ##D   by_group = TRUE  # 50 points per fish-time combination
+> ##D )
+> ##D 
+> ##D # Sample 1000 points total distributed across all groups
+> ##D distributed_samples <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   n_points = 1000,
+> ##D   by_group = FALSE  # Distribute 1000 points across all combinations
+> ##D )
+> ##D 
+> ##D # Sample only from low-probability uncertainty regions
+> ##D uncertainty_samples <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   prob_column = "integrated_prob",
+> ##D   n_points = 200,
+> ##D   min_prob_threshold = 0.001,
+> ##D   max_prob_threshold = 0.05,  # Exclude high-probability areas
+> ##D   seed = 456
+> ##D )
+> ##D 
+> ##D # Sample with specific CRS (UTM Zone 18N)
+> ##D utm_samples <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   n_points = 100,
+> ##D   crs = 32618  # EPSG code for UTM Zone 18N
+> ##D )
+> ##D 
+> ##D # Plot sampled points colored by time
+> ##D library(ggplot2)
+> ##D ggplot() +
+> ##D   geom_sf(data = multi_samples, aes(color = time_period_posix)) +
+> ##D   scale_color_viridis_c() +
+> ##D   facet_wrap(~fish_id) +
+> ##D   theme_minimal() +
+> ##D   labs(title = "Sampled Position Points by Fish and Time")
+> ##D 
+> ##D # Temporal centroid analysis
+> ##D library(dplyr)
+> ##D temporal_centroids <- multi_samples %>%
+> ##D   group_by(fish_id, time_period_posix, time_period_label) %>%
+> ##D   summarise(
+> ##D     n_samples = n(),
+> ##D     mean_prob = mean(probability),
+> ##D     centroid = sf::st_union(geometry) %>% sf::st_centroid(),
+> ##D     .groups = 'drop'
+> ##D   ) %>%
+> ##D   sf::st_as_sf()
+> ##D 
+> ##D # Create animated track from sampled points
+> ##D track_samples <- multi_samples %>%
+> ##D   arrange(fish_id, time_period_posix) %>%
+> ##D   group_by(fish_id) %>%
+> ##D   summarise(
+> ##D     track = sf::st_cast(sf::st_union(geometry), "LINESTRING")
+> ##D   )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("sample_points_from_system_de")
+> ### * sample_points_from_system_de
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: sample_points_from_system_de
+> ### Title: Sample points from system detection efficiency surfaces
+> ### Aliases: sample_points_from_system_de
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Sample from system detection efficiency
+> ##D sampled_points <- sample_points_from_system_de(
+> ##D   system_DE,
+> ##D   n_points = 500,
+> ##D   seed = 123
+> ##D )
+> ##D 
+> ##D # Focus on moderate detection areas
+> ##D moderate_samples <- sample_points_from_system_de(
+> ##D   system_DE,
+> ##D   n_points = 200,
+> ##D   min_prob_threshold = 0.3,
+> ##D   max_prob_threshold = 0.7
+> ##D )
+> ##D 
+> ##D # Sample with specific CRS (UTM Zone 18N)
+> ##D utm_samples <- sample_points_from_system_de(
+> ##D   system_DE,
+> ##D   n_points = 300,
+> ##D   crs = 32618  # EPSG code for UTM Zone 18N
+> ##D )
+> ##D 
+> ##D # Uniform sampling (ignore probability values)
+> ##D uniform_samples <- sample_points_from_system_de(
+> ##D   system_DE,
+> ##D   n_points = 500,
+> ##D   uniform = TRUE  # All eligible cells have equal probability
+> ##D )
+> ##D 
+> ##D # Plot sampled points
+> ##D library(ggplot2)
+> ##D ggplot() +
+> ##D   geom_sf(data = sampled_points, aes(color = probability), alpha = 0.5) +
+> ##D   scale_color_viridis_c(name = "Cumulative\nProbability") +
+> ##D   theme_minimal()
+> ##D 
+> ##D # If fish_id and time data exist in future versions:
+> ##D # multi_samples <- sample_points_from_system_de(
+> ##D #   system_DE,
+> ##D #   n_points = 50,
+> ##D #   fish_select = c(1, 2, 3),
+> ##D #   time_select = c("2025-07-15", "2025-07-16"),
+> ##D #   by_group = TRUE
+> ##D # )
+> ##D 
+> ##D # Use position_points as a template for fish-time combinations
+> ##D # First get position points from positioning results
+> ##D position_points <- sample_points_from_probabilities(
+> ##D   positioning_results,
+> ##D   n_points = 100,
+> ##D   fish_select = c(1, 2),
+> ##D   time_select = c("2025-07-15", "2025-07-16")
+> ##D )
+> ##D 
+> ##D # Then sample from system_de using same fish-time combinations
+> ##D matched_de_samples <- sample_points_from_system_de(
+> ##D   system_DE,
+> ##D   n_points = 100,  # Same number per group as position_points
+> ##D   position_points = position_points  # Use as template
+> ##D )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("sample_points_from_track_grid")
+> ### * sample_points_from_track_grid
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: sample_points_from_track_grid
+> ### Title: Sample points from track data grid cell usage
+> ### Aliases: sample_points_from_track_grid
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Basic usage-weighted sampling
+> ##D usage_points <- sample_points_from_track_grid(
+> ##D   track_data = fish_simulation$tracks,
+> ##D   grid_resolution = 100,
+> ##D   n_points = 500,
+> ##D   seed = 123
+> ##D )
+> ##D 
+> ##D # Sample from specific fish and time periods
+> ##D selected_usage <- sample_points_from_track_grid(
+> ##D   track_data = fish_simulation$tracks,
+> ##D   grid_resolution = 50,  # Finer resolution
+> ##D   n_points = 200,
+> ##D   fish_select = c(1, 2, 3),
+> ##D   time_select = c("2025-07-15", "2025-07-16"),
+> ##D   min_count_threshold = 3  # Only heavily used cells
+> ##D )
+> ##D 
+> ##D # Sample without time grouping
+> ##D overall_usage <- sample_points_from_track_grid(
+> ##D   track_data = fish_simulation$tracks,
+> ##D   by_time_period = FALSE,
+> ##D   n_points = 1000
+> ##D )
+> ##D 
+> ##D # Use with reference raster for consistent grid
+> ##D raster_usage <- sample_points_from_track_grid(
+> ##D   track_data = fish_simulation$tracks,
+> ##D   reference_raster = depth_raster,
+> ##D   n_points = 300,
+> ##D   crs = 32617
+> ##D )
+> ##D 
+> ##D # Plot usage-weighted sampling
+> ##D library(ggplot2)
+> ##D ggplot() +
+> ##D   geom_sf(data = usage_points, aes(color = count, size = count), 
+> ##D           alpha = 0.6) +
+> ##D   scale_color_viridis_c(name = "Track\nPoints", trans = "sqrt") +
+> ##D   scale_size_continuous(name = "Track\nPoints", range = c(0.5, 3), trans = "sqrt") +
+> ##D   facet_wrap(~fish_id + time_period_label) +
+> ##D   theme_minimal() +
+> ##D   labs(title = "Usage-Weighted Spatial Sampling")
+> ##D 
+> ##D # Compare usage intensity across fish
+> ##D usage_summary <- usage_points %>%
+> ##D   st_drop_geometry() %>%
+> ##D   group_by(fish_id) %>%
+> ##D   summarise(
+> ##D     mean_usage = mean(count),
+> ##D     max_usage = max(count),
+> ##D     total_samples = n(),
+> ##D     .groups = 'drop'
+> ##D   )
+> ## End(Not run)
+> 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("stoney_fish_detections")
+> ### * stoney_fish_detections
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: stoney_fish_detections
+> ### Title: Fish Detection Data from Stoney Lake
+> ### Aliases: stoney_fish_detections
+> ### Keywords: datasets
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Load the dataset
+> ##D data("stoney_fish_detections")
+> ##D 
+> ##D # View dataset structure
+> ##D str(stoney_fish_detections)
+> ##D 
+> ##D # Number of unique fish
+> ##D length(unique(stoney_fish_detections$fish_id))
+> ##D 
+> ##D # Number of receiver stations
+> ##D length(unique(stoney_fish_detections$station_id))
+> ##D 
+> ##D # Date range of detections
+> ##D range(stoney_fish_detections$detection_timestamp_utc)
+> ## End(Not run)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("stoney_rx_deploy")
+> ### * stoney_rx_deploy
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: stoney_rx_deploy
+> ### Title: Acoustic Receiver Deployment Data from Stoney Lake
+> ### Aliases: stoney_rx_deploy
+> ### Keywords: datasets spatial
+> 
+> ### ** Examples
+> 
+> ## Not run: 
+> ##D # Load the dataset
+> ##D data("stoney_rx_deploy")
+> ##D 
+> ##D # View dataset structure
+> ##D str(stoney_rx_deploy)
+> ##D 
+> ##D # Plot receiver locations
+> ##D library(ggplot2)
+> ##D library(sf)
+> ##D ggplot(stoney_rx_deploy) +
+> ##D   geom_sf(aes(color = depth_m)) +
+> ##D   scale_color_viridis_c(name = "Depth (m)") +
+> ##D   labs(title = "Acoustic Receiver Locations in Stoney Lake") +
+> ##D   theme_minimal()
+> ##D 
+> ##D # Summary of deployment periods
+> ##D stoney_rx_deploy$deployment_days <- as.numeric(
+> ##D   stoney_rx_deploy$recover_datetime_UTC - stoney_rx_deploy$deploy_datetime_UTC
+> ##D )
+> ##D summary(stoney_rx_deploy$deployment_days)
+> ##D 
+> ##D # Depth distribution
+> ##D hist(stoney_rx_deploy$depth_m, main = "Receiver Depth Distribution", 
+> ##D      xlab = "Depth (m)")
+> ## End(Not run)
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  0.025 0.004 0.034 0 0 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

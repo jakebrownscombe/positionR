@@ -1,17 +1,57 @@
 # positionR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
-**Acoustic Telemetry System Design and Fish Movement Simulation**
+[![R-CMD-check](https://github.com/jakebrownscombe/positionR/workflows/R-CMD-check/badge.svg)](https://github.com/jakebrownscombe/positionR/actions)
+[![License: GPL-3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-`positionR` is an R package for designing acoustic telemetry systems and simulating fish movement with realistic detection patterns. The package provides tools for receiver placement optimization, detection efficiency modeling, and fish track simulation with detection events.
+**Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
+
+`positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate
+sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. The integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
 
 ## Features
 
-- **Point Generation**: Create receiver station layouts with regular, spaced, or random patterns
-- **Detection Modeling**: Build realistic detection efficiency models that vary with distance and depth
-- **System Analysis**: Calculate detection probabilities across spatial areas for system optimization
-- **Movement Simulation**: Simulate realistic fish movement using correlated random walks
-- **Detection Simulation**: Model acoustic detection events based on receiver proximity and environmental factors
-- **Visualization**: Comprehensive plotting functions for tracks, detections, and system performance
+### 🎯 **Array Design & Optimization**
+- Multiple receiver placement strategies (regular, spaced, random patterns)
+- Distance-based detection efficiency model generation with depth integration
+- System-wide detection coverage analysis
+- Array performance evaluation and optimization
+
+<img src="man/figures/array_generation_DE.png" width="100%" alt="Array Design and Detection Efficiency">
+
+### 🐟 **Movement Simulation**
+- Generate movement tracks with correlated random walk models
+- Produce detection patterns from tracks based on detection efficiency
+- Compare positioning and habitat selection to true track locations for optimization
+- Advanced movement models integrate behavioral states relative to species tendencies and environmental conditions (e.g., temperature). Extensible framework for users to build upon
+
+<img src="man/figures/movement_simulation.png" width="100%" alt="Fish Movement Simulation">
+
+### 📍 **WADE Positioning**
+- Weighted Average Detection Efficiency animal positioning uses detection efficiency information to position animals
+- Flexible detection model applications and temporal aggregation (e.g., hourly, daily)
+- Analytical tools for calculating home ranges and habitat selection from WADE positions
+- Simulations can inform best practices for positioning, depending on endpoints 
+- Field data integration for real acoustic telemetry datasets
+
+<img src="man/figures/wade_positioning.png" width="100%" alt="WADE Positioning">
+
+### 📊 **Space Use & Habitat Analysis**
+- Multiple space use estimation methods (convex hulls, grid cells, kernel density)
+- Habitat selection analysis with presence/absence modeling
+- Comparative analysis between positioning methods
+
+<img src="man/figures/space_use.png" width="100%" alt="Space Use Analysis">
+<img src="man/figures/presence_absence_selection.png" width="100%" alt="Habitat Selection Analysis">
+<img src="man/figures/habitat_selection_comparison.png" width="100%" alt="Habitat Selection Comparison">
+
+
+### 🔍 **Visualization & Analysis**
+- Comprehensive plotting functions for all analysis types
+- Flexible space use visualization
+- Detection performance metrics and summaries
+- Publication-ready figures and plots
+
+
 
 ## Installation
 
@@ -21,143 +61,240 @@ Install the development version from GitHub:
 # Install devtools if you haven't already
 install.packages("devtools")
 
-# Install positionR
+# Install positionR with vignettes
 devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 ```
 
-## Quick Start
+## Quick Start: Array Design Simulation
 
 ```r
 library(positionR)
 
-# Load example depth data (included with package)
-data(depth_raster)
+# Load example depth data
+data("depth_raster")
+raster::crs(depth_raster) <- "EPSG:32617"  
 
-# 1. Generate receiver station locations
-stations <- generate_random_points(depth_raster, n_points = 6, seed = 123)
+# 1. Generate receiver array (100 stations, regularly spaced)
+stations <- generate_regular_points(depth_raster, n_points = 100, seed = 123)
 
-# 2. Calculate distances between stations and all raster cells
-distances <- calculate_station_distances(depth_raster, stations, max_distance = 500)
-
-# 3. Create detection efficiency model
-de_model <- create_logistic_curve_depth(
-  min_depth = 2, max_depth = 30,
-  d50_min_depth = 50, d95_min_depth = 20,
-  d50_max_depth = 150, d95_max_depth = 60,
-  plot = FALSE
+# 2. Calculate cost-weighted distances 
+station_distances <- calculate_station_distances(
+  raster = depth_raster,
+  receiver_frame = stations,
+  max_distance = 30000,
+  station_col = "station_id"
 )
 
-# 4. Calculate system detection probabilities
-detection_system <- calculate_detection_system(
-  distance_frame = distances,
+# 3. Create detection efficiency model
+logistic_DE <- create_logistic_curve_depth(
+  min_depth = 2, max_depth = 25,
+  d50_min_depth = 150, d95_min_depth = 50,
+  d50_max_depth = 300, d95_max_depth = 100,
+  plot = TRUE
+)
+
+# 4. Calculate system detection coverage
+system_DE <- calculate_detection_system(
+  distance_frame = station_distances,
   receiver_frame = stations,
-  model = de_model$log_model,
+  model = logistic_DE$log_model,
+  threshold = 0.8,
   output_type = "cumulative"
 )
 
-# 5. Simulate fish tracks with detections
-fish_tracks <- simulate_fish_tracks(
+# 5. Simulate fish movement with detections
+start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
+
+fish_simulation <- simulate_fish_tracks(
   raster = depth_raster,
-  detection_system = detection_system$data,
-  station_distances = distances,
+  station_distances = station_distances,
   n_paths = 5,
-  n_steps = 100
+  n_steps = 1440,  # 24 hours at 60-second intervals
+  time_step = 60,
+  start_time = start_time,
+  species = "walleye"  # Enables behavioral states
 )
 
-# 6. Visualize results
-plot_fish_tracks(fish_tracks, depth_raster, stations)
-
-# 7. Analyze detection performance
-analyze_detection_performance(fish_tracks)
+# 6. Visualize and analyze results
+plot_fish_tracks(fish_simulation, depth_raster, stations)
+analyze_detection_performance(fish_simulation)
 ```
 
-## Core Functions
+## Quick Start: WADE Positioning with Field Data
 
-### Receiver Placement
+```r
+library(positionR)
 
-- `generate_exact_regular_points()` - Generate specific number of regularly spaced points
-- `generate_spaced_points()` - Generate points with defined spacing
-- `generate_random_points()` - Generate randomly distributed points
+# Load field data (included with package)
+data("stoney_fish_detections")  # Detection events
+data("stoney_rx_deploy")        # Receiver deployments  
+data("depth_raster")            # Study area bathymetry
 
-### Detection Modeling
+# 1. Calculate station distances for WADE positioning
+station_distances <- calculate_station_distances(
+  raster = depth_raster,
+  receiver_frame = stoney_rx_deploy,
+  max_distance = 30000,
+  station_col = "station_id"
+)
 
-- `create_logistic_curve_depth()` - Build detection efficiency models varying with distance and depth
-- `calculate_station_distances()` - Calculate cost-weighted distances from receivers to all locations
-- `calculate_detection_system()` - Compute system-wide detection probabilities
+# 2. Prepare detection data for WADE analysis
+wade_data <- prepare_detection_data_for_wade(
+  detection_events = stoney_fish_detections,
+  receiver_deployments = stoney_rx_deploy,
+  start_time = as.POSIXct("2023-10-15 00:00:00", tz = "UTC"),
+  end_time = as.POSIXct("2023-10-29 23:00:00", tz = "UTC"),
+  time_aggregation_method = "daily"
+)
 
-### Movement Simulation
+# 3. Run WADE positioning algorithm
+positioning_results <- calculate_fish_positions(
+  detection_data = wade_data,
+  station_distances = station_distances,
+  logistic_model = logistic_DE$log_model,
+  positioning_method = "WADE",
+  min_det_threshold = 1,
+  information_weighting = TRUE,
+  crs = "EPSG:32617"
+)
 
-- `simulate_fish_tracks()` - Generate realistic fish movement paths with detection events
-- `plot_fish_tracks()` - Visualize tracks, detections, and receiver performance
+# 4. Visualize positioning results
+plot_fish_positions(
+  positioning_results = positioning_results,
+  raster = depth_raster,
+  receiver_frame = stoney_rx_deploy,
+  plot_type = "integrated",
+  time_filter = "2023-10-27"
+)
+```
 
-### Analysis
+## Core Function Categories
 
-- `calculate_detection_summaries()` - Compute detection rate statistics
-- `analyze_detection_performance()` - Comprehensive detection analysis with plots
+### 🎯 **Array Generation**
+- `generate_regular_points()` - Specific number of regularly spaced receivers
+- `generate_spaced_points()` - Receivers with defined minimum spacing  
+- `generate_random_points()` - Randomly distributed receivers
 
-## Workflow
+### 📡 **Detection Modeling**  
+- `create_logistic_curve_depth()` - Distance-depth detection efficiency models
+- `calculate_station_distances()` - Cost-weighted distance calculations
+- `calculate_detection_system()` - System-wide detection probability surfaces
 
-The typical workflow follows these steps:
+### 🐟 **Movement & Positioning**
+- `simulate_fish_tracks()` - Behavioral movement simulation with species parameters
+- `prepare_detection_data_for_wade()` - Process field detection data
+- `calculate_fish_positions()` - WADE positioning algorithm
 
-1. **Design receiver array** using point generation functions
-2. **Model detection efficiency** with distance/depth relationships  
-3. **Calculate system coverage** to evaluate detection probabilities
-4. **Simulate fish movement** with realistic detection events
-5. **Analyze performance** to optimize system design
+### 📈 **Space Use Analysis**
+- `calculate_space_use()` - Multiple space use estimation methods
+- `generate_random_points_in_space_use()` - Point sampling from space use areas
+- `generate_space_use_absences()` - Generate absence points for habitat analysis
+- `analyze_comparative_habitat_selection()` - Compare positioning vs tracking data
 
-## Example Output
+### 🎨 **Visualization**
+- `plot_fish_tracks()` - Movement paths with detection events
+- `plot_fish_positions()` - WADE positioning probability surfaces  
+- `plot_space_use()` - Space use area visualizations
+- `plot_behavioral_states()` - Behavioral state time series
+- `plot_depth_selection()` - Habitat selection analysis plots
 
-### Detection System Coverage
-![Detection Coverage](https://via.placeholder.com/600x400/4a90a4/ffffff?text=Detection+Coverage+Heatmap)
+### 📊 **Analysis**
+- `analyze_detection_performance()` - Detection system performance metrics
+- `analyze_behavioral_temperature()` - Temperature-behavior interactions
+- `compare_space_use_thresholds()` - Space use method comparisons
 
-### Fish Tracks with Detections
-![Fish Tracks](https://via.placeholder.com/600x400/2d5aa0/ffffff?text=Fish+Tracks+and+Detections)
+## Included Datasets
 
-### Detection Performance Analysis
-![Performance](https://via.placeholder.com/600x400/8fbc8f/ffffff?text=Detection+Rate+Analysis)
+- `depth_raster` - Example bathymetry raster for system testing
+- `stoney_fish_detections` - Real walleye detection data from Stoney Lake
+- `stoney_rx_deploy` - Receiver deployment metadata
+- `daily_temperature` - Daily water temperature data for behavioral modeling
+
+## 📚 Tutorials & Vignettes
+
+Comprehensive step-by-step tutorials demonstrate the full capabilities of positionR:
+
+### 🐟 **WADE Positioning Tutorial**
+**Complete workflow for fine-scale fish positioning using WADE methodology**
+
+Learn how to apply WADE positioning to real acoustic telemetry data, including detection data preparation, model fitting, positioning calculations, and space use analysis. Covers advanced topics like behavioral state modeling, temperature effects, and comparative analysis between positioning methods.
+
+```r
+vignette("WADE_Simulation", package = "positionR")
+```
+
+### 📡 **Array Design & Movement Simulation** 
+**Optimize receiver arrays and simulate realistic fish movements**
+
+Design effective receiver arrays using multiple placement strategies, model detection efficiency based on environmental conditions, simulate realistic fish movements with behavioral states, and evaluate system performance before deployment. Includes habitat selection analysis and presence-absence modeling.
+
+```r
+vignette("Array_Design_Simulation", package = "positionR")
+```
+
+### 🔍 **Browse All Tutorials**
+```r
+browseVignettes("positionR")
+```
+
+**Online Documentation**: Visit our [package website](https://jakebrownscombe.github.io/positionR) for enhanced tutorials with interactive examples and detailed methodology explanations.
 
 ## Key Applications
 
-- **System Design**: Optimize receiver placement for maximum detection coverage
-- **Performance Evaluation**: Assess detection efficiency of existing arrays
-- **Movement Ecology**: Study fish movement patterns and habitat use
-- **Detection Modeling**: Understand factors affecting acoustic detection range
-- **Simulation Studies**: Test system performance under different scenarios
+- **🔬 Array Design**: Optimize receiver placement for detection coverage
+- **📍 Animal Positioning**: Locate animals using WADE methodology  
+- **🏠 Habitat Selection**: Analyze space use and habitat preferences
+- **🌡️ Behavioral Ecology**: Study temperature-dependent movement patterns
+- **📊 System Evaluation**: Assess performance of existing telemetry arrays
+- **🎯 Simulation Studies**: Test scenarios and validate methodologies
 
-## Vignette
+## Methodology: WADE Positioning
 
-For detailed examples and tutorials, see the package vignette:
+The Weighted Average Detection Efficiency (WADE) methodology provides probabilistic animal positioning by:
 
-```r
-vignette("positionR_tutorial", package = "positionR")
-```
+1. **Detection Integration**: Combining detection events with receiver-specific detection probabilities
+2. **Non-detection Integration**: Incorporating information from receivers that should have detected the animal but didn't
+3. **Temporal Aggregation**: Integrating data across user-defined time periods  
+4. **Spatial Weighting**: Weighting positions by detection efficiency and detection frequency
+5. **Uncertainty Quantification**: Providing probability surfaces rather than point estimates
 
 ## Dependencies
 
-The package builds on several key R packages:
+Key dependencies include:
 
-- `raster` - Spatial raster data handling
-- `sf` - Simple features for spatial vector data
-- `ggplot2` - Data visualization
-- `dplyr` - Data manipulation
-- `gdistance` - Cost-distance calculations
-- `circular` - Circular statistics for movement modeling
+- **Spatial**: `raster`, `sf`, `sp`, `gdistance` - spatial data handling and analysis
+- **Visualization**: `ggplot2`, `ggridges`, `scales` - publication-quality plots
+- **Data**: `dplyr`, `tidyr`, `lubridate` - data manipulation and processing  
+- **Movement**: `circular`, `FNN` - movement modeling and nearest neighbor calculations
+- **Analysis**: `randomForest` - habitat selection modeling
 
 ## Citation
 
 If you use positionR in your research, please cite:
 
 ```
-Brownscombe, J.W. (2025). positionR: Acoustic Telemetry System Design and Fish Movement Simulation. 
-R package version [version]. https://github.com/jakebrownscombe/positionR
+Brownscombe, J.W. (2025). positionR: Weighted Average Detection Efficiency (WADE) 
+Positioning for Acoustic Telemetry. R package version 1.0.0. 
+https://github.com/jakebrownscombe/positionR
 ```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please:
 
-## Contact
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit changes (`git commit -am 'Add new feature'`)
+4. Push to branch (`git push origin feature/new-feature`)  
+5. Create a Pull Request
 
-- **Author**: Dr. Jacob Brownscombe
+## License
+
+This project is licensed under the GPL-3 License - see the [LICENSE](LICENSE) file for details.
+
+## Contact & Support
+
+- **Author**: Dr. Jacob Brownscombe  
 - **Email**: jakebrownscombe@gmail.com
 - **GitHub**: [@jakebrownscombe](https://github.com/jakebrownscombe)
+- **Issues**: [Report bugs or request features](https://github.com/jakebrownscombe/positionR/issues)

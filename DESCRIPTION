@@ -1,31 +1,46 @@
 Package: positionR
-Title: PositionR
-Version: 0.0.0.9000
+Title: Weighted Average Detection Efficiency (WADE) Positioning for Acoustic Telemetry
+Version: 1.0.0
+Author: Jacob Brownscombe <jakebrownscombe@gmail.com> [aut, cre]
+Maintainer: Jacob Brownscombe <jakebrownscombe@gmail.com>
 Authors@R: 
-    person("Jacob", "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre"))
-Description: Acoustic telemetry array design and animal positioning using system performance
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Jacob", "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-1042-5867"))
+Description: Provides comprehensive tools for acoustic telemetry array design, fish movement simulation, and animal positioning using the Weighted Average Detection Efficiency (WADE) methodology. Includes functions for detection range modeling, space use analysis, habitat selection, and simulation-based array optimization for aquatic animal tracking studies.
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 URL: https://github.com/jakebrownscombe/positionR
 BugReports: https://github.com/jakebrownscombe/positionR/issues
 Imports: 
+    circular,
     dplyr,
+    FNN,
     gdistance,
     ggplot2,
+    ggnewscale,
+    ggridges,
+    grDevices,
+    lubridate,
     methods,
     patchwork,
+    randomForest,
     raster,
+    rlang,
     scales,
     sf,
+    sp,
     stats,
-    tidyr
+    stringr,
+    tidyr,
+    tools,
+    utils
 Suggests: 
     knitr,
     plotly,
-    rmarkdown
+    rmarkdown,
+    tibble
 VignetteBuilder: knitr
 Depends: 
     R (>= 3.5)

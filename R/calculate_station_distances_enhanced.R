@@ -1,0 +1,222 @@
+#' Calculate cost distances from receiver stations to all raster cells (Enhanced)
+#'
+#' Enhanced version that supports character station IDs and flexible column naming.
+#' Computes both cost-weighted and straight-line distances from each receiver
+#' station to all valid cells in a raster. Uses least-cost path analysis to
+#' account for landscape constraints on signal transmission.
+#'
+#' @param raster A RasterLayer object representing the study area. Non-NA cells
+#'   are treated as valid locations for distance calculations.
+#' @param receiver_frame An sf object or data frame containing receiver station locations.
+#'   Must have a column for station identification (default is 'point_id').
+#' @param max_distance Numeric. Maximum distance (in map units) for calculations.
+#'   Distances beyond this threshold are set to NA. Default is NULL (no limit).
+#' @param station_col Character. Name of the column containing station identifiers.
+#'   Default is "point_id". Can be any column name with unique station IDs.
+#'
+#' @return A data frame in long format with the following columns:
+#'   \item{cell_id}{Unique identifier for each raster cell}
+#'   \item{x}{X coordinate of the cell center}
+#'   \item{y}{Y coordinate of the cell center}
+#'   \item{raster_value}{Original value from the input raster}
+#'   \item{station_no}{Station identifier from receiver_frame (preserves original type)}
+#'   \item{cost_distance}{Least-cost distance from station to cell}
+#'   \item{straight_distance}{Euclidean distance from station to cell}
+#'   \item{tortuosity}{Ratio of cost distance to straight distance}
+#'
+#' @details
+#' This enhanced version:
+#' \itemize{
+#'   \item Supports both numeric and character station IDs
+#'   \item Allows flexible column naming via station_col parameter
+#'   \item Preserves the original data type of station identifiers
+#'   \item Maintains compatibility with existing workflows
+#' }
+#'
+#' The function uses the gdistance package to perform least-cost path analysis.
+#' The process involves:
+#' \enumerate{
+#'   \item Creating a uniform cost surface from the raster (all valid cells = 1)
+#'   \item Building a transition matrix with 8-directional connectivity
+#'   \item Calculating accumulated cost distances using accCost()
+#'   \item Computing straight-line distances for comparison
+#'   \item Converting results to long format for analysis
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # With numeric station IDs (default)
+#' stations_numeric <- generate_random_points(depth_raster, n_points = 5, seed = 123)
+#' distances_numeric <- calculate_station_distances(depth_raster, stations_numeric)
+#'
+#' # With character station IDs
+#' stations_char <- stoney_rx_deploy  # Has character station_id column
+#' distances_char <- calculate_station_distances(
+#'   raster = depth_raster,
+#'   receiver_frame = stations_char,
+#'   max_distance = 3000,
+#'   station_col = "station_id"
+#' )
+#'
+#' # Verify station ID preservation
+#' unique(distances_char$station_no)  # Should show character IDs
+#' }
+#'
+#' @seealso \code{\link{generate_random_points}}, \code{\link{generate_spaced_points}}
+#'
+#' @importFrom stats na.omit
+#' @export
+calculate_station_distances <- function(raster,
+                                        receiver_frame,
+                                        max_distance = NULL,
+                                        station_col = "point_id") {
+
+  # Validate inputs
+  if (!station_col %in% names(receiver_frame)) {
+    stop("Column '", station_col, "' not found in receiver_frame. ",
+         "Available columns: ", paste(names(receiver_frame), collapse = ", "))
+  }
+  
+  # Check for unique station IDs
+  station_ids <- receiver_frame[[station_col]]
+  if (any(duplicated(station_ids))) {
+    stop("Station IDs in column '", station_col, "' must be unique. ",
+         "Found duplicates: ", paste(station_ids[duplicated(station_ids)], collapse = ", "))
+  }
+  
+  # Create uniform cost surface
+  cost_raster <- raster
+  cost_raster[!is.na(cost_raster)] <- 1
+
+  # Create transition matrix
+  cat("Creating transition matrix...\n")
+  tr <- gdistance::transition(cost_raster, transitionFunction = mean, directions = 8)
+  tr <- gdistance::geoCorrection(tr, type = "c")
+
+  # Convert points to SpatialPoints if needed
+  if ("sf" %in% class(receiver_frame)) {
+    points_sp <- methods::as(receiver_frame, "Spatial")
+  } else {
+    # Assume it's a data frame with x,y coordinates
+    coordinates_cols <- c("x", "y")
+    if (!all(coordinates_cols %in% names(receiver_frame))) {
+      # Try alternative column names
+      if (all(c("station_x", "station_y") %in% names(receiver_frame))) {
+        coordinates_cols <- c("station_x", "station_y")
+      } else if (all(c("lon", "lat") %in% names(receiver_frame))) {
+        coordinates_cols <- c("lon", "lat")
+      } else {
+        stop("Could not find coordinate columns. Expected 'x','y' or 'station_x','station_y' or 'lon','lat'")
+      }
+    }
+    points_sp <- sp::SpatialPointsDataFrame(
+      coords = receiver_frame[, coordinates_cols],
+      data = receiver_frame,
+      proj4string = sp::CRS(raster::projection(raster))
+    )
+  }
+
+  # Get raster cell coordinates for the dataframe
+  raster_coords <- raster::coordinates(cost_raster)
+  cell_numbers <- 1:raster::ncell(cost_raster)
+  valid_cells <- which(!is.na(raster::values(cost_raster)))
+
+  # Initialize results dataframe
+  results_df <- data.frame(
+    cell_id = cell_numbers[valid_cells],
+    x = raster_coords[valid_cells, 1],
+    y = raster_coords[valid_cells, 2],
+    raster_value = raster::values(raster)[valid_cells]  # Use original raster values
+  )
+
+  # Calculate cost distances from each station
+  for (i in 1:nrow(receiver_frame)) {
+    current_station_id <- station_ids[i]
+    cat("Calculating distances for station", i, "of", nrow(receiver_frame),
+        "(ID:", current_station_id, ")\n")
+
+    # Get single point
+    single_point <- points_sp[i, ]
+    station_coords <- raster::coordinates(single_point)
+
+    # Calculate cost distance from this point using accCost
+    cost_dist_raster <- gdistance::accCost(tr, single_point)
+
+    # Extract distances for valid cells only
+    cost_distances <- raster::values(cost_dist_raster)[valid_cells]
+
+    # Calculate straight-line distances
+    cell_coords <- raster_coords[valid_cells, ]
+    straight_distances <- sqrt((cell_coords[,1] - station_coords[1])^2 +
+                                 (cell_coords[,2] - station_coords[2])^2)
+
+    # Replace infinite values with NA
+    cost_distances[is.infinite(cost_distances)] <- NA
+
+    # Apply maximum distance filter if specified
+    if (!is.null(max_distance)) {
+      cost_distances[cost_distances > max_distance] <- NA
+      straight_distances[straight_distances > max_distance] <- NA
+    }
+
+    # Add to results dataframe with sanitized column names
+    # Replace any non-standard characters in station ID for column naming
+    safe_station_id <- gsub("[^[:alnum:]_]", "_", as.character(current_station_id))
+    cost_col_name <- paste0("cost_dist_station_", safe_station_id)
+    straight_col_name <- paste0("straight_dist_station_", safe_station_id)
+
+    results_df[[cost_col_name]] <- cost_distances
+    results_df[[straight_col_name]] <- straight_distances
+  }
+
+  # Convert to long format
+  cat("Converting to long format...\n")
+
+  # Separate cost and straight distance columns
+  cost_cols <- grep("^cost_dist_station_", names(results_df), value = TRUE)
+  straight_cols <- grep("^straight_dist_station_", names(results_df), value = TRUE)
+
+  # Create a mapping of safe column names back to original station IDs
+  station_mapping <- data.frame(
+    safe_name = gsub("[^[:alnum:]_]", "_", as.character(station_ids)),
+    original_id = station_ids,
+    stringsAsFactors = FALSE
+  )
+
+  # Pivot cost distances to long format
+  cost_long <- results_df %>%
+    dplyr::select(cell_id, x, y, raster_value, dplyr::all_of(cost_cols)) %>%
+    tidyr::pivot_longer(cols = dplyr::all_of(cost_cols),
+                        names_to = "station_col",
+                        values_to = "cost_distance") %>%
+    dplyr::mutate(safe_name = gsub("cost_dist_station_", "", station_col)) %>%
+    dplyr::left_join(station_mapping, by = "safe_name") %>%
+    dplyr::rename(station_no = original_id) %>%
+    dplyr::select(-station_col, -safe_name)
+
+  # Pivot straight distances to long format
+  straight_long <- results_df %>%
+    dplyr::select(cell_id, dplyr::all_of(straight_cols)) %>%
+    tidyr::pivot_longer(cols = dplyr::all_of(straight_cols),
+                        names_to = "station_col",
+                        values_to = "straight_distance") %>%
+    dplyr::mutate(safe_name = gsub("straight_dist_station_", "", station_col)) %>%
+    dplyr::left_join(station_mapping, by = "safe_name") %>%
+    dplyr::rename(station_no = original_id) %>%
+    dplyr::select(-station_col, -safe_name)
+
+  # Combine the long format dataframes
+  final_df <- cost_long %>%
+    dplyr::left_join(straight_long, by = c("cell_id", "station_no")) %>%
+    dplyr::mutate(tortuosity = cost_distance / straight_distance) %>%
+    dplyr::filter(!is.na(cost_distance)) %>%
+    dplyr::arrange(station_no, cell_id)
+
+  cat("Distance calculations complete!\n")
+  cat("Result contains", nrow(final_df), "station-cell combinations\n")
+  cat("Station IDs (", class(final_df$station_no), "):", 
+      paste(head(unique(final_df$station_no), 5), collapse = ", "),
+      if(length(unique(final_df$station_no)) > 5) "..." else "", "\n")
+
+  return(final_df)
+}

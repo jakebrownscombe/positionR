@@ -1,4 +1,4 @@
-#' Generate exact number of regular points within spatial boundaries
+#' Generate regular points within spatial boundaries
 #'
 #' Creates a specified number of regularly spaced points within the boundaries
 #' of a raster or polygon object. Points are arranged in a systematic grid pattern.
@@ -11,7 +11,7 @@
 #' @return An sf object containing the generated points with columns:
 #'   \item{x}{X coordinates}
 #'   \item{y}{Y coordinates}
-#'   \item{point_id}{Unique identifier for each point}
+#'   \item{station_id}{Unique identifier for each point}
 #'   \item{raster_value}{Raster values at point locations (only if input was raster)}
 #'   The object also has a "method_info" attribute describing the spacing pattern.
 #'
@@ -25,15 +25,15 @@
 #' \dontrun{
 #' # Generate 50 regular points in a raster
 #' r <- raster::raster(matrix(1:100, 10, 10))
-#' points <- generate_exact_regular_points(r, n_points = 50, seed = 123)
+#' points <- generate_regular_points(r, n_points = 50, seed = 123)
 #'
 #' # Generate points in a polygon
 #' poly <- sf::st_sfc(sf::st_polygon(list(rbind(c(0,0), c(1,0), c(1,1), c(0,1), c(0,0)))))
-#' points <- generate_exact_regular_points(poly, n_points = 25)
+#' points <- generate_regular_points(poly, n_points = 25)
 #' }
 #'
 #' @export
-generate_exact_regular_points <- function(input_obj, n_points, seed = NULL) {
+generate_regular_points <- function(input_obj, n_points, seed = NULL) {
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -50,8 +50,8 @@ generate_exact_regular_points <- function(input_obj, n_points, seed = NULL) {
   regular_points_sf$x <- coords[,1]
   regular_points_sf$y <- coords[,2]
 
-  # Add point ID
-  regular_points_sf$point_id <- 1:nrow(regular_points_sf)
+  # Add station ID
+  regular_points_sf$station_id <- 1:nrow(regular_points_sf)
 
   # Extract values if input was raster
   if (prep$type == "raster") {
@@ -144,7 +144,7 @@ prepare_polygon <- function(input_obj) {
 #' @return An sf object containing the generated points with columns:
 #'   \item{x}{X coordinates}
 #'   \item{y}{Y coordinates}
-#'   \item{point_id}{Unique identifier for each point}
+#'   \item{station_id}{Unique identifier for each point}
 #'   \item{raster_value}{Raster values at point locations (only if input was raster)}
 #'   The object also has a "method_info" attribute describing the spacing.
 #'
@@ -190,8 +190,8 @@ generate_spaced_points <- function(input_obj, spacing, seed = NULL) {
   coords <- sf::st_coordinates(points_within)
   points_within$x <- coords[,1]
   points_within$y <- coords[,2]
-  # Add point ID
-  points_within$point_id <- 1:nrow(points_within)
+  # Add station ID
+  points_within$station_id <- 1:nrow(points_within)
   # Extract values if input was raster
   if (prep$type == "raster") {
     points_sp <- methods::as(points_within, "Spatial")
@@ -219,7 +219,7 @@ generate_spaced_points <- function(input_obj, spacing, seed = NULL) {
 #' @return An sf object containing the generated points with columns:
 #'   \item{x}{X coordinates}
 #'   \item{y}{Y coordinates}
-#'   \item{point_id}{Unique identifier for each point}
+#'   \item{station_id}{Unique identifier for each point}
 #'   \item{raster_value}{Raster values at point locations (only if input was raster)}
 #'   The object also has a "method_info" attribute indicating random distribution.
 #'
@@ -257,8 +257,8 @@ generate_random_points <- function(input_obj, n_points, seed = NULL) {
   random_points_sf$x <- coords[,1]
   random_points_sf$y <- coords[,2]
 
-  # Add point ID
-  random_points_sf$point_id <- 1:nrow(random_points_sf)
+  # Add station ID
+  random_points_sf$station_id <- 1:nrow(random_points_sf)
 
   # Extract values if input was raster
   if (prep$type == "raster") {
@@ -348,3 +348,7 @@ plot_points_on_input <- function(input_obj, points_sf) {
   }
   return(p)
 }
+
+#' @rdname generate_regular_points
+#' @export
+generate_exact_regular_points <- generate_regular_points

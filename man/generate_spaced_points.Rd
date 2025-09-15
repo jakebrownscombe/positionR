@@ -18,7 +18,7 @@ sf/sfc object, or SpatialPolygons/SpatialPolygonsDataFrame.}
 An sf object containing the generated points with columns:
 \item{x}{X coordinates}
 \item{y}{Y coordinates}
-\item{point_id}{Unique identifier for each point}
+\item{station_id}{Unique identifier for each point}
 \item{raster_value}{Raster values at point locations (only if input was raster)}
 The object also has a "method_info" attribute describing the spacing.
 }

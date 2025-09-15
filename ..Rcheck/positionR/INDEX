@@ -1,0 +1,225 @@
+analyze_behavioral_temperature
+                        Analyze behavioral state patterns by
+                        temperature bins
+analyze_comparative_habitat_selection
+                        Comparative habitat selection analysis using
+                        positioning and/or space use data
+analyze_depth_selection
+                        Analyze depth selection patterns
+analyze_detection_performance
+                        Comprehensive detection performance analysis
+                        with summary and plots
+analyze_positioning_performance
+                        Analyze positioning performance from acoustic
+                        telemetry
+analyze_single_dataset
+                        Analyze a single presence-absence dataset
+calculate_95_ellipse_area
+                        Calculate 95% confidence ellipse area
+calculate_constrained_convex_hull_area
+                        Updated constrained convex hull calculation to
+                        work with reference raster
+calculate_constrained_convex_hull_area_with_data
+                        Calculate constrained convex hull with spatial
+                        data
+calculate_convex_hull_area
+                        Calculate convex hull area
+calculate_detection_summaries
+                        Calculate detection rate summaries from fish
+                        track simulations
+calculate_detection_system
+                        Calculate detection system probabilities and
+                        create visualization
+calculate_fish_positions
+                        Calculate fish positions from acoustic
+                        telemetry data
+calculate_grid_cell_usage
+                        Updated grid cell usage calculation to work
+                        with reference raster
+calculate_grid_cell_usage_with_data
+                        Calculate grid cell usage with spatial data
+calculate_group_space_use
+                        Calculate space use metrics for a single group
+calculate_space_use     Calculate Space Use Estimates from Track Data
+calculate_space_use_zoom
+                        Calculate zoom extent for map considering both
+                        track data and space use area
+calculate_station_distances
+                        Calculate cost distances from receiver stations
+                        to all raster cells
+calculate_threshold_summary_stats
+                        Calculate summary statistics for threshold
+                        comparison
+calculate_track_overlap
+                        Calculate track overlap for spatial data
+compare_space_use_methods
+                        Compare multiple space use methods by
+                        generating points for each
+compare_space_use_thresholds
+                        Compare Space Use Results Across Multiple
+                        Probability Thresholds
+create_comparison_analysis
+                        Create comparison analysis between positioning
+                        and space use results
+create_constrained_grid_raster_data
+                        Create constrained hull by finding which
+                        depth_raster cells are within convex hull
+                        polygon
+create_ellipse_polygon
+                        Create ellipse polygon for 95% confidence
+                        ellipse
+create_ellipse_polygon_data
+                        Create ellipse polygon data with method label
+create_grid_cell_polygons
+                        Create grid cell polygons for plotting
+create_grid_polygon     Create grid cell polygon
+create_grid_raster_data
+                        Create grid raster data using actual raster
+                        cell boundaries
+create_logistic_curve_depth
+                        generate detection range models Create logistic
+                        curve for detection efficiency with depth
+                        extrapolation
+create_presence_absence_dataset
+                        Create combined presence-absence dataset for
+                        habitat selection analysis
+create_space_use_polygon
+                        Create space use polygon for visualization
+create_space_use_polygon_data
+                        Create space use polygon data for direct
+                        plotting
+create_space_use_summary
+                        Create summary statistics for space use
+                        estimates
+create_threshold_comparison_plots
+                        Create visualization plots for threshold
+                        comparison
+extract_absence_time_info
+                        Extract time binning information from
+                        space_use_points and space_use_results
+extract_space_use_time_info
+                        Extract time binning information from
+                        space_use_results
+generate_absences_available_habitat
+                        Generate absences from available habitat (whole
+                        study area minus space use areas)
+generate_absences_buffer_zone
+                        Generate absences in buffer zone around space
+                        use area
+generate_absences_random_cells
+                        Generate random absence points from any valid
+                        raster cells
+generate_absences_system_wide
+                        Generate absences using system-wide detection
+                        efficiency
+generate_points_bounding_box_method
+                        Generate points within bounding box
+generate_points_constrained_hull
+                        Generate points within constrained convex hull
+generate_points_convex_hull
+                        Generate points within convex hull polygon
+generate_points_ellipse
+                        Generate points within 95% confidence ellipse
+generate_points_grid_cells
+                        Generate points within grid cells occupied by
+                        track
+generate_random_points
+                        Generate random points within spatial
+                        boundaries
+generate_random_points_in_space_use
+                        Generate random points within space use
+                        estimates from calculate_space_use
+generate_regular_points
+                        Generate regular points within spatial
+                        boundaries
+generate_simple_raster_absences
+                        Simple absence generation function that ONLY
+                        uses the raster - no other inputs
+generate_space_use_absences
+                        Generate absence points across the entire
+                        reference raster (simplified version)
+generate_space_use_absences_simple
+                        Wrapper to generate absences with fish/time
+                        info using simple raster logic
+generate_spaced_points
+                        Generate points with specified spacing within
+                        spatial boundaries
+get_raster_cells_as_polygons
+                        Get raster cells as proper polygon data for
+                        accurate visualization This function creates
+                        the actual cell boundaries for each raster cell
+get_space_use_exclusion_cells
+                        Get cells to exclude based on space use method
+line_intersects_box     Check if a line segment intersects with a box
+                        Uses basic line-box intersection algorithm
+plot_behavioral_states
+                        Plot behavioral states over time with
+                        temperature coloring
+plot_comparative_results
+                        Plot comparative habitat selection results
+plot_depth_comparison   Create comparison plots for multiple fish or
+                        time periods
+plot_depth_selection    Plot depth selection patterns
+plot_depth_spatial      Create spatial plot of presence/absence points
+                        colored by depth
+plot_detection_rates    Create visualization plots of detection rate
+                        performance
+plot_fish_positions     Plot fish position estimates from acoustic
+                        telemetry
+plot_fish_tracks        Plot simulated fish tracks with detection
+                        events
+plot_points_on_input    Plot generated points on spatial input object
+plot_presence_absence_space_use
+                        Plot presence and absence points together
+plot_space_use          Plot space use estimates
+plot_space_use_map      Updated plot function with proper raster cell
+                        visualization
+plot_space_use_method_comparison
+                        Plot comparison of multiple space use methods
+plot_space_use_points   Plot space use areas with generated random
+                        points
+point_in_polygon        Point-in-polygon test using ray casting
+                        algorithm
+prepare_detection_data_for_wade
+                        Prepare real fish detection data for WADE
+                        positioning
+print_comparative_summary
+                        Print comparative habitat selection summary
+print_detection_summary
+                        Print detection summary report in readable
+                        format
+sample_points_from_probabilities
+                        Sample points from position probability
+                        surfaces
+sample_points_from_system_de
+                        Sample points from system detection efficiency
+                        surfaces
+sample_points_from_track_grid
+                        Sample points from track data grid cell usage
+simulate_fish_tracks    Simulate fish tracks with correlated random
+                        walks and detection events (ROBUST)
+standardize_track_data_for_points
+                        Standardize track data for point generation to
+                        match space_use_results time binning
+standardize_track_data_space
+                        Standardize track data for space use analysis
+stoney_fish_detections
+                        Fish Detection Data from Stoney Lake
+stoney_rx_deploy        Acoustic Receiver Deployment Data from Stoney
+                        Lake
+summarize_space_use_points
+                        Summary function for space use points
+test_cells_in_polygon   Test if raster cells intersect with a polygon
+                        using simple corner test Include cell if ANY of
+                        its 4 corners are inside the polygon
+test_cells_in_polygon_full
+                        Alias for test_cells_in_polygon_simple for
+                        backward compatibility
+test_cells_in_polygon_simple
+                        Test if raster cells intersect with a polygon
+                        using cell centers (original working version)
+                        This is the original simple method that was
+                        working
+test_raster_absence_generation
+                        Test function to validate raster and absence
+                        generation
