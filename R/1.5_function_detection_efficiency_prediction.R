@@ -134,17 +134,90 @@ calculate_prob_3_plus <- function(probs) {
 calculate_detection_system <- function(distance_frame,
                                        receiver_frame,
                                        model,
+                                       target_date = NULL,
                                        output_type = "both",  # "cumulative", "3_plus", or "both"
-                                       plots = TRUE) {
+                                       plots = TRUE,
+                                       station_col = "station_id",
+                                       deploy_col = "deploy_datetime_UTC",
+                                       recover_col = "recover_datetime_UTC") {
 
   # Validate output_type
   if (!output_type %in% c("cumulative", "3_plus", "both")) {
     stop("output_type must be 'cumulative', '3_plus', or 'both'")
   }
 
+  # Check required columns in distance_frame
+  required_distance_cols <- c("cell_id", "x", "y", "raster_value", "cost_distance", "station_no")
+  missing_distance_cols <- setdiff(required_distance_cols, names(distance_frame))
+  if (length(missing_distance_cols) > 0) {
+    stop("Missing columns in distance_frame: ", paste(missing_distance_cols, collapse = ", "))
+  }
+
+  # Check required columns in receiver_frame
+  if (!station_col %in% names(receiver_frame)) {
+    stop("Column '", station_col, "' not found in receiver_frame. ",
+         "Available columns: ", paste(names(receiver_frame), collapse = ", "))
+  }
+
   # Determine what to calculate
   calc_cumulative <- output_type %in% c("cumulative", "both")
   calc_3_plus <- output_type %in% c("3_plus", "both")
+
+  # Handle deployment filtering if target_date is provided
+  active_stations <- NULL
+  n_active_stations <- 0
+
+  if (!is.null(target_date)) {
+    # Check for deployment columns
+    if (!deploy_col %in% names(receiver_frame) || !recover_col %in% names(receiver_frame)) {
+      stop("Deployment columns '", deploy_col, "' and '", recover_col, 
+           "' not found in receiver_frame for date filtering. ",
+           "Set target_date = NULL to use all stations.")
+    }
+
+    # Convert target_date to Date if needed
+    if (inherits(target_date, "POSIXct")) {
+      target_date <- as.Date(target_date)
+    } else if (!inherits(target_date, "Date")) {
+      target_date <- as.Date(target_date)
+    }
+
+    cat("Filtering receivers active on", as.character(target_date), "...\n")
+
+    # Convert deployment dates to Date for comparison
+    deploy_dates <- as.Date(receiver_frame[[deploy_col]])
+    recover_dates <- as.Date(receiver_frame[[recover_col]])
+
+    # Find active stations
+    active_mask <- deploy_dates <= target_date & recover_dates >= target_date
+    active_stations <- receiver_frame[[station_col]][active_mask & !is.na(active_mask)]
+    n_active_stations <- length(active_stations)
+
+    cat("Found", n_active_stations, "active stations on", as.character(target_date), "\n")
+
+    if (n_active_stations == 0) {
+      stop("No stations were active on ", as.character(target_date), 
+           ". Check deployment dates or choose a different date.")
+    }
+
+    # Filter distance_frame to include only active stations
+    original_rows <- nrow(distance_frame)
+    distance_frame <- distance_frame %>%
+      dplyr::filter(station_no %in% active_stations)
+
+    filtered_rows <- nrow(distance_frame)
+    cat("Filtered distance_frame from", original_rows, "to", filtered_rows, "rows\n")
+
+    # Filter receiver_frame for plotting
+    receiver_frame_filtered <- receiver_frame %>%
+      dplyr::filter(!!rlang::sym(station_col) %in% active_stations)
+
+  } else {
+    cat("Using all", length(unique(distance_frame$station_no)), "stations (no date filtering)\n")
+    active_stations <- unique(distance_frame$station_no)
+    n_active_stations <- length(active_stations)
+    receiver_frame_filtered <- receiver_frame
+  }
 
   # Predict detection probabilities using the specified model
   cat("Calculating detection probabilities...\n")
@@ -201,12 +274,19 @@ calculate_detection_system <- function(distance_frame,
     cat("Creating plots...\n")
 
     if (calc_cumulative) {
+      # Create title suffix based on filtering
+      title_suffix <- if (!is.null(target_date)) {
+        paste0(" (", n_active_stations, " stations active on ", as.character(target_date), ")")
+      } else {
+        paste0(" (", n_active_stations, " stations)")
+      }
+
       p1 <- ggplot2::ggplot(system_summary, ggplot2::aes(x, y, fill = cumulative_prob)) +
-        ggplot2::geom_tile() +
+        ggplot2::geom_raster() +
         ggplot2::scale_fill_viridis_c(option = "magma", name = "Probability") +
-        ggplot2::geom_point(data = receiver_frame, ggplot2::aes(x, y),
-                            col = "green", fill = NA, pch = 21, inherit.aes = FALSE) +
-        ggplot2::ggtitle("Single Detection Probability") +
+        ggplot2::geom_point(data = receiver_frame_filtered, ggplot2::aes(x, y),
+                            col = "green", fill = NA, pch = 21, size = 2, inherit.aes = FALSE) +
+        ggplot2::ggtitle(paste0("Single Detection Probability", title_suffix)) +
         ggplot2::coord_sf() +
         ggplot2::theme_minimal()
 
@@ -215,11 +295,11 @@ calculate_detection_system <- function(distance_frame,
 
     if (calc_3_plus) {
       p2 <- ggplot2::ggplot(system_summary, ggplot2::aes(x, y, fill = prob_3_plus)) +
-        ggplot2::geom_tile() +
+        ggplot2::geom_raster() +
         ggplot2::scale_fill_viridis_c(option = "magma", name = "Probability") +
-        ggplot2::geom_point(data = receiver_frame, ggplot2::aes(x, y),
-                            col = "green", fill = NA, pch = 21, inherit.aes = FALSE) +
-        ggplot2::ggtitle("Fine Scale Positioning Probability (3+ Receivers)") +
+        ggplot2::geom_point(data = receiver_frame_filtered, ggplot2::aes(x, y),
+                            col = "green", fill = NA, pch = 21, size = 2, inherit.aes = FALSE) +
+        ggplot2::ggtitle(paste0("Fine Scale Positioning Probability (3+ Receivers)", title_suffix)) +
         ggplot2::coord_sf() +
         ggplot2::theme_minimal()
 
@@ -244,12 +324,36 @@ calculate_detection_system <- function(distance_frame,
     results <- list(
       data = system_summary,
       plots = plot_list,
-      combined_plot = combined_plot
+      combined_plot = combined_plot,
+      active_stations = active_stations,
+      n_active_stations = n_active_stations,
+      target_date = target_date
     )
 
   } else {
-    # Return results without plots
-    results <- system_summary
+    # Return results without plots but with station info
+    results <- list(
+      data = system_summary,
+      active_stations = active_stations,
+      n_active_stations = n_active_stations,
+      target_date = target_date
+    )
+  }
+
+  # Summary statistics
+  cat("\n=== Detection System Summary ===\n")
+  cat("Target date:", if(is.null(target_date)) "All dates" else as.character(target_date), "\n")
+  cat("Active stations:", n_active_stations, "\n")
+  if (calc_cumulative) {
+    cat("Mean cumulative detection probability:", 
+        round(mean(system_summary$cumulative_prob, na.rm = TRUE), 3), "\n")
+  }
+  if (calc_3_plus) {
+    cat("Mean 3+ receiver probability:", 
+        round(mean(system_summary$prob_3_plus, na.rm = TRUE), 3), "\n")
+    cat("Cells with >0.5 positioning probability:", 
+        sum(system_summary$prob_3_plus > 0.5, na.rm = TRUE), 
+        "/", nrow(system_summary), "\n")
   }
 
   return(results)

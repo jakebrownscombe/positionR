@@ -7,8 +7,10 @@
 plot_fish_positions(
   positioning_results,
   depth_raster_df = NULL,
+  track_data = NULL,
   fish_select = 1,
-  time_select = 0,
+  time_select = NULL,
+  actual_track_size = 1.2,
   prob_threshold = 0.05,
   detection_threshold = 0.05,
   xlim = NULL,
@@ -25,9 +27,26 @@ containing position probabilities and associated data.}
 Can be either a data frame with 'x', 'y' columns or a raster object which will be
 automatically converted to a data frame.}
 
+\item{track_data}{Optional complete fish track data for showing full track context.
+Should be a data frame with columns for fish_id (or path_id), time_seconds, x, y.
+If not provided, only detection-based track segments will be shown.}
+
 \item{fish_select}{Numeric. Fish ID to plot. Default is 1.}
 
-\item{time_select}{Numeric. Time bin to plot. Default is 0.}
+\item{time_select}{Time period to plot. Can be:
+\itemize{
+\item NULL (default) - Plot all time periods (no filtering)
+\item Numeric - Use as time_period value (e.g., 0, 3600, 7200)
+\item Character - Interpreted based on format:
+\itemize{
+\item "YYYY-MM-DD" - Daily time period (e.g., "2024-07-01")
+\item "YYYY-MM-DD HH:00" - Hourly time period (e.g., "2024-07-01 15:00")
+\item Other formats - Treated as time_period_label
+}
+\item POSIXct/POSIXlt - Exact datetime match
+}}
+
+\item{actual_track_size}{Numeric. Size of the actual track points (green). Default is 1.2.}
 
 \item{prob_threshold}{Numeric. Minimum probability threshold for display (0-1).
 Cells below this threshold are not plotted. Default is 0.05.}
@@ -82,33 +101,47 @@ Plot elements include:
 \item Non-detecting stations as red circles
 \item Actual fish positions as green circles (if available)
 }
+
+The unified time_select parameter intelligently handles different input types:
+\itemize{
+\item NULL displays all time periods (no filtering)
+\item Numeric values match time_period values
+\item Date strings ("YYYY-MM-DD") match daily periods
+\item Datetime strings ("YYYY-MM-DD HH:00") match hourly periods
+\item Other strings match time_period_label values
+\item POSIXct objects match exact datetime values
+}
 }
 \examples{
 \dontrun{
 # Calculate positions
 results <- calculate_fish_positions(station_detections, distances, stations)
 
-# Create all plots combined
+# Create all plots for all time periods (default)
 plot_fish_positions(results, depth_raster_df = depth_data)
 
-# Create only integrated probability plot
+# Create only integrated probability plot for all time
 plot_fish_positions(results, plot_type = "integrated")
 
+# Select specific time using numeric value
+plot_fish_positions(results, time_select = 3600)
+
+# Select time using date string
+plot_fish_positions(results, time_select = "2024-07-01")
+
+# Select time using datetime string
+plot_fish_positions(results, time_select = "2024-07-01 15:00")
+
+# Select time using POSIXct object
+plot_fish_positions(results, time_select = as.POSIXct("2024-07-01 15:00:00"))
+
+# Customize actual track point size
+plot_fish_positions(results, actual_track_size = 2.5)
+
 # Get individual plots as list
-plots <- plot_fish_positions(results, return_list = TRUE)
+plot_fish_positions(results, return_list = TRUE)
 plots$detection
 plots$integrated
-
-# Custom thresholds
-plot_fish_positions(
-  results,
-  fish_select = 2,
-  time_select = 3600,
-  prob_threshold = 0.1,
-  detection_threshold = 0.02,  # Lower detection threshold
-  xlim = c(722000, 728000),
-  ylim = c(4935000, 4940000)
-)
 }
 
 }

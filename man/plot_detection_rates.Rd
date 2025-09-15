@@ -16,6 +16,7 @@ If provided, creates additional time series plots. Default is NULL.}
 \value{
 A list of ggplot2 objects:
 \item{by_path}{Bar chart showing detection rate by individual path}
+\item{by_station}{Bar chart showing detection rate by individual receiver}
 \item{distribution}{Histogram of detection rates across all paths}
 \item{time_series}{Cumulative detection rate over time (if simulation_results provided)}
 
@@ -23,12 +24,14 @@ Returns NULL if no detection statistics are available.
 }
 \description{
 Generates multiple plots to visualize detection performance including
-per-path detection rates, distribution of rates, and time series analysis.
+per-path detection rates, per-station rates, distribution of rates,
+and time series analysis.
 }
 \details{
-The function creates three types of visualizations:
+The function creates four types of visualizations:
 \enumerate{
 \item Bar chart comparing detection rates across individual fish paths
+\item Bar chart comparing detection rates across receivers
 \item Histogram showing the distribution of detection rates
 \item Time series plot showing how cumulative detection rates evolve during tracks
 }
@@ -45,6 +48,7 @@ plots <- plot_detection_rates(detection_stats, fish_simulation)
 
 # Display individual plots
 print(plots$by_path)
+print(plots$by_station)
 print(plots$distribution)
 print(plots$time_series)
 

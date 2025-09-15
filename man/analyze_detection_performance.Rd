@@ -8,7 +8,7 @@ analyze_detection_performance(simulation_results, create_plots = TRUE)
 }
 \arguments{
 \item{simulation_results}{List output from \code{\link{simulate_fish_tracks}}
-containing tracks, detections, and station_detections data frames.}
+containing tracks and station_detections data frames.}
 
 \item{create_plots}{Logical. Whether to generate and display visualization plots.
 Default is TRUE.}
@@ -47,6 +47,7 @@ overall_rate <- analysis$statistics$overall$detection_percentage
 
 # Access individual plots
 path_plot <- analysis$plots$by_path
+station_plot <- analysis$plots$by_station
 distribution_plot <- analysis$plots$distribution
 
 # Analysis without plots (faster)

@@ -1,0 +1,95 @@
+url: https://jakebrownscombe.github.io/positionR
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+  
+home:
+  title: "positionR: WADE Positioning for Acoustic Telemetry"
+  description: >
+    Comprehensive tools for acoustic telemetry array design, fish movement simulation, 
+    and animal positioning using Weighted Average Detection Efficiency (WADE) methodology.
+
+navbar:
+  structure:
+    left: [intro, reference, articles, tutorials, news]
+    right: [search, github]
+  components:
+    articles:
+      text: "📚 Tutorials"
+      menu:
+      - text: "🐟 WADE Positioning Tutorial"
+        href: articles/WADE_Simulation.html
+        description: "Complete workflow for fine-scale fish positioning"
+      - text: "📡 Array Design & Simulation"
+        href: articles/Array_Design_Simulation.html  
+        description: "Optimize receiver arrays and simulate fish movements"
+
+articles:
+- title: "Comprehensive Tutorials"
+  navbar: "📚 Tutorials"
+  contents:
+  - WADE_Simulation
+  - Array_Design_Simulation
+
+reference:
+- title: "🎯 Array Design Functions"
+  desc: "Generate receiver arrays and calculate detection coverage"
+  contents:
+  - starts_with("generate_")
+  - starts_with("calculate_station")
+  - starts_with("calculate_detection")
+  
+- title: "🐟 Movement & Positioning Functions"
+  desc: "Simulate movements and calculate WADE positions"
+  contents:
+  - starts_with("simulate_")
+  - starts_with("prepare_")
+  - calculate_fish_positions
+  
+- title: "📊 Analysis Functions"
+  desc: "Space use, habitat selection, and performance analysis"
+  contents:
+  - starts_with("calculate_space")
+  - starts_with("analyze_")
+  - starts_with("compare_")
+  
+- title: "🎨 Visualization Functions"
+  desc: "Publication-ready plots and visualizations"
+  contents:
+  - starts_with("plot_")
+  
+- title: "⚙️ Utility Functions" 
+  desc: "Data preparation and helper functions"
+  contents:
+  - starts_with("create_")
+  - starts_with("standardize_")
+  - starts_with("sample_")
+  - starts_with("extract_")
+  - starts_with("get_")
+  - starts_with("print_")
+  - starts_with("summarize_")
+
+  
+- title: "🔧 Internal Functions"
+  desc: "Internal calculation and helper functions"
+  contents:
+  - starts_with("calculate_95")
+  - starts_with("calculate_constrained")
+  - starts_with("calculate_convex")
+  - starts_with("calculate_grid") 
+  - starts_with("calculate_group")
+  - starts_with("calculate_threshold")
+  - starts_with("calculate_track")
+  - starts_with("line_")
+  - starts_with("point_")
+  - starts_with("test_")
+  - stoney_fish_detections
+  - stoney_rx_deploy
+
+  sidebar:
+    structure: [links, license, community, citation, authors, dev]
+    
+footer:
+  structure: 
+    left: [developed_by, built_with]
+    right: [package]

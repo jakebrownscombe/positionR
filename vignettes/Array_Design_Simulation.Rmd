@@ -1,0 +1,522 @@
+---
+title: "🐟 Acoustic Receiver Array Design and Movement Simulation"
+subtitle: "Optimizing Telemetry Systems and Simulating Fish Movement Patterns"
+author: 
+  - "Jake Brownscombe"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: cosmo
+    highlight: tango
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    fig_width: 10
+    fig_height: 8
+    self_contained: true
+vignette: >
+  %\VignetteIndexEntry{Acoustic Receiver Array Design and Movement Simulation}
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  cache = FALSE,
+  fig.width = 10,
+  fig.height = 8
+)
+
+# Suppress verbose output from positionR functions
+options(positionR.verbose = FALSE)
+```
+
+<div class="alert alert-info">
+<h4>**Analysis Overview**</h4>
+This tutorial demonstrates acoustic telemetry array design and movement simulation using the **positionR** package. This comprehensive workflow provides tools for optimizing receiver placement, modeling detection efficiency, and simulating realistic fish movement patterns to evaluate system performance before deployment.
+
+**Key Applications:**
+- 📡 Optimize receiver array configurations for maximum coverage
+- 📊 Model detection efficiency based on environmental conditions
+- 🐟 Simulate realistic fish movements and detection patterns
+- 🏡 Estimate space use and home range from simulated data
+- 🌿 Analyze habitat selection patterns
+
+Ideal for researchers planning acoustic telemetry studies who want to evaluate different array designs and predict system performance before field deployment.
+</div>
+
+---
+
+# 🚀 **Setup & Data Preparation**
+
+## Load Required Libraries
+
+```{r libraries}
+library(positionR)  
+library(raster)
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+# Set seed for reproducible results
+set.seed(123)
+```
+
+## Load Environmental Data
+
+We'll use the example depth raster of Stoney Lake, Ontario, Canada included in the package:
+
+```{r load-data}
+# Load example depth raster
+data("depth_raster")
+raster::crs(depth_raster) <- "EPSG:32617" # UTM Zone 17N
+
+# View raster properties
+depth_raster
+
+# Quick visualization
+plot(depth_raster, main = "Study Area: Stoney Lake, Ontario", 
+     col = colorRampPalette(c("darkblue", "lightblue"))(50))
+```
+
+---
+
+# 📡 **Receiver Array Design**
+
+<div class="alert alert-info">
+The first critical step in acoustic telemetry is designing an effective receiver array. The spatial configuration of receivers determines detection coverage, positioning accuracy, and ultimately the quality of movement data collected.
+</div>
+
+## Generate Array Configurations
+
+positionR provides three methods for generating receiver stations with different spatial arrangements:
+
+```{r generate-stations, fig.width=10, fig.height=4}
+# Regular spacing - specified number of points in systematic pattern
+stations_regular <- generate_regular_points(depth_raster, n_points = 100, seed = 123)
+
+# Fixed spacing - points separated by specified distance
+stations_spaced <- generate_spaced_points(depth_raster, spacing = 1000, seed = 123)
+
+# Random locations - randomly distributed points
+stations_random <- generate_random_points(depth_raster, n_points = 100, seed = 123)
+
+# View station data structure
+stations_spaced  # Note: includes depth values for each station
+
+# Visualize different array configurations
+plot_points_on_input(depth_raster, stations_regular) 
+plot_points_on_input(depth_raster, stations_spaced) 
+plot_points_on_input(depth_raster, stations_random) 
+```
+
+## Calculate Station Distances
+
+Calculate cost-distance and straight-line distance from each receiver to all raster cells. This is essential for modeling detection efficiency across the study area:
+
+```{r calculate-distances}
+# Calculate shortest path distances, straight line distances, and tortuosity
+station_distances <- calculate_station_distances(
+  raster = depth_raster, 
+  receiver_frame = stations_regular, 
+  station_col = "station_id",
+  max_distance = 30000  # 30 km maximum distance
+)
+
+# Visualize distance field for one receiver
+ggplot(station_distances %>% filter(station_no == 1), 
+       aes(x, y, fill = cost_distance)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "magma", name = "Distance (m)") +
+  geom_point(data = stations_regular %>% filter(station_id == 1), 
+             aes(x, y), col = "green", size = 4, inherit.aes = FALSE) +
+  labs(title = "Cost Distance Field from Station 1",
+       subtitle = "Green point = station location") +
+  theme_minimal() +
+  coord_sf()
+
+ggplot(station_distances %>% filter(station_no == 1), 
+       aes(x, y, fill = tortuosity)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "magma", name = "Tortuosity", limits=c(0.9,1.5)) +
+  geom_point(data = stations_regular %>% filter(station_id == 1), 
+             aes(x, y), col = "green", size = 4, inherit.aes = FALSE) +
+  labs(title = "Tortuosity Field from Station 1",
+       subtitle = "Green point = station location") +
+  theme_minimal() +
+  coord_sf()
+```
+
+---
+
+# 📊 **Detection Range Modeling**
+
+<div class="alert alert-info">
+Detection range is highly variable and depends on environmental conditions including depth, temperature, substrate type, and ambient noise. Accurate detection models are essential for understanding system performance and interpreting detection patterns.
+</div>
+
+## Create Depth-Dependent Detection Model
+
+Model detection efficiency as a function of distance and depth. In practice, use range testing data from your study system. Here we create an example model representative of inland lake conditions:
+
+```{r detection-model, fig.width=6, fig.height=8}
+# Create logistic detection efficiency model
+# These parameters should be based on empirical range testing
+logistic_DE <- create_logistic_curve_depth(
+  min_depth = 1,           # Minimum depth (m)
+  max_depth = 35,          # Maximum depth (m)
+  d50_min_depth = 200,     # 50% detection range at min depth (m)
+  d95_min_depth = 400,     # 5% detection range at min depth (m)
+  d50_max_depth = 500,     # 50% detection range at max depth (m)
+  d95_max_depth = 1000,    # 5% detection range at max depth (m)
+  plot = TRUE,              
+  return_model = TRUE,
+  return_object = TRUE
+)
+
+# The fitted model can be used for predictions
+summary(logistic_DE$log_model)
+```
+
+## Apply Detection Model
+
+Apply the detection range model to predict detection efficiency for each receiver across the study area:
+
+```{r predict-efficiency, fig.width=7, fig.height=5}
+# Predict detection efficiency for each receiver-cell combination
+station_distances$DE_pred <- stats::predict(
+  logistic_DE$log_model, 
+  newdata = station_distances %>% 
+    rename(dist_m = cost_distance) %>% 
+    mutate(depth_m = abs(raster_value)),
+  type = "response"
+)
+
+# Visualize detection efficiency field for one station
+ggplot(station_distances %>% filter(station_no == 10), 
+       aes(x, y, fill = DE_pred)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "magma", name = "Detection\nEfficiency") +
+  labs(title = "Detection Efficiency Field - Station 10",
+       subtitle = "Probability of detecting a transmission") +
+  theme_minimal() +
+  coord_sf()
+```
+
+## System-Wide Detection Coverage
+
+Analyze detection performance at the system level to evaluate array design effectiveness:
+
+```{r system-efficiency, fig.width=8, fig.height=6}
+# Calculate system-level detection probabilities
+# Options: "cumulative" (any receiver), "3_plus" (≥3 receivers), "both"
+system_DE <- calculate_detection_system(
+  distance_frame = station_distances, 
+  receiver_frame = stations_regular, 
+  model = logistic_DE$log_model, 
+  output_type = "cumulative",  # Fast computation
+  plots = TRUE
+)
+
+# Key outputs:
+# system_DE$data - detection probability data
+# system_DE$plots$cumulative - visualization
+```
+
+---
+
+# 🐟 **Fish Movement Simulation**
+
+<div class="alert alert-info">
+Simulating fish movements allows us to evaluate array performance under known conditions. By generating tracks with known properties, we can assess detection probability, positioning accuracy, and space use estimation methods.
+</div>
+
+## Generate Realistic Fish Tracks
+
+Generate fish movements using correlated random walks and simulate detections based on the array and detection model:
+
+```{r simulate-movements, fig.width=9, fig.height=7}
+# Set start time for temporal consistency
+start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
+
+# Simulate fish tracks with detections
+fish_simulation <- simulate_fish_tracks(
+  raster = depth_raster,
+  station_distances = station_distances,  # Contains DE_pred values
+  n_paths = 10,                          # Number of fish
+  n_steps = 100,                         # Steps per track
+  step_length_mean = 50,                 # Average step length (m)
+  step_length_sd = 30,                   # Step length variability
+  time_step = 60,                        # Time between steps (seconds)
+  seed = 123,
+  start_time = start_time
+  
+  # Optional species-specific parameters:
+  # species = "Walleye",              # Available: "Walleye", "Smallmouth Bass", "Muskellunge"
+  # fish_size_cm = 45,                # Fish length in cm
+  # behavioral_states = TRUE,         # Three-state movement model
+)
+
+# Examine simulation outputs
+#head(fish_simulation$tracks)             # Movement tracks
+#head(fish_simulation$station_detections) # Individual receiver detections
+
+# Visualize simulated tracks
+raster_df <- as.data.frame(depth_raster, xy = TRUE)
+ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue", 
+                      na.value = "transparent", name = "Depth (m)") +
+  geom_path(data = fish_simulation$tracks, 
+            aes(x = x, y = y, group = path_id, color = factor(path_id)), 
+            linewidth = 0.8) +
+  scale_color_discrete(name = "Fish ID") +
+  labs(title = "🐟 Simulated Fish Movements",
+       subtitle = "Correlated random walks with detection events") +
+  theme_minimal() +
+  coord_sf()
+```
+
+## Analyze Detection Performance
+
+Visualize tracks with detection information and analyze detection performance:
+
+```{r analyze-results, fig.width=10, fig.height=10}
+# Plot tracks with detection information
+plot_fish_tracks(
+  fish_simulation,    # Simulation outputs
+  depth_raster,       # Depth raster
+  stations_regular,   # Receiver array
+  show_detections = TRUE
+)
+
+# Analyze detection performance across the array
+detection_performance <- analyze_detection_performance(fish_simulation,
+                                                       create_plots = TRUE,
+                                                       display_plots = FALSE)
+
+
+performance_plots <- (detection_performance$plots$by_path + 
+                      detection_performance$plots$by_station) /
+                     (detection_performance$plots$distribution + 
+                      detection_performance$plots$time_series)
+
+performance_plots + 
+  plot_annotation(
+    title = "Detection Performance Analysis",
+    subtitle = "Spatial and temporal patterns in detection probability"
+  )
+
+```
+
+---
+
+# 🏡 **Space Use Analysis**
+
+<div class="alert alert-info">
+Space use analysis is fundamental to understanding animal ecology. Different methods have different assumptions and biases, particularly when dealing with telemetry data that may have detection gaps.
+</div>
+
+## Calculate Space Use Estimates
+
+Calculate space use estimates from the simulated tracks using multiple methods:
+
+```{r space-use-analysis, fig.width=8, fig.height=6}
+# Calculate space use estimates using multiple methods
+space_use_results <- calculate_space_use(
+  track_data = fish_simulation$tracks,
+  by_fish = TRUE,
+  by_time_period = TRUE,
+  time_aggregation = "day",  # Options: "hour", "day", "month", "none"
+  methods = c("convex_hull", "bounding_box", "grid_cell_count", 
+              "ellipse_95", "constrained_convex_hull", "mcp"),
+  grid_resolution = 100  
+)
+
+# View results
+print(space_use_results$space_use_estimates)
+
+# Compare methods graphically
+plot_space_use(space_use_results, plot_type = "comparison")
+plot_space_use(space_use_results, plot_type = "by_fish")
+
+
+#plot outputs for select methods
+
+# Select fish and time period 
+fish_select <- 1
+time_select <- "2025-07-15"
+
+# Convex hull method
+plot_space_use(space_use_results, 
+               plot_type = "map",
+               track_data = fish_simulation$tracks,
+               fish_select = fish_select,
+               time_select = time_select,                   
+               method_select = "convex_hull",
+               background_raster = depth_raster) +
+  ggtitle("Convex Hull Space Use")
+
+# Constrained convex hull method (raster-based)
+plot_space_use(space_use_results, 
+               plot_type = "map",
+               track_data = fish_simulation$tracks,
+               fish_select = fish_select,
+               time_select = time_select,                   
+               method_select = "constrained_convex_hull",
+               background_raster = depth_raster) +
+  ggtitle("Constrained Convex Hull Space Use")
+
+# Grid cell count method
+plot_space_use(space_use_results, 
+               plot_type = "map",
+               track_data = fish_simulation$tracks,
+               fish_select = fish_select,
+               time_select = time_select,                   
+               method_select = "grid_cell_count",
+               background_raster = depth_raster) +
+  ggtitle("Grid Cell Count Space Use")
+```
+
+
+
+<div class="alert alert-warning">
+<h4>**Method Selection Guide**</h4>
+- **Grid cell count**: Most representative of actual space use when tracking is consistent, but biased with detection gaps
+- **Constrained convex hull**: More robust to detection gaps, consistent with common home range approaches
+- **Convex hull**: Simple geometric approach, may overestimate space use in complex habitats
+
+Choose methods based on your data characteristics and research questions.
+</div>
+
+---
+
+# 🌿 **Habitat Selection Analysis**
+
+<div class="alert alert-info">
+Habitat selection analysis helps identify environmental factors that influence animal distribution. By comparing used (presence) locations to available (absence) locations, we can understand habitat preferences.
+</div>
+
+## Generate Presence-Absence Data
+
+Create datasets for habitat selection analysis:
+
+```{r habitat-data, fig.width=6, fig.height=4}
+# Generate presence points within space use areas
+track_presence <- sample_points_from_track_grid(
+  track_data = fish_simulation$tracks,
+  reference_raster = depth_raster,
+  n_points = 1000,
+  crs = 32617
+)
+
+# Generate absence points
+track_absence<- sample_points_from_system_de(
+  system_DE,
+  position_points = track_presence,
+  n_points = 1000,
+  uniform = TRUE,  #set uniform points (not relative to system DE)
+  min_prob_threshold = 0.1, #threshold cutoff - only points where >0.1 system DE
+  crs = 32617,
+  seed = 123
+)
+
+#plotting
+
+ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  geom_sf(data = track_presence, aes(color = count),
+          alpha = 0.5, size = 1) +
+  scale_color_viridis_c(name = "Count", option = "magma") +
+  coord_sf() +
+  theme_minimal() +
+  labs(title = "Track Presence Points")
+
+ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  geom_sf(data = track_absence %>% filter(fish_id==1 & time_period_label=="2025-07-15"),
+          alpha = 1, size = 0.8, col="red") +
+  scale_color_viridis_c(name = "Cumulative\nProbability") +
+  theme_minimal()+labs(title="Track Absence Points (Uniform Across System)")
+
+
+
+
+```
+
+## Analyze Depth Selection Patterns
+
+```{r habitat-selection, fig.width=6, fig.height=4}
+# Add depth values to presence-absence points
+track_presence$depth_m <- raster::extract(depth_raster, track_presence)
+track_absence$depth_m <- raster::extract(depth_raster, track_absence)
+
+# Combine presence and absence data
+track_presence_absence_points <- rbind(
+  track_presence %>%
+    select(fish_id, time_period_posix, depth_m) %>%
+    mutate(type = "presence"),
+  track_absence %>%
+    select(fish_id, time_period_posix, depth_m) %>%
+    mutate(type = "absence")
+)
+
+
+# Analyze depth selection patterns
+plot_depth_selection(track_presence_absence_points, plot_type = "density") + 
+  ggtitle("Depth Selection from Simulated Tracks") +
+  labs(subtitle = "Blue = presences, Red = absences")
+
+# Compare depth selection by fish
+plot_depth_comparison(track_presence_absence_points,
+                      comparison_var = "fish_id",
+                      plot_type = "boxplot") + 
+  ggtitle("Depth Selection by Individual Fish")
+```
+
+---
+
+# 📝 **Summary & Conclusions**
+
+<div class="alert alert-success">
+<h2>**Key Takeaways**</h2>
+
+This tutorial demonstrated a complete acoustic telemetry study workflow:
+
+1. **Array Design**: Generated receiver arrays with different spatial configurations
+2. **Detection Modeling**: Created depth-dependent detection range models
+3. **Efficiency Analysis**: Calculated system-level detection probabilities
+4. **Movement Simulation**: Generated realistic fish movements with detections
+5. **Space Use Analysis**: Estimated home ranges using multiple methods
+6. **Habitat Analysis**: Created presence-absence data for habitat selection studies
+
+</div>
+
+<div class="alert alert-warning">
+<h3>**💡 Best Practices for Array Design**</h3>
+
+- **Detection range models** should be based on empirical range testing data from your study system
+- **Array configuration** significantly affects detection probability and positioning accuracy
+- **System-level analysis** helps identify coverage gaps and optimize receiver placement
+- **Simulation approaches** allow testing of different array designs before costly field deployment
+- **Iterative refinement** - use initial deployment data to improve models and optimize array expansion
+- **Consider environmental variability** - detection ranges vary with temperature, noise, and other factors
+
+**Next Steps:**
+- Conduct range testing in your study area to parameterize detection models
+- Use WADE positioning methods for fine-scale movement analysis (see WADE tutorials)
+- Compare multiple array configurations to find optimal design for your objectives
+</div>

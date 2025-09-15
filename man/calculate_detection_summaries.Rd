@@ -8,12 +8,13 @@ calculate_detection_summaries(simulation_results)
 }
 \arguments{
 \item{simulation_results}{List output from \code{\link{simulate_fish_tracks}}
-containing tracks, detections, and station_detections data frames.}
+containing tracks and station_detections data frames.}
 }
 \value{
 A list containing:
 \item{overall}{List with total_steps, detected_steps, detection_rate, and detection_percentage}
 \item{by_path}{Data frame with detection statistics for each individual path}
+\item{by_station}{Data frame with detection statistics for each receiver}
 \item{summary_stats}{List with mean, median, min, max, and standard deviation of detection rates}
 
 Returns NULL if no detection data is available.
@@ -21,18 +22,20 @@ Returns NULL if no detection data is available.
 \description{
 Computes detection performance metrics including overall detection rates,
 per-path statistics, and summary statistics across all simulated fish tracks.
+Works with receiver-specific detection data to create system-level summaries.
 }
 \details{
 The function analyzes detection success at each step of simulated fish tracks,
-providing both aggregate and individual path performance metrics. This is useful
-for evaluating receiver array effectiveness and optimizing system design.
+providing both aggregate and individual path performance metrics. System-level
+detections are derived from station-level data (a location is "detected" if
+ANY receiver detected the fish at that location).
 }
 \examples{
 \dontrun{
 # Simulate fish tracks with detections
 fish_sim <- simulate_fish_tracks(
   raster = depth_raster,
-  detection_system = system_DE$data,
+  station_distances = distances,
   n_paths = 5,
   n_steps = 100
 )
@@ -45,6 +48,9 @@ overall_rate <- detection_stats$overall$detection_percentage
 
 # Access per-path performance
 path_performance <- detection_stats$by_path
+
+# Access per-station performance
+station_performance <- detection_stats$by_station
 }
 
 }

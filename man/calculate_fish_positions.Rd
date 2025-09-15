@@ -9,14 +9,22 @@ calculate_fish_positions(
   station_distances_df,
   receiver_stations,
   de_model = NULL,
+  time_aggregation = "seconds",
   bin_size_seconds = 3600,
   detection_weight = 0.5,
   non_detection_weight = 0.5,
   max_non_detection_distance = 2000,
+  weighting_method = "information_theoretic",
+  percentile_cutoff = 0.95,
+  temporal_grouping = "day",
+  dampening_factor = 1,
   normalization_method = "min_max",
   fish_id_col = "path_id",
   time_col = "time_seconds",
   station_col = "station_id",
+  station_info = NULL,
+  temporal_info = NULL,
+  crs = NULL,
   verbose = TRUE
 )
 }
@@ -29,15 +37,26 @@ between receiver stations and spatial grid cells, typically from
 \code{\link{calculate_station_distances}}.}
 
 \item{receiver_stations}{An sf object containing receiver station locations
-and metadata, typically from point generation functions.}
+and metadata, typically from point generation functions. This parameter
+is optional when station_info is provided, as receiver_stations will be
+automatically created from station_info coordinates.}
 
 \item{de_model}{A fitted detection efficiency model object (e.g., from
 \code{\link{create_logistic_curve_depth}}). The model should accept
 dist_m and depth_m as predictors. Default is NULL, which requires
 DE_pred column to already exist in station_distances_df.}
 
+\item{time_aggregation}{Character. Method for time aggregation. Options are:
+\itemize{
+\item "seconds" - Numeric seconds with bin_size_seconds (default)
+\item "hour" - Hourly aggregation using POSIX datetime
+\item "day" - Daily aggregation using POSIX datetime
+\item "month" - Monthly aggregation using POSIX datetime
+}
+Default is "seconds".}
+
 \item{bin_size_seconds}{Numeric. Time bin size in seconds for aggregating
-detections. Default is 3600 (1 hour).}
+detections when time_aggregation = "seconds". Default is 3600 (1 hour).}
 
 \item{detection_weight}{Numeric. Weight given to detection events in the
 integrated probability calculation (0-1). Default is 0.5.}
@@ -56,11 +75,27 @@ Default is "min_max".}
 \item{fish_id_col}{Character. Name of the column containing fish identifiers.
 Default is "path_id".}
 
-\item{time_col}{Character. Name of the column containing time values in seconds.
-Default is "time_seconds".}
+\item{time_col}{Character. Name of the column containing time values. Can be
+numeric seconds (for time_aggregation = "seconds") or POSIX datetime
+(for time_aggregation = "hour"/"day"/"month"). Default is "time_seconds".}
 
 \item{station_col}{Character. Name of the column containing station identifiers.
 Default is "station_id".}
+
+\item{station_info}{Station information as data frame, CSV file path, or sf object.
+Must contain station identifier (station_id or point_id) and coordinates (x,y).
+If sf object (e.g., from generate_exact_regular_points), coordinates are
+automatically extracted. Optional temporal columns: start_date, end_date for
+deployment windows. When provided, receiver_stations is auto-created. Default is NULL.}
+
+\item{temporal_info}{Data frame with daily environmental conditions for
+temporal DE prediction. Must contain date column and environmental predictors
+used by de_model. Only used when station_info contains temporal columns
+and de_model is provided. Default is NULL.}
+
+\item{crs}{Character. Coordinate reference system for station_info coordinates.
+If NULL (default), attempts to auto-detect from station_distances_df coordinate
+ranges or falls back to "EPSG:32617". Use same CRS as your depth_raster.}
 
 \item{verbose}{Logical. Whether to print progress messages. Default is TRUE.}
 }
@@ -83,7 +118,7 @@ bins, models detection efficiency, and calculates weighted position probabilitie
 \details{
 The function implements a multi-step positioning algorithm:
 \enumerate{
-\item Time binning of detection events
+\item Time binning of detection events (standardized to time_period)
 \item Aggregation of detection data with spatial distance information
 \item Creation of non-detection events for nearby stations
 \item Normalization of detection efficiency across receivers
@@ -94,10 +129,18 @@ The function implements a multi-step positioning algorithm:
 Detection and non-detection weights must sum to 1. The algorithm focuses
 non-detection analysis on stations within a specified distance of detecting
 stations to maintain biological realism and computational efficiency.
+
+Time Aggregation Options:
+\itemize{
+\item "seconds": Uses numeric time with bin_size_seconds (backward compatible)
+\item "hour": Groups POSIX datetime to hourly bins (e.g., 2024-07-01 15:00:00)
+\item "day": Groups POSIX datetime to daily bins (e.g., 2024-07-01)
+\item "month": Groups POSIX datetime to monthly bins (e.g., 2024-07-01)
+}
 }
 \examples{
 \dontrun{
-# Basic positioning analysis
+# Basic positioning analysis (backward compatible)
 results <- calculate_fish_positions(
   station_detections = fish_tracks$detections,
   station_distances_df = distances,
@@ -105,14 +148,22 @@ results <- calculate_fish_positions(
   bin_size_seconds = 3600
 )
 
-# Custom weighting and filtering
+# POSIX datetime aggregation by day
 results <- calculate_fish_positions(
   station_detections = fish_tracks$detections,
   station_distances_df = distances,
   receiver_stations = stations,
-  detection_weight = 0.4,
-  non_detection_weight = 0.6,
-  max_non_detection_distance = 1500
+  time_col = "datetime",
+  time_aggregation = "day"
+)
+
+# POSIX datetime aggregation by hour
+results <- calculate_fish_positions(
+  station_detections = fish_tracks$detections,
+  station_distances_df = distances,
+  receiver_stations = stations,
+  time_col = "datetime",
+  time_aggregation = "hour"
 )
 }
 

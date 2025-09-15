@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head><title>R: Weighted Average Detection Efficiency (WADE) Positioning for
+Acoustic Telemetry</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body><div class="container">
+<h1> Weighted Average Detection Efficiency (WADE) Positioning for
+Acoustic Telemetry
+<img class="toplogo" src="../../../doc/html/Rlogo.svg" alt="[R logo]" />
+</h1>
+<hr/>
+<div style="text-align: center;">
+<a href="../../../doc/html/packages.html"><img class="arrow" src="../../../doc/html/left.jpg" alt="[Up]" /></a>
+<a href="../../../doc/html/index.html"><img class="arrow" src="../../../doc/html/up.jpg" alt="[Top]" /></a>
+</div><h2>Documentation for package &lsquo;positionR&rsquo; version 1.0.0</h2>
+
+<ul><li><a href="../DESCRIPTION">DESCRIPTION file</a>.</li>
+</ul>
+
+<h2>Help Pages</h2>
+
+
+<table style="width: 100%;">
+<tr><td style="width: 25%;"><a href="analyze_behavioral_temperature.html">analyze_behavioral_temperature</a></td>
+<td>Analyze behavioral state patterns by temperature bins</td></tr>
+<tr><td style="width: 25%;"><a href="analyze_comparative_habitat_selection.html">analyze_comparative_habitat_selection</a></td>
+<td>Comparative habitat selection analysis using positioning and/or space use data</td></tr>
+<tr><td style="width: 25%;"><a href="analyze_depth_selection.html">analyze_depth_selection</a></td>
+<td>Analyze depth selection patterns</td></tr>
+<tr><td style="width: 25%;"><a href="analyze_detection_performance.html">analyze_detection_performance</a></td>
+<td>Comprehensive detection performance analysis with summary and plots</td></tr>
+<tr><td style="width: 25%;"><a href="analyze_positioning_performance.html">analyze_positioning_performance</a></td>
+<td>Analyze positioning performance from acoustic telemetry</td></tr>
+<tr><td style="width: 25%;"><a href="analyze_single_dataset.html">analyze_single_dataset</a></td>
+<td>Analyze a single presence-absence dataset</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_95_ellipse_area.html">calculate_95_ellipse_area</a></td>
+<td>Calculate 95% confidence ellipse area</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_constrained_convex_hull_area.html">calculate_constrained_convex_hull_area</a></td>
+<td>Updated constrained convex hull calculation to work with reference raster</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_constrained_convex_hull_area_with_data.html">calculate_constrained_convex_hull_area_with_data</a></td>
+<td>Calculate constrained convex hull with spatial data</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_convex_hull_area.html">calculate_convex_hull_area</a></td>
+<td>Calculate convex hull area</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_detection_summaries.html">calculate_detection_summaries</a></td>
+<td>Calculate detection rate summaries from fish track simulations</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_detection_system.html">calculate_detection_system</a></td>
+<td>Calculate detection system probabilities and create visualization</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_fish_positions.html">calculate_fish_positions</a></td>
+<td>Calculate fish positions from acoustic telemetry data</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_grid_cell_usage.html">calculate_grid_cell_usage</a></td>
+<td>Updated grid cell usage calculation to work with reference raster</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_grid_cell_usage_with_data.html">calculate_grid_cell_usage_with_data</a></td>
+<td>Calculate grid cell usage with spatial data</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_group_space_use.html">calculate_group_space_use</a></td>
+<td>Calculate space use metrics for a single group</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_space_use.html">calculate_space_use</a></td>
+<td>Calculate Space Use Estimates from Track Data</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_space_use_zoom.html">calculate_space_use_zoom</a></td>
+<td>Calculate zoom extent for map considering both track data and space use area</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_station_distances.html">calculate_station_distances</a></td>
+<td>Calculate cost distances from receiver stations to all raster cells</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_threshold_summary_stats.html">calculate_threshold_summary_stats</a></td>
+<td>Calculate summary statistics for threshold comparison</td></tr>
+<tr><td style="width: 25%;"><a href="calculate_track_overlap.html">calculate_track_overlap</a></td>
+<td>Calculate track overlap for spatial data</td></tr>
+<tr><td style="width: 25%;"><a href="compare_space_use_methods.html">compare_space_use_methods</a></td>
+<td>Compare multiple space use methods by generating points for each</td></tr>
+<tr><td style="width: 25%;"><a href="compare_space_use_thresholds.html">compare_space_use_thresholds</a></td>
+<td>Compare Space Use Results Across Multiple Probability Thresholds</td></tr>
+<tr><td style="width: 25%;"><a href="create_comparison_analysis.html">create_comparison_analysis</a></td>
+<td>Create comparison analysis between positioning and space use results</td></tr>
+<tr><td style="width: 25%;"><a href="create_constrained_grid_raster_data.html">create_constrained_grid_raster_data</a></td>
+<td>Create constrained hull by finding which depth_raster cells are within convex hull polygon</td></tr>
+<tr><td style="width: 25%;"><a href="create_ellipse_polygon.html">create_ellipse_polygon</a></td>
+<td>Create ellipse polygon for 95% confidence ellipse</td></tr>
+<tr><td style="width: 25%;"><a href="create_ellipse_polygon_data.html">create_ellipse_polygon_data</a></td>
+<td>Create ellipse polygon data with method label</td></tr>
+<tr><td style="width: 25%;"><a href="create_grid_cell_polygons.html">create_grid_cell_polygons</a></td>
+<td>Create grid cell polygons for plotting</td></tr>
+<tr><td style="width: 25%;"><a href="create_grid_polygon.html">create_grid_polygon</a></td>
+<td>Create grid cell polygon</td></tr>
+<tr><td style="width: 25%;"><a href="create_grid_raster_data.html">create_grid_raster_data</a></td>
+<td>Create grid raster data using actual raster cell boundaries</td></tr>
+<tr><td style="width: 25%;"><a href="create_logistic_curve_depth.html">create_logistic_curve_depth</a></td>
+<td>generate detection range models Create logistic curve for detection efficiency with depth extrapolation</td></tr>
+<tr><td style="width: 25%;"><a href="create_presence_absence_dataset.html">create_presence_absence_dataset</a></td>
+<td>Create combined presence-absence dataset for habitat selection analysis</td></tr>
+<tr><td style="width: 25%;"><a href="create_space_use_polygon.html">create_space_use_polygon</a></td>
+<td>Create space use polygon for visualization</td></tr>
+<tr><td style="width: 25%;"><a href="create_space_use_polygon_data.html">create_space_use_polygon_data</a></td>
+<td>Create space use polygon data for direct plotting</td></tr>
+<tr><td style="width: 25%;"><a href="create_space_use_summary.html">create_space_use_summary</a></td>
+<td>Create summary statistics for space use estimates</td></tr>
+<tr><td style="width: 25%;"><a href="create_threshold_comparison_plots.html">create_threshold_comparison_plots</a></td>
+<td>Create visualization plots for threshold comparison</td></tr>
+<tr><td style="width: 25%;"><a href="extract_absence_time_info.html">extract_absence_time_info</a></td>
+<td>Extract time binning information from space_use_points and space_use_results</td></tr>
+<tr><td style="width: 25%;"><a href="extract_space_use_time_info.html">extract_space_use_time_info</a></td>
+<td>Extract time binning information from space_use_results</td></tr>
+<tr><td style="width: 25%;"><a href="generate_absences_available_habitat.html">generate_absences_available_habitat</a></td>
+<td>Generate absences from available habitat (whole study area minus space use areas)</td></tr>
+<tr><td style="width: 25%;"><a href="generate_absences_buffer_zone.html">generate_absences_buffer_zone</a></td>
+<td>Generate absences in buffer zone around space use area</td></tr>
+<tr><td style="width: 25%;"><a href="generate_absences_random_cells.html">generate_absences_random_cells</a></td>
+<td>Generate random absence points from any valid raster cells</td></tr>
+<tr><td style="width: 25%;"><a href="generate_absences_system_wide.html">generate_absences_system_wide</a></td>
+<td>Generate absences using system-wide detection efficiency</td></tr>
+<tr><td style="width: 25%;"><a href="generate_regular_points.html">generate_exact_regular_points</a></td>
+<td>Generate regular points within spatial boundaries</td></tr>
+<tr><td style="width: 25%;"><a href="generate_points_bounding_box_method.html">generate_points_bounding_box_method</a></td>
+<td>Generate points within bounding box</td></tr>
+<tr><td style="width: 25%;"><a href="generate_points_constrained_hull.html">generate_points_constrained_hull</a></td>
+<td>Generate points within constrained convex hull</td></tr>
+<tr><td style="width: 25%;"><a href="generate_points_convex_hull.html">generate_points_convex_hull</a></td>
+<td>Generate points within convex hull polygon</td></tr>
+<tr><td style="width: 25%;"><a href="generate_points_ellipse.html">generate_points_ellipse</a></td>
+<td>Generate points within 95% confidence ellipse</td></tr>
+<tr><td style="width: 25%;"><a href="generate_points_grid_cells.html">generate_points_grid_cells</a></td>
+<td>Generate points within grid cells occupied by track</td></tr>
+<tr><td style="width: 25%;"><a href="generate_random_points.html">generate_random_points</a></td>
+<td>Generate random points within spatial boundaries</td></tr>
+<tr><td style="width: 25%;"><a href="generate_random_points_in_space_use.html">generate_random_points_in_space_use</a></td>
+<td>Generate random points within space use estimates from calculate_space_use</td></tr>
+<tr><td style="width: 25%;"><a href="generate_regular_points.html">generate_regular_points</a></td>
+<td>Generate regular points within spatial boundaries</td></tr>
+<tr><td style="width: 25%;"><a href="generate_simple_raster_absences.html">generate_simple_raster_absences</a></td>
+<td>Simple absence generation function that ONLY uses the raster - no other inputs</td></tr>
+<tr><td style="width: 25%;"><a href="generate_spaced_points.html">generate_spaced_points</a></td>
+<td>Generate points with specified spacing within spatial boundaries</td></tr>
+<tr><td style="width: 25%;"><a href="generate_space_use_absences.html">generate_space_use_absences</a></td>
+<td>Generate absence points across the entire reference raster (simplified version)</td></tr>
+<tr><td style="width: 25%;"><a href="generate_space_use_absences_simple.html">generate_space_use_absences_simple</a></td>
+<td>Wrapper to generate absences with fish/time info using simple raster logic</td></tr>
+<tr><td style="width: 25%;"><a href="get_raster_cells_as_polygons.html">get_raster_cells_as_polygons</a></td>
+<td>Get raster cells as proper polygon data for accurate visualization This function creates the actual cell boundaries for each raster cell</td></tr>
+<tr><td style="width: 25%;"><a href="get_space_use_exclusion_cells.html">get_space_use_exclusion_cells</a></td>
+<td>Get cells to exclude based on space use method</td></tr>
+<tr><td style="width: 25%;"><a href="line_intersects_box.html">line_intersects_box</a></td>
+<td>Check if a line segment intersects with a box Uses basic line-box intersection algorithm</td></tr>
+<tr><td style="width: 25%;"><a href="plot_behavioral_states.html">plot_behavioral_states</a></td>
+<td>Plot behavioral states over time with temperature coloring</td></tr>
+<tr><td style="width: 25%;"><a href="plot_comparative_results.html">plot_comparative_results</a></td>
+<td>Plot comparative habitat selection results</td></tr>
+<tr><td style="width: 25%;"><a href="plot_depth_comparison.html">plot_depth_comparison</a></td>
+<td>Create comparison plots for multiple fish or time periods</td></tr>
+<tr><td style="width: 25%;"><a href="plot_depth_selection.html">plot_depth_selection</a></td>
+<td>Plot depth selection patterns</td></tr>
+<tr><td style="width: 25%;"><a href="plot_depth_spatial.html">plot_depth_spatial</a></td>
+<td>Create spatial plot of presence/absence points colored by depth</td></tr>
+<tr><td style="width: 25%;"><a href="plot_detection_rates.html">plot_detection_rates</a></td>
+<td>Create visualization plots of detection rate performance</td></tr>
+<tr><td style="width: 25%;"><a href="plot_fish_positions.html">plot_fish_positions</a></td>
+<td>Plot fish position estimates from acoustic telemetry</td></tr>
+<tr><td style="width: 25%;"><a href="plot_fish_tracks.html">plot_fish_tracks</a></td>
+<td>Plot simulated fish tracks with detection events</td></tr>
+<tr><td style="width: 25%;"><a href="plot_points_on_input.html">plot_points_on_input</a></td>
+<td>Plot generated points on spatial input object</td></tr>
+<tr><td style="width: 25%;"><a href="plot_presence_absence_space_use.html">plot_presence_absence_space_use</a></td>
+<td>Plot presence and absence points together</td></tr>
+<tr><td style="width: 25%;"><a href="plot_space_use.html">plot_space_use</a></td>
+<td>Plot space use estimates</td></tr>
+<tr><td style="width: 25%;"><a href="plot_space_use_map.html">plot_space_use_map</a></td>
+<td>Updated plot function with proper raster cell visualization</td></tr>
+<tr><td style="width: 25%;"><a href="plot_space_use_method_comparison.html">plot_space_use_method_comparison</a></td>
+<td>Plot comparison of multiple space use methods</td></tr>
+<tr><td style="width: 25%;"><a href="plot_space_use_points.html">plot_space_use_points</a></td>
+<td>Plot space use areas with generated random points</td></tr>
+<tr><td style="width: 25%;"><a href="point_in_polygon.html">point_in_polygon</a></td>
+<td>Point-in-polygon test using ray casting algorithm</td></tr>
+<tr><td style="width: 25%;"><a href="prepare_detection_data_for_wade.html">prepare_detection_data_for_wade</a></td>
+<td>Prepare real fish detection data for WADE positioning</td></tr>
+<tr><td style="width: 25%;"><a href="print_comparative_summary.html">print_comparative_summary</a></td>
+<td>Print comparative habitat selection summary</td></tr>
+<tr><td style="width: 25%;"><a href="print_detection_summary.html">print_detection_summary</a></td>
+<td>Print detection summary report in readable format</td></tr>
+<tr><td style="width: 25%;"><a href="sample_points_from_probabilities.html">sample_points_from_probabilities</a></td>
+<td>Sample points from position probability surfaces</td></tr>
+<tr><td style="width: 25%;"><a href="sample_points_from_system_de.html">sample_points_from_system_de</a></td>
+<td>Sample points from system detection efficiency surfaces</td></tr>
+<tr><td style="width: 25%;"><a href="sample_points_from_track_grid.html">sample_points_from_track_grid</a></td>
+<td>Sample points from track data grid cell usage</td></tr>
+<tr><td style="width: 25%;"><a href="simulate_fish_tracks.html">simulate_fish_tracks</a></td>
+<td>Simulate fish tracks with correlated random walks and detection events (ROBUST)</td></tr>
+<tr><td style="width: 25%;"><a href="standardize_track_data_for_points.html">standardize_track_data_for_points</a></td>
+<td>Standardize track data for point generation to match space_use_results time binning</td></tr>
+<tr><td style="width: 25%;"><a href="standardize_track_data_space.html">standardize_track_data_space</a></td>
+<td>Standardize track data for space use analysis</td></tr>
+<tr><td style="width: 25%;"><a href="stoney_fish_detections.html">stoney_fish_detections</a></td>
+<td>Fish Detection Data from Stoney Lake</td></tr>
+<tr><td style="width: 25%;"><a href="stoney_rx_deploy.html">stoney_rx_deploy</a></td>
+<td>Acoustic Receiver Deployment Data from Stoney Lake</td></tr>
+<tr><td style="width: 25%;"><a href="summarize_space_use_points.html">summarize_space_use_points</a></td>
+<td>Summary function for space use points</td></tr>
+<tr><td style="width: 25%;"><a href="test_cells_in_polygon.html">test_cells_in_polygon</a></td>
+<td>Test if raster cells intersect with a polygon using simple corner test Include cell if ANY of its 4 corners are inside the polygon</td></tr>
+<tr><td style="width: 25%;"><a href="test_cells_in_polygon_full.html">test_cells_in_polygon_full</a></td>
+<td>Alias for test_cells_in_polygon_simple for backward compatibility</td></tr>
+<tr><td style="width: 25%;"><a href="test_cells_in_polygon_simple.html">test_cells_in_polygon_simple</a></td>
+<td>Test if raster cells intersect with a polygon using cell centers (original working version) This is the original simple method that was working</td></tr>
+<tr><td style="width: 25%;"><a href="test_raster_absence_generation.html">test_raster_absence_generation</a></td>
+<td>Test function to validate raster and absence generation</td></tr>
+</table>
+</div></body></html>
