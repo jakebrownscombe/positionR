@@ -1,7 +1,5 @@
 # positionR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
 **Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
 
 `positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate
