@@ -1,4 +1,4 @@
-# <span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: 1px;">position</span><span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; color: #2c5aa0;">R</span> <img src="man/figures/logo.png" align="right" height="180" alt="" />
+# <span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: 1px;">position</span><span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; color: #2c5aa0;">R</span> <img src="man/figures/logo.png" align="right" height="240" alt="" />
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
