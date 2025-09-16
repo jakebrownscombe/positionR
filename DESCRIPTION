@@ -5,7 +5,7 @@ Author: Jacob Brownscombe <jakebrownscombe@gmail.com> [aut, cre]
 Maintainer: Jacob Brownscombe <jakebrownscombe@gmail.com>
 Authors@R: 
     person("Jacob", "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-1042-5867"))
+           comment = c(ORCID = "0000-0003-2496-8764"))
 Description: Provides comprehensive tools for acoustic telemetry array design, fish movement simulation, and animal positioning using the Weighted Average Detection Efficiency (WADE) methodology. Includes functions for detection range modeling, space use analysis, habitat selection, and simulation-based array optimization for aquatic animal tracking studies.
 License: GPL (>= 3)
 Encoding: UTF-8
