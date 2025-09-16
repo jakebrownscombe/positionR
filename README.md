@@ -5,7 +5,7 @@
 **Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
 
 `positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate
-sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. The integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
+sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
 
 ## 📚 Interactive Tutorials
 
