@@ -9,13 +9,11 @@ sampling regions. One major advancement is the integration of receiver detection
 
 ## 📚 Interactive Tutorials
 
-### 🐟 <a href="https://github.com/jakebrownscombe/positionR/blob/master/vignettes/WADE_Simulation.Rmd" target="_blank">WADE Positioning Tutorial</a>
+### 🐟 <a href="https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html" target="_blank">WADE Positioning Tutorial</a>
 Complete workflow for fine-scale fish positioning using WADE methodology with real detection data
 
-### 📡 <a href="https://github.com/jakebrownscombe/positionR/blob/master/vignettes/Array_Design_Simulation.Rmd" target="_blank">Array Design & Simulation Tutorial</a>
+### 📡 <a href="https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html" target="_blank">Array Design & Simulation Tutorial</a>
 Optimize receiver arrays and simulate realistic fish movements for system evaluation
-
-**Note**: For enhanced HTML versions with interactive features, visit the [full documentation site](https://jakebrownscombe.github.io/positionR) once GitHub Pages is enabled.
 
 ## Features
 
