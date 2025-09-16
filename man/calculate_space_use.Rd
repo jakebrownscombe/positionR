@@ -14,7 +14,8 @@ calculate_space_use(
   grid_resolution = 100,
   reference_raster = NULL,
   prob_column = NULL,
-  prob_thresholds = NULL
+  prob_thresholds = NULL,
+  verbose = TRUE
 )
 }
 \arguments{

@@ -49,6 +49,7 @@ restore_timezone <- function(datetime_col, original_tz) {
 #' @param grid_resolution Grid resolution for raster-based methods (default: 100m)
 #' @param reference_raster Optional raster object to use for grid-based methods
 #' @return List with space use estimates and summary statistics
+#' @export
 calculate_space_use <- function(track_data,
                                 by_fish = TRUE,
                                 by_time_period = FALSE,
@@ -1131,6 +1132,7 @@ calculate_constrained_convex_hull_area <- function(x_coords, y_coords, grid_reso
 }
 
 #' Plot space use estimates
+#' @export
 plot_space_use <- function(space_use_results,
                            method_compare = NULL,
                            plot_type = "comparison",
