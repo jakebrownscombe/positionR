@@ -36,7 +36,7 @@ knitr::opts_chunk$set(
 
 <div class="alert alert-info">
 <h4>**Analysis Overview**</h4>
-This tutorial demonstrates the **Weighted Average Detection Efficiency (WADE)** approach for animal positioning using passive acoustic telemetry. This approach uses detection range information to generate estimates of probable animal locations underwater based on detection patterns, which is useful for estimating space use (home range) and habitat selection. This approach using simulated data is a useful exercise to assess positioning accuracy and optimal settings relative to known tracks. It may be a useful exercise to conduct prior to applications to field data to determine accuracy and optimal settings relative to system design, detection range, and animal behaviour. 
+This tutorial demonstrates the **Weighted Average Detection Efficiency (WADE)** approach for animal positioning using passive acoustic telemetry. It uses detection range information to generate estimates of probable animal locations based on detection patterns, which is useful for estimating space use (home range) and habitat selection. This approach using simulated data is a useful exercise to assess positioning accuracy and optimal settings relative to known tracks, which may be useful to conduct prior to field data applications where positioning can be influenced by system design, detection range, and animal behaviour. 
 
 </div>
 
@@ -741,8 +741,8 @@ known track data.
 
 - Tools for generating reasonable detection range models that integrate depth
 are provided, although it is much more optimal to use real detection range 
-data to inform this. Detection range varies considerable over space, as well 
-as time due to variation in environmental conditions. 
+data and models to inform this. Detection range varies considerably over space and
+time due to variation in environmental conditions. 
 
 </div>
 
