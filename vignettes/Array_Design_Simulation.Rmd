@@ -41,16 +41,16 @@ options(positionR.verbose = FALSE)
 
 <div class="alert alert-info">
 <h4>**Analysis Overview**</h4>
-This tutorial demonstrates acoustic telemetry array design and movement simulation using the **positionR** package. This comprehensive workflow provides tools for optimizing receiver placement, modeling detection efficiency, and simulating realistic fish movement patterns to evaluate system performance before deployment.
+This tutorial demonstrates acoustic telemetry array design and movement simulation using the **positionR** package. This workflow provides tools for optimizing receiver placement, modeling detection efficiency, and simulating realistic fish movement patterns to evaluate system performance. 
 
 **Key Applications:**
 - 📡 Optimize receiver array configurations for maximum coverage
-- 📊 Model detection efficiency based on environmental conditions
-- 🐟 Simulate realistic fish movements and detection patterns
+- 📊 Generate detection efficiency models based on distance and depth
+- 🐟 Simulate realistic fish movements and generate detection patterns
 - 🏡 Estimate space use and home range from simulated data
 - 🌿 Analyze habitat selection patterns
 
-Ideal for researchers planning acoustic telemetry studies who want to evaluate different array designs and predict system performance before field deployment.
+Ideal for researchers planning acoustic telemetry studies who want to evaluate different array designs and predict system performance before field deployment. These tools are also useful in conjuction with positioning algorithms to determine optimal settings (see WADE tutorial).
 </div>
 
 ---
@@ -93,7 +93,7 @@ plot(depth_raster, main = "Study Area: Stoney Lake, Ontario",
 # 📡 **Receiver Array Design**
 
 <div class="alert alert-info">
-The first critical step in acoustic telemetry is designing an effective receiver array. The spatial configuration of receivers determines detection coverage, positioning accuracy, and ultimately the quality of movement data collected.
+The first critical step in acoustic telemetry is designing an effective receiver array. The spatial configuration of receivers determines detection coverage, positioning accuracy, and ultimately the quality of movement/space use data collected.
 </div>
 
 ## Generate Array Configurations
@@ -161,12 +161,12 @@ ggplot(station_distances %>% filter(station_no == 1),
 # 📊 **Detection Range Modeling**
 
 <div class="alert alert-info">
-Detection range is highly variable and depends on environmental conditions including depth, temperature, substrate type, and ambient noise. Accurate detection models are essential for understanding system performance and interpreting detection patterns.
+Detection range is highly variable and depends on environmental conditions, e.g. depth, temperature, substrate type, and ambient noise. Accurate detection models are essential for understanding system performance and interpreting detection patterns. This function can be used to generate basic detection range curves, although it is recommended to collect and model system specific conditions for application.
 </div>
 
 ## Create Depth-Dependent Detection Model
 
-Model detection efficiency as a function of distance and depth. In practice, use range testing data from your study system. Here we create an example model representative of inland lake conditions:
+Model detection efficiency as a function of distance and depth. This example is reasonably representative of inland lake conditions, but is not dynamic over time:
 
 ```{r detection-model, fig.width=6, fig.height=8}
 # Create logistic detection efficiency model
@@ -237,7 +237,7 @@ system_DE <- calculate_detection_system(
 # 🐟 **Fish Movement Simulation**
 
 <div class="alert alert-info">
-Simulating fish movements allows us to evaluate array performance under known conditions. By generating tracks with known properties, we can assess detection probability, positioning accuracy, and space use estimation methods.
+Simulating fish movements allows us to evaluate array performance under known conditions. By generating tracks with known properties, we can assess detection probability, positioning accuracy, and space use estimation methods. There are flexible options for generating simulated tracks, users are encouraged to develop movement models specific to species characteristics (see advanced simulation vignette). 
 </div>
 
 ## Generate Realistic Fish Tracks
@@ -323,7 +323,7 @@ performance_plots +
 # 🏡 **Space Use Analysis**
 
 <div class="alert alert-info">
-Space use analysis is fundamental to understanding animal ecology. Different methods have different assumptions and biases, particularly when dealing with telemetry data that may have detection gaps.
+Space use analysis is fundamental to understanding animal ecology. There are a range of options for characterizing the scale of space use (home range); constrained convex hull is most consistent with typical home range estimates, while grid cell count is more accurate to the specific locations actually occupied. 
 </div>
 
 ## Calculate Space Use Estimates
@@ -391,9 +391,9 @@ plot_space_use(space_use_results,
 
 <div class="alert alert-warning">
 <h4>**Method Selection Guide**</h4>
-- **Grid cell count**: Most representative of actual space use when tracking is consistent, but biased with detection gaps
-- **Constrained convex hull**: More robust to detection gaps, consistent with common home range approaches
-- **Convex hull**: Simple geometric approach, may overestimate space use in complex habitats
+- **Grid cell count**: Most representative of actual space use when tracking is consistent, but biased with detection gaps when applied to animal positioning.
+- **Constrained convex hull**: More robust to detection gaps with animal positioning, consistent with common home range approaches
+- **Convex hull**: Simple geometric approach, may overestimate space use in complex habitats and does not consider land. 
 
 Choose methods based on your data characteristics and research questions.
 </div>
