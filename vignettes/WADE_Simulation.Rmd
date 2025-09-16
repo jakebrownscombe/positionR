@@ -18,6 +18,10 @@ output:
     fig_width: 10
     fig_height: 8
     self_contained: true
+vignette: >
+  %\VignetteIndexEntry{WADE Positioning Analysis}
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -50,9 +54,7 @@ library(sf)
 library(ggplot2)
 library(dplyr)
 library(patchwork)
-
-# Reload functions for development version
-devtools::load_all()
+library(randomForest)
 
 # Set seed for reproducible results
 set.seed(123)

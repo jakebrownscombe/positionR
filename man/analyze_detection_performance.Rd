@@ -4,14 +4,21 @@
 \alias{analyze_detection_performance}
 \title{Comprehensive detection performance analysis with summary and plots}
 \usage{
-analyze_detection_performance(simulation_results, create_plots = TRUE)
+analyze_detection_performance(
+  simulation_results,
+  create_plots = TRUE,
+  display_plots = TRUE
+)
 }
 \arguments{
 \item{simulation_results}{List output from \code{\link{simulate_fish_tracks}}
 containing tracks and station_detections data frames.}
 
-\item{create_plots}{Logical. Whether to generate and display visualization plots.
+\item{create_plots}{Logical. Whether to generate visualization plots.
 Default is TRUE.}
+
+\item{display_plots}{Logical. Whether to display the generated plots.
+Default is TRUE. Set to FALSE to create plots without displaying them.}
 }
 \value{
 A list containing:
@@ -52,6 +59,11 @@ distribution_plot <- analysis$plots$distribution
 
 # Analysis without plots (faster)
 stats_only <- analyze_detection_performance(fish_simulation, create_plots = FALSE)
+
+# Create plots but don't display them (useful in scripts/vignettes)
+analysis_quiet <- analyze_detection_performance(fish_simulation, 
+                                                create_plots = TRUE, 
+                                                display_plots = FALSE)
 }
 
 }

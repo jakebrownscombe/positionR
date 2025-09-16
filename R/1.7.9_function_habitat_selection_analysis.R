@@ -131,6 +131,7 @@ analyze_depth_selection <- function(habitat_data,
 #' @param plot_type Type of plot: "histogram", "boxplot", "density", "selection_ratio"
 #' @param depth_bins Number of bins for histogram/selection ratio plots (default: 20)
 #' @return ggplot object
+#' @export
 plot_depth_selection <- function(habitat_data,
                                  fish_select = NULL,
                                  time_select = NULL,
@@ -281,6 +282,7 @@ plot_depth_selection <- function(habitat_data,
 #' @param comparison_var Variable to compare across: "fish_id", "time_period", or "time_period_posix"
 #' @param plot_type Type of plot: "boxplot", "violin", "density_ridges", "smooth"
 #' @return ggplot object
+#' @export
 plot_depth_comparison <- function(habitat_data,
                                   comparison_var = "fish_id",
                                   plot_type = "boxplot") {

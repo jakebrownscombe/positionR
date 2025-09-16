@@ -1,5 +1,10 @@
 # <span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: 1px;">position</span><span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; color: #2c5aa0;">R</span> <img src="man/figures/logo.png" align="right" height="240" alt="" />
 
+<div align="center">
+<h3>📖 <a href="https://jakebrownscombe.github.io/positionR">Visit the Complete Documentation Website</a> 📖</h3>
+<p><em>Interactive tutorials, function reference, and comprehensive guides</em></p>
+</div>
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 **Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
