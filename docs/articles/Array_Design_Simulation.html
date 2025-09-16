@@ -82,7 +82,7 @@ Systems and Simulating Fish Movement Patterns</h3>
                         <h4 data-toc-skip class="author">Jake
 Brownscombe</h4>
             
-            <h4 data-toc-skip class="date">2025-09-15</h4>
+            <h4 data-toc-skip class="date">2025-09-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/jakebrownscombe/positionR/blob/HEAD/vignettes/Array_Design_Simulation.Rmd" class="external-link"><code>vignettes/Array_Design_Simulation.Rmd</code></a></small>
       <div class="d-none name"><code>Array_Design_Simulation.Rmd</code></div>
@@ -96,17 +96,20 @@ Brownscombe</h4>
 </h4>
 <p>This tutorial demonstrates acoustic telemetry array design and
 movement simulation using the <strong>positionR</strong> package. This
-comprehensive workflow provides tools for optimizing receiver placement,
-modeling detection efficiency, and simulating realistic fish movement
-patterns to evaluate system performance before deployment.</p>
+workflow provides tools for optimizing receiver placement, modeling
+detection efficiency, and simulating realistic fish movement patterns to
+evaluate system performance.</p>
 <p><strong>Key Applications:</strong> - 📡 Optimize receiver array
-configurations for maximum coverage - 📊 Model detection efficiency
-based on environmental conditions - 🐟 Simulate realistic fish movements
-and detection patterns - 🏡 Estimate space use and home range from
-simulated data - 🌿 Analyze habitat selection patterns</p>
+configurations for maximum coverage - 📊 Generate detection efficiency
+models based on distance and depth - 🐟 Simulate realistic fish
+movements and generate detection patterns - 🏡 Estimate space use and
+home range from simulated data - 🌿 Analyze habitat selection
+patterns</p>
 <p>Ideal for researchers planning acoustic telemetry studies who want to
 evaluate different array designs and predict system performance before
-field deployment.</p>
+field deployment. These tools are also useful in conjuction with
+positioning algorithms to determine optimal settings (see WADE
+tutorial).</p>
 </div>
 <hr>
 <div class="section level2">
@@ -161,7 +164,7 @@ included in the package:</p>
 <p>The first critical step in acoustic telemetry is designing an
 effective receiver array. The spatial configuration of receivers
 determines detection coverage, positioning accuracy, and ultimately the
-quality of movement data collected.</p>
+quality of movement/space use data collected.</p>
 </div>
 <div class="section level3">
 <h3 id="generate-array-configurations">Generate Array Configurations<a class="anchor" aria-label="anchor" href="#generate-array-configurations"></a>
@@ -363,16 +366,19 @@ across the study area:</p>
 </h2>
 <div class="alert alert-info">
 <p>Detection range is highly variable and depends on environmental
-conditions including depth, temperature, substrate type, and ambient
-noise. Accurate detection models are essential for understanding system
-performance and interpreting detection patterns.</p>
+conditions, e.g. depth, temperature, substrate type, and ambient noise.
+Accurate detection models are essential for understanding system
+performance and interpreting detection patterns. This function can be
+used to generate basic detection range curves, although it is
+recommended to collect and model system specific conditions for
+application.</p>
 </div>
 <div class="section level3">
 <h3 id="create-depth-dependent-detection-model">Create Depth-Dependent Detection Model<a class="anchor" aria-label="anchor" href="#create-depth-dependent-detection-model"></a>
 </h3>
-<p>Model detection efficiency as a function of distance and depth. In
-practice, use range testing data from your study system. Here we create
-an example model representative of inland lake conditions:</p>
+<p>Model detection efficiency as a function of distance and depth. This
+example is reasonably representative of inland lake conditions, but is
+not dynamic over time:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create logistic detection efficiency model</span></span>
 <span><span class="co"># These parameters should be based on empirical range testing</span></span>
@@ -508,7 +514,9 @@ design effectiveness:</p>
 <p>Simulating fish movements allows us to evaluate array performance
 under known conditions. By generating tracks with known properties, we
 can assess detection probability, positioning accuracy, and space use
-estimation methods.</p>
+estimation methods. There are flexible options for generating simulated
+tracks, users are encouraged to develop movement models specific to
+species characteristics (see advanced simulation vignette).</p>
 </div>
 <div class="section level3">
 <h3 id="generate-realistic-fish-tracks">Generate Realistic Fish Tracks<a class="anchor" aria-label="anchor" href="#generate-realistic-fish-tracks"></a>
@@ -743,8 +751,10 @@ performance:</p>
 </h2>
 <div class="alert alert-info">
 <p>Space use analysis is fundamental to understanding animal ecology.
-Different methods have different assumptions and biases, particularly
-when dealing with telemetry data that may have detection gaps.</p>
+There are a range of options for characterizing the scale of space use
+(home range); constrained convex hull is most consistent with typical
+home range estimates, while grid cell count is more accurate to the
+specific locations actually occupied.</p>
 </div>
 <div class="section level3">
 <h3 id="calculate-space-use-estimates">Calculate Space Use Estimates<a class="anchor" aria-label="anchor" href="#calculate-space-use-estimates"></a>
@@ -884,14 +894,16 @@ multiple methods:</p>
 <ul>
 <li>
 <strong>Grid cell count</strong>: Most representative of actual
-space use when tracking is consistent, but biased with detection
-gaps</li>
+space use when tracking is consistent, but biased with detection gaps
+when applied to animal positioning.</li>
 <li>
 <strong>Constrained convex hull</strong>: More robust to detection
-gaps, consistent with common home range approaches</li>
+gaps with animal positioning, consistent with common home range
+approaches</li>
 <li>
 <strong>Convex hull</strong>: Simple geometric approach, may
-overestimate space use in complex habitats</li>
+overestimate space use in complex habitats and does not consider
+land.</li>
 </ul>
 <p>Choose methods based on your data characteristics and research
 questions.</p>
