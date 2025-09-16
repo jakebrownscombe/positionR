@@ -1,6 +1,5 @@
 # positionR <img src="man/figures/logo.png" align="right" height="120" alt="" />
 
-[![R-CMD-check](https://github.com/jakebrownscombe/positionR/workflows/R-CMD-check/badge.svg)](https://github.com/jakebrownscombe/positionR/actions)
 [![License: GPL-3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 **Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
