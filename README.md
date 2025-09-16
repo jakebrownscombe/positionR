@@ -15,6 +15,18 @@ Complete workflow for fine-scale fish positioning using WADE methodology with re
 ### 📡 <a href="https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html" target="_blank">Array Design & Simulation Tutorial</a>
 Optimize receiver arrays and simulate realistic fish movements for system evaluation
 
+## Installation
+
+Install the development version from GitHub:
+
+```r
+# Install devtools if you haven't already
+install.packages("devtools")
+
+# Install positionR with vignettes
+devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
+```
+
 ## Features
 
 ### 🎯 **Array Design & Optimization**
@@ -59,18 +71,6 @@ Optimize receiver arrays and simulate realistic fish movements for system evalua
 - Publication-ready figures and plots
 
 
-
-## Installation
-
-Install the development version from GitHub:
-
-```r
-# Install devtools if you haven't already
-install.packages("devtools")
-
-# Install positionR with vignettes
-devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
-```
 
 ## Quick Start: Array Design Simulation
 
