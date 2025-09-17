@@ -61,13 +61,22 @@ devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 
 <img src="man/figures/wade_positioning.png" width="100%" alt="WADE Positioning">
 
-### 📊 **Space Use & Habitat Analysis**
-- Multiple space use estimation methods (convex hulls, grid cells, kernel density)
-- Habitat selection analysis with presence/absence modeling
-- Comparative analysis between positioning methods
+### 📊 **Space Use Analysis**
+- Estimate scale of space use (home ranges)
+- Multiple space use estimation methods (convex hulls, grid cells)
 
 <img src="man/figures/space_use.png" width="100%" alt="Space Use Analysis">
+
+### 🎯 **Point Generation for Habitat Selection**
+- Multiple approaches to generate space use points based on positioning thresholds and probabilities
+- Generate absences in areas being sampled by the telemetry system
+
 <img src="man/figures/presence_absence_selection.png" width="100%" alt="Habitat Selection Analysis">
+
+### 🌊 **Space Use & Habitat Analysis**
+- Habitat selection analysis with presence/absence modeling
+- Comparative analysis between positioning estimates and known tracks
+
 <img src="man/figures/habitat_selection_comparison.png" width="100%" alt="Habitat Selection Comparison">
 
 
