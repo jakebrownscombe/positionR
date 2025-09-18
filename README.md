@@ -14,10 +14,10 @@ Optimize receiver arrays and simulate realistic fish movements for system evalua
 ### 📊 <a href="https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html" target="_blank">WADE Positioning Tutorial</a> 
 Complete workflow for fish positioning using WADE methodology with simulated data
 
-### 🐟 <a href="https://jakebrownscombe.github.io/positionR/articles/WADE_Field_App.html" target="_blank">WADE Field Application Tutorial</a>
+### 🐟 <a href="vignettes/WADE_Field_App.R" target="_blank">WADE Field Application Tutorial</a>
 Application of WADE positioning to real acoustic telemetry data
 
-### 🔬 <a href="https://jakebrownscombe.github.io/positionR/articles/Simulation_Advanced.html" target="_blank">Advanced Simulation Tutorial</a>
+### 🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>
 Advanced movement model simulations using species specific parameters (beta)
 
 
