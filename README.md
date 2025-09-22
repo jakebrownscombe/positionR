@@ -88,108 +88,8 @@ devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 
 
 
-## Quick Start: Array Design Simulation
-
-```r
-library(positionR)
-
-# Load example depth data
-data("depth_raster")
-raster::crs(depth_raster) <- "EPSG:32617"  
-
-# 1. Generate receiver array (100 stations, regularly spaced)
-stations <- generate_regular_points(depth_raster, n_points = 100, seed = 123)
-
-# 2. Calculate cost-weighted distances 
-station_distances <- calculate_station_distances(
-  raster = depth_raster,
-  receiver_frame = stations,
-  max_distance = 30000,
-  station_col = "station_id"
-)
-
-# 3. Create detection efficiency model
-logistic_DE <- create_logistic_curve_depth(
-  min_depth = 2, max_depth = 25,
-  d50_min_depth = 150, d95_min_depth = 50,
-  d50_max_depth = 300, d95_max_depth = 100,
-  plot = TRUE
-)
-
-# 4. Calculate system detection coverage
-system_DE <- calculate_detection_system(
-  distance_frame = station_distances,
-  receiver_frame = stations,
-  model = logistic_DE$log_model,
-  threshold = 0.8,
-  output_type = "cumulative"
-)
-
-# 5. Simulate fish movement with detections
-start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
-
-fish_simulation <- simulate_fish_tracks(
-  raster = depth_raster,
-  station_distances = station_distances,
-  n_paths = 5,
-  n_steps = 1440,  # 24 hours at 60-second intervals
-  time_step = 60,
-  start_time = start_time,
-  species = "walleye"  # Enables behavioral states
-)
-
-# 6. Visualize and analyze results
-plot_fish_tracks(fish_simulation, depth_raster, stations)
-analyze_detection_performance(fish_simulation)
-```
-
-## Quick Start: WADE Positioning with Field Data
-
-```r
-library(positionR)
-
-# Load field data (included with package)
-data("stoney_fish_detections")  # Detection events
-data("stoney_rx_deploy")        # Receiver deployments  
-data("depth_raster")            # Study area bathymetry
-
-# 1. Calculate station distances for WADE positioning
-station_distances <- calculate_station_distances(
-  raster = depth_raster,
-  receiver_frame = stoney_rx_deploy,
-  max_distance = 30000,
-  station_col = "station_id"
-)
-
-# 2. Prepare detection data for WADE analysis
-wade_data <- prepare_detection_data_for_wade(
-  detection_events = stoney_fish_detections,
-  receiver_deployments = stoney_rx_deploy,
-  start_time = as.POSIXct("2023-10-15 00:00:00", tz = "UTC"),
-  end_time = as.POSIXct("2023-10-29 23:00:00", tz = "UTC"),
-  time_aggregation_method = "daily"
-)
-
-# 3. Run WADE positioning algorithm
-positioning_results <- calculate_fish_positions(
-  detection_data = wade_data,
-  station_distances = station_distances,
-  logistic_model = logistic_DE$log_model,
-  positioning_method = "WADE",
-  min_det_threshold = 1,
-  information_weighting = TRUE,
-  crs = "EPSG:32617"
-)
-
-# 4. Visualize positioning results
-plot_fish_positions(
-  positioning_results = positioning_results,
-  raster = depth_raster,
-  receiver_frame = stoney_rx_deploy,
-  plot_type = "integrated",
-  time_filter = "2023-10-27"
-)
-```
+## Quick Start:
+The vignettes folder has a range of R worksheets providing example code for getting started using the package, the straight .R worksheets (e.g., Array_Design_Simulation.R) provide example workflows. The package is designed to allow for integration of user data throughout (e.g., using an existing receiver array, a real world detection range model, and real animal detection data). 
 
 ## Core Function Categories
 
@@ -238,9 +138,9 @@ plot_fish_positions(
 Comprehensive step-by-step tutorials demonstrate the full capabilities of positionR:
 
 ### 🐟 **WADE Positioning Tutorial**
-**Complete workflow for fine-scale fish positioning using WADE methodology**
+**Complete workflow for fish positioning using WADE methodology**
 
-Learn how to apply WADE positioning to real acoustic telemetry data, including detection data preparation, model fitting, positioning calculations, and space use analysis. Covers advanced topics like behavioral state modeling, temperature effects, and comparative analysis between positioning methods.
+Learn how to apply WADE positioning using simulated acoustic telemetry data, including detection data preparation, model fitting, positioning calculations, and space use analysis. Covers comparative analysis between the positioning method and simulated track data, which is useful for assessing system performance or refining algorithm settings for real world applications.
 
 ```r
 vignette("WADE_Simulation", package = "positionR")
@@ -249,7 +149,7 @@ vignette("WADE_Simulation", package = "positionR")
 ### 📡 **Array Design & Movement Simulation** 
 **Optimize receiver arrays and simulate realistic fish movements**
 
-Design effective receiver arrays using multiple placement strategies, model detection efficiency based on environmental conditions, simulate realistic fish movements with behavioral states, and evaluate system performance before deployment. Includes habitat selection analysis and presence-absence modeling.
+Design effective receiver arrays using multiple placement strategies, model detection efficiency based on environmental conditions, simulate realistic fish movements, and evaluate system performance before deployment or post hoc. Includes presence-absence point generation useful for habitat selection analysis.
 
 ```r
 vignette("Array_Design_Simulation", package = "positionR")
