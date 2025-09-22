@@ -89,7 +89,7 @@ devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 
 
 ## Quick Start:
-The vignettes folder has a range of R worksheets providing example code for getting started using the package, the straight .R worksheets (e.g., Array_Design_Simulation.R) provide example workflows. The package is designed to allow for integration of user data throughout (e.g., using an existing receiver array, a real world detection range model, and real animal detection data). 
+The vignettes folder has a range of R worksheets providing example code for getting started using the package, the .R worksheets (e.g., Array_Design_Simulation.R) provide example workflows. The package is designed to allow for integration of user data throughout (e.g., using an existing receiver array, a real world detection range model, and real animal detection data). The WADE_Field_App.R worksheet provides key functions for applying positioning to real telemetry data. 
 
 ## Core Function Categories
 
