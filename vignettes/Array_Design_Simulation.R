@@ -33,7 +33,7 @@ raster::crs(depth_raster) <- "EPSG:32617" # Set CRS for spatial data (UTM Zone 1
 # 3. RECEIVER ARRAY DESIGN ===================================================
 
 # Regular spacing - specified number of points in systematic pattern
-stations_regular <- generate_exact_regular_points(depth_raster, n_points = 50, seed = 123)
+stations_regular <- generate_regular_points(depth_raster, n_points = 50, seed = 123)
 
 # Fixed spacing - points separated by specified distance
 stations_spaced <- generate_spaced_points(depth_raster, spacing = 1000, seed = 123)
