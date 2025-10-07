@@ -10,6 +10,7 @@
 
 ### 📡 <a href="https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html" target="_blank">Array Design & Simulation Tutorial</a>
 Optimize receiver arrays and simulate realistic fish movements for system evaluation
+- **Interactive Shiny App**: Launch `run_array_design()` for point-and-click array design
 
 ### 📊 <a href="https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html" target="_blank">WADE Positioning Tutorial</a> 
 Complete workflow for fish positioning using WADE methodology with simulated data
@@ -37,6 +38,7 @@ devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 ## Features
 
 ### 🎯 **Array Design & Optimization**
+- **Interactive Shiny App**: Launch `run_array_design()` for point-and-click array design
 - Multiple receiver placement strategies (regular, spaced, random patterns)
 - Distance-based detection efficiency model generation with depth integration
 - System-wide detection coverage analysis
@@ -88,14 +90,32 @@ devtools::install_github("jakebrownscombe/positionR", build_vignettes = TRUE)
 
 
 
-## Quick Start:
+## Quick Start
+
+### Interactive Array Design
+Launch the interactive Shiny app for visual array design:
+
+```r
+library(positionR)
+run_array_design()
+```
+
+The app provides:
+- **Click-to-add receiver placement** on bathymetry maps
+- **Regular array generation** with customizable patterns
+- **Detection range modeling** with depth-dependent parameters
+- **Real-time coverage analysis** and performance metrics
+- **CSV export** of receiver coordinates for field deployment
+
+### Programmatic Workflows
 The vignettes folder has a range of R worksheets providing example code for getting started using the package, the .R worksheets (e.g., Array_Design_Simulation.R) provide example workflows. The package is designed to allow for integration of user data throughout (e.g., using an existing receiver array, a real world detection range model, and real animal detection data). The WADE_Field_App.R worksheet provides key functions for applying positioning to real telemetry data. 
 
 ## Core Function Categories
 
 ### 🎯 **Array Generation**
+- `run_array_design()` - **Launch interactive Shiny app for visual array design**
 - `generate_regular_points()` - Specific number of regularly spaced receivers
-- `generate_spaced_points()` - Receivers with defined minimum spacing  
+- `generate_spaced_points()` - Receivers with defined minimum spacing
 - `generate_random_points()` - Randomly distributed receivers
 
 ### 📡 **Detection Modeling**  
