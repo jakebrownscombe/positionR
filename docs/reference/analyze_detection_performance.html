@@ -14,7 +14,7 @@ function that combines calculation, printing, and plotting in one call."><meta p
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,9 @@ function that combines calculation, printing, and plotting in one call."><meta p
     <a class="dropdown-item" href="../articles/WADE_Simulation.html">🐟 WADE Positioning Tutorial</a>
     <a class="dropdown-item" href="../articles/Array_Design_Simulation.html">📡 Array Design &amp; Simulation</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -61,7 +64,11 @@ function that combines calculation, printing, and plotting in one call.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">analyze_detection_performance</span><span class="op">(</span><span class="va">simulation_results</span>, create_plots <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">analyze_detection_performance</span><span class="op">(</span></span>
+<span>  <span class="va">simulation_results</span>,</span>
+<span>  create_plots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  display_plots <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,8 +79,13 @@ containing tracks and station_detections data frames.</p></dd>
 
 
 <dt>create_plots</dt>
-<dd><p>Logical. Whether to generate and display visualization plots.
+<dd><p>Logical. Whether to generate visualization plots.
 Default is TRUE.</p></dd>
+
+
+<dt>display_plots</dt>
+<dd><p>Logical. Whether to display the generated plots.
+Default is TRUE. Set to FALSE to create plots without displaying them.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -121,6 +133,11 @@ performance, making it easy to evaluate different system configurations.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Analysis without plots (faster)</span></span></span>
 <span class="r-in"><span><span class="va">stats_only</span> <span class="op">&lt;-</span> <span class="fu">analyze_detection_performance</span><span class="op">(</span><span class="va">fish_simulation</span>, create_plots <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Create plots but don't display them (useful in scripts/vignettes)</span></span></span>
+<span class="r-in"><span><span class="va">analysis_quiet</span> <span class="op">&lt;-</span> <span class="fu">analyze_detection_performance</span><span class="op">(</span><span class="va">fish_simulation</span>, </span></span>
+<span class="r-in"><span>                                                create_plots <span class="op">=</span> <span class="cn">TRUE</span>, </span></span>
+<span class="r-in"><span>                                                display_plots <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

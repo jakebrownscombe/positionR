@@ -35,7 +35,7 @@
     
     <a class="navbar-brand me-2" href="index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,6 +53,9 @@
     <a class="dropdown-item" href="articles/WADE_Simulation.html">🐟 WADE Positioning Tutorial</a>
     <a class="dropdown-item" href="articles/Array_Design_Simulation.html">📡 Array Design &amp; Simulation</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -75,12 +78,52 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="positionr-">positionR <a class="anchor" aria-label="anchor" href="#positionr-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="positionr-">
+<span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 300; letter-spacing: 1px;">position</span><span style="font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-weight: 700; color: #2c5aa0;">R</span> <a class="anchor" aria-label="anchor" href="#positionr-"></a>
 </h1>
 </div>
-<p><a href="https://github.com/jakebrownscombe/positionR/actions" class="external-link"><img src="https://github.com/jakebrownscombe/positionR/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a> <a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" alt="License: GPL-3"></a></p>
+<p><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a></p>
 <p><strong>Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, &amp; Array Design</strong></p>
-<p><code>positionR</code> provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. The integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies.</p>
+<p><code>positionR</code> provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies.</p>
+<div class="section level2">
+<h2 id="books-tutorials">📚 Tutorials<a class="anchor" aria-label="anchor" href="#books-tutorials"></a>
+</h2>
+<div class="section level3">
+<h3 id="satellite-array-design--simulation-tutorial">📡 <a href="https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html" target="_blank">Array Design &amp; Simulation Tutorial</a>
+<a class="anchor" aria-label="anchor" href="#satellite-array-design--simulation-tutorial"></a>
+</h3>
+<p>Optimize receiver arrays and simulate realistic fish movements for system evaluation - <strong>Interactive Shiny App</strong>: Launch <code><a href="reference/run_array_design.html">run_array_design()</a></code> for point-and-click array design</p>
+</div>
+<div class="section level3">
+<h3 id="bar_chart-wade-positioning-tutorial">📊 <a href="https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html" target="_blank">WADE Positioning Tutorial</a>
+<a class="anchor" aria-label="anchor" href="#bar_chart-wade-positioning-tutorial"></a>
+</h3>
+<p>Complete workflow for fish positioning using WADE methodology with simulated data</p>
+</div>
+<div class="section level3">
+<h3 id="fish-wade-field-application-tutorial">🐟 <a href="vignettes/WADE_Field_App.R" target="_blank">WADE Field Application Tutorial</a>
+<a class="anchor" aria-label="anchor" href="#fish-wade-field-application-tutorial"></a>
+</h3>
+<p>Application of WADE positioning to real acoustic telemetry data</p>
+</div>
+<div class="section level3">
+<h3 id="microscope-advanced-simulation-tutorial">🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>
+<a class="anchor" aria-label="anchor" href="#microscope-advanced-simulation-tutorial"></a>
+</h3>
+<p>Advanced movement model simulations using species specific parameters (beta)</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Install the development version from GitHub:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install devtools if you haven't already</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install positionR with vignettes</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"jakebrownscombe/positionR"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
@@ -89,6 +132,8 @@
 <a class="anchor" aria-label="anchor" href="#dart-array-design--optimization"></a>
 </h3>
 <ul>
+<li>
+<strong>Interactive Shiny App</strong>: Launch <code><a href="reference/run_array_design.html">run_array_design()</a></code> for point-and-click array design</li>
 <li>Multiple receiver placement strategies (regular, spaced, random patterns)</li>
 <li>Distance-based detection efficiency model generation with depth integration</li>
 <li>System-wide detection coverage analysis</li>
@@ -122,15 +167,34 @@
 <p><img src="reference/figures/wade_positioning.png" width="100%" alt="WADE Positioning"></p>
 </div>
 <div class="section level3">
-<h3 id="bar_chart-space-use--habitat-analysis">📊 <strong>Space Use &amp; Habitat Analysis</strong>
-<a class="anchor" aria-label="anchor" href="#bar_chart-space-use--habitat-analysis"></a>
+<h3 id="bar_chart-space-use-analysis">📊 <strong>Space Use Analysis</strong>
+<a class="anchor" aria-label="anchor" href="#bar_chart-space-use-analysis"></a>
 </h3>
 <ul>
-<li>Multiple space use estimation methods (convex hulls, grid cells, kernel density)</li>
-<li>Habitat selection analysis with presence/absence modeling</li>
-<li>Comparative analysis between positioning methods</li>
+<li>Estimate scale of space use (home ranges)</li>
+<li>Multiple space use estimation methods (convex hulls, grid cells)</li>
 </ul>
-<p><img src="reference/figures/space_use.png" width="100%" alt="Space Use Analysis"><img src="reference/figures/presence_absence_selection.png" width="100%" alt="Habitat Selection Analysis"><img src="reference/figures/habitat_selection_comparison.png" width="100%" alt="Habitat Selection Comparison"></p>
+<p><img src="reference/figures/space_use.png" width="100%" alt="Space Use Analysis"></p>
+</div>
+<div class="section level3">
+<h3 id="dart-point-generation-for-habitat-selection">🎯 <strong>Point Generation for Habitat Selection</strong>
+<a class="anchor" aria-label="anchor" href="#dart-point-generation-for-habitat-selection"></a>
+</h3>
+<ul>
+<li>Multiple approaches to generate space use points based on positioning thresholds and probabilities</li>
+<li>Generate absences in areas being sampled by the telemetry system</li>
+</ul>
+<p><img src="reference/figures/presence_absence_selection.png" width="100%" alt="Habitat Selection Analysis"></p>
+</div>
+<div class="section level3">
+<h3 id="ocean-space-use--habitat-analysis">🌊 <strong>Space Use &amp; Habitat Analysis</strong>
+<a class="anchor" aria-label="anchor" href="#ocean-space-use--habitat-analysis"></a>
+</h3>
+<ul>
+<li>Habitat selection analysis with presence/absence modeling</li>
+<li>Comparative analysis between positioning estimates and known tracks</li>
+</ul>
+<p><img src="reference/figures/habitat_selection_comparison.png" width="100%" alt="Habitat Selection Comparison"></p>
 </div>
 <div class="section level3">
 <h3 id="mag-visualization--analysis">🔍 <strong>Visualization &amp; Analysis</strong>
@@ -145,118 +209,22 @@
 </div>
 </div>
 <div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>Install the development version from GitHub:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install devtools if you haven't already</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Install positionR with vignettes</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"jakebrownscombe/positionR"</span>, build_vignettes <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="quick-start-array-design-simulation">Quick Start: Array Design Simulation<a class="anchor" aria-label="anchor" href="#quick-start-array-design-simulation"></a>
-</h2>
+<div class="section level3">
+<h3 id="interactive-array-design">Interactive Array Design<a class="anchor" aria-label="anchor" href="#interactive-array-design"></a>
+</h3>
+<p>Launch the interactive Shiny app for visual array design:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jakebrownscombe/positionR" class="external-link">positionR</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load example depth data</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"depth_raster"</span><span class="op">)</span></span>
-<span><span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">depth_raster</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"EPSG:32617"</span>  </span>
-<span></span>
-<span><span class="co"># 1. Generate receiver array (100 stations, regularly spaced)</span></span>
-<span><span class="va">stations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generate_regular_points.html">generate_regular_points</a></span><span class="op">(</span><span class="va">depth_raster</span>, n_points <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Calculate cost-weighted distances </span></span>
-<span><span class="va">station_distances</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_station_distances.html">calculate_station_distances</a></span><span class="op">(</span></span>
-<span>  raster <span class="op">=</span> <span class="va">depth_raster</span>,</span>
-<span>  receiver_frame <span class="op">=</span> <span class="va">stations</span>,</span>
-<span>  max_distance <span class="op">=</span> <span class="fl">30000</span>,</span>
-<span>  station_col <span class="op">=</span> <span class="st">"station_id"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. Create detection efficiency model</span></span>
-<span><span class="va">logistic_DE</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_logistic_curve_depth.html">create_logistic_curve_depth</a></span><span class="op">(</span></span>
-<span>  min_depth <span class="op">=</span> <span class="fl">2</span>, max_depth <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  d50_min_depth <span class="op">=</span> <span class="fl">150</span>, d95_min_depth <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  d50_max_depth <span class="op">=</span> <span class="fl">300</span>, d95_max_depth <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 4. Calculate system detection coverage</span></span>
-<span><span class="va">system_DE</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_detection_system.html">calculate_detection_system</a></span><span class="op">(</span></span>
-<span>  distance_frame <span class="op">=</span> <span class="va">station_distances</span>,</span>
-<span>  receiver_frame <span class="op">=</span> <span class="va">stations</span>,</span>
-<span>  model <span class="op">=</span> <span class="va">logistic_DE</span><span class="op">$</span><span class="va">log_model</span>,</span>
-<span>  threshold <span class="op">=</span> <span class="fl">0.8</span>,</span>
-<span>  output_type <span class="op">=</span> <span class="st">"cumulative"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 5. Simulate fish movement with detections</span></span>
-<span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2025-07-15 12:00:00"</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fish_simulation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulate_fish_tracks.html">simulate_fish_tracks</a></span><span class="op">(</span></span>
-<span>  raster <span class="op">=</span> <span class="va">depth_raster</span>,</span>
-<span>  station_distances <span class="op">=</span> <span class="va">station_distances</span>,</span>
-<span>  n_paths <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  n_steps <span class="op">=</span> <span class="fl">1440</span>,  <span class="co"># 24 hours at 60-second intervals</span></span>
-<span>  time_step <span class="op">=</span> <span class="fl">60</span>,</span>
-<span>  start_time <span class="op">=</span> <span class="va">start_time</span>,</span>
-<span>  species <span class="op">=</span> <span class="st">"walleye"</span>  <span class="co"># Enables behavioral states</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 6. Visualize and analyze results</span></span>
-<span><span class="fu"><a href="reference/plot_fish_tracks.html">plot_fish_tracks</a></span><span class="op">(</span><span class="va">fish_simulation</span>, <span class="va">depth_raster</span>, <span class="va">stations</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/analyze_detection_performance.html">analyze_detection_performance</a></span><span class="op">(</span><span class="va">fish_simulation</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/run_array_design.html">run_array_design</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The app provides: - <strong>Click-to-add receiver placement</strong> on bathymetry maps - <strong>Regular array generation</strong> with customizable patterns - <strong>Detection range modeling</strong> with depth-dependent parameters - <strong>Real-time coverage analysis</strong> and performance metrics - <strong>CSV export</strong> of receiver coordinates for field deployment</p>
 </div>
-<div class="section level2">
-<h2 id="quick-start-wade-positioning-with-field-data">Quick Start: WADE Positioning with Field Data<a class="anchor" aria-label="anchor" href="#quick-start-wade-positioning-with-field-data"></a>
-</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/jakebrownscombe/positionR" class="external-link">positionR</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load field data (included with package)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"stoney_fish_detections"</span><span class="op">)</span>  <span class="co"># Detection events</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"stoney_rx_deploy"</span><span class="op">)</span>        <span class="co"># Receiver deployments  </span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"depth_raster"</span><span class="op">)</span>            <span class="co"># Study area bathymetry</span></span>
-<span></span>
-<span><span class="co"># 1. Calculate station distances for WADE positioning</span></span>
-<span><span class="va">station_distances</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_station_distances.html">calculate_station_distances</a></span><span class="op">(</span></span>
-<span>  raster <span class="op">=</span> <span class="va">depth_raster</span>,</span>
-<span>  receiver_frame <span class="op">=</span> <span class="va">stoney_rx_deploy</span>,</span>
-<span>  max_distance <span class="op">=</span> <span class="fl">30000</span>,</span>
-<span>  station_col <span class="op">=</span> <span class="st">"station_id"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 2. Prepare detection data for WADE analysis</span></span>
-<span><span class="va">wade_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/prepare_detection_data_for_wade.html">prepare_detection_data_for_wade</a></span><span class="op">(</span></span>
-<span>  detection_events <span class="op">=</span> <span class="va">stoney_fish_detections</span>,</span>
-<span>  receiver_deployments <span class="op">=</span> <span class="va">stoney_rx_deploy</span>,</span>
-<span>  start_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2023-10-15 00:00:00"</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span>,</span>
-<span>  end_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2023-10-29 23:00:00"</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span>,</span>
-<span>  time_aggregation_method <span class="op">=</span> <span class="st">"daily"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. Run WADE positioning algorithm</span></span>
-<span><span class="va">positioning_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/calculate_fish_positions.html">calculate_fish_positions</a></span><span class="op">(</span></span>
-<span>  detection_data <span class="op">=</span> <span class="va">wade_data</span>,</span>
-<span>  station_distances <span class="op">=</span> <span class="va">station_distances</span>,</span>
-<span>  logistic_model <span class="op">=</span> <span class="va">logistic_DE</span><span class="op">$</span><span class="va">log_model</span>,</span>
-<span>  positioning_method <span class="op">=</span> <span class="st">"WADE"</span>,</span>
-<span>  min_det_threshold <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  information_weighting <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  crs <span class="op">=</span> <span class="st">"EPSG:32617"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 4. Visualize positioning results</span></span>
-<span><span class="fu"><a href="reference/plot_fish_positions.html">plot_fish_positions</a></span><span class="op">(</span></span>
-<span>  positioning_results <span class="op">=</span> <span class="va">positioning_results</span>,</span>
-<span>  raster <span class="op">=</span> <span class="va">depth_raster</span>,</span>
-<span>  receiver_frame <span class="op">=</span> <span class="va">stoney_rx_deploy</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="st">"integrated"</span>,</span>
-<span>  time_filter <span class="op">=</span> <span class="st">"2023-10-27"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="programmatic-workflows">Programmatic Workflows<a class="anchor" aria-label="anchor" href="#programmatic-workflows"></a>
+</h3>
+<p>The vignettes folder has a range of R worksheets providing example code for getting started using the package, the .R worksheets (e.g., Array_Design_Simulation.R) provide example workflows. The package is designed to allow for integration of user data throughout (e.g., using an existing receiver array, a real world detection range model, and real animal detection data). The WADE_Field_App.R worksheet provides key functions for applying positioning to real telemetry data.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="core-function-categories">Core Function Categories<a class="anchor" aria-label="anchor" href="#core-function-categories"></a>
@@ -267,10 +235,12 @@
 </h3>
 <ul>
 <li>
+<code><a href="reference/run_array_design.html">run_array_design()</a></code> - <strong>Launch interactive Shiny app for visual array design</strong>
+</li>
+<li>
 <code><a href="reference/generate_regular_points.html">generate_regular_points()</a></code> - Specific number of regularly spaced receivers</li>
 <li>
-<code><a href="reference/generate_spaced_points.html">generate_spaced_points()</a></code> - Receivers with defined minimum spacing<br>
-</li>
+<code><a href="reference/generate_spaced_points.html">generate_spaced_points()</a></code> - Receivers with defined minimum spacing</li>
 <li>
 <code><a href="reference/generate_random_points.html">generate_random_points()</a></code> - Randomly distributed receivers</li>
 </ul>
@@ -370,9 +340,9 @@
 <h3 id="fish-wade-positioning-tutorial">🐟 <strong>WADE Positioning Tutorial</strong>
 <a class="anchor" aria-label="anchor" href="#fish-wade-positioning-tutorial"></a>
 </h3>
-<p><strong>Complete workflow for fine-scale fish positioning using WADE methodology</strong></p>
-<p>Learn how to apply WADE positioning to real acoustic telemetry data, including detection data preparation, model fitting, positioning calculations, and space use analysis. Covers advanced topics like behavioral state modeling, temperature effects, and comparative analysis between positioning methods.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<p><strong>Complete workflow for fish positioning using WADE methodology</strong></p>
+<p>Learn how to apply WADE positioning using simulated acoustic telemetry data, including detection data preparation, model fitting, positioning calculations, and space use analysis. Covers comparative analysis between the positioning method and simulated track data, which is useful for assessing system performance or refining algorithm settings for real world applications.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"WADE_Simulation"</span>, package <span class="op">=</span> <span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -380,15 +350,15 @@
 <a class="anchor" aria-label="anchor" href="#satellite-array-design--movement-simulation"></a>
 </h3>
 <p><strong>Optimize receiver arrays and simulate realistic fish movements</strong></p>
-<p>Design effective receiver arrays using multiple placement strategies, model detection efficiency based on environmental conditions, simulate realistic fish movements with behavioral states, and evaluate system performance before deployment. Includes habitat selection analysis and presence-absence modeling.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>Design effective receiver arrays using multiple placement strategies, model detection efficiency based on environmental conditions, simulate realistic fish movements, and evaluate system performance before deployment or post hoc. Includes presence-absence point generation useful for habitat selection analysis.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"Array_Design_Simulation"</span>, package <span class="op">=</span> <span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="mag-browse-all-tutorials">🔍 <strong>Browse All Tutorials</strong>
 <a class="anchor" aria-label="anchor" href="#mag-browse-all-tutorials"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Online Documentation</strong>: Visit our <a href="https://jakebrownscombe.github.io/positionR">package website</a> for enhanced tutorials with interactive examples and detailed methodology explanations.</p>
 </div>
@@ -519,7 +489,7 @@ https://github.com/jakebrownscombe/positionR</code></pre>
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Jacob Brownscombe <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-1042-5867" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Jacob Brownscombe <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2496-8764" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
 </div>
 
