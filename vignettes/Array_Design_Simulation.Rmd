@@ -144,14 +144,33 @@ ggplot(station_distances %>% filter(station_no == 1),
   theme_minimal() +
   coord_sf()
 
-ggplot(station_distances %>% filter(station_no == 1), 
+ggplot(station_distances %>% filter(station_no == 1),
        aes(x, y, fill = tortuosity)) +
   geom_raster() +
   scale_fill_viridis_c(option = "magma", name = "Tortuosity", limits=c(0.9,1.5)) +
-  geom_point(data = stations_regular %>% filter(station_id == 1), 
+  geom_point(data = stations_regular %>% filter(station_id == 1),
              aes(x, y), col = "green", size = 4, inherit.aes = FALSE) +
   labs(title = "Tortuosity Field from Station 1",
        subtitle = "Green point = station location") +
+  theme_minimal() +
+  coord_sf()
+```
+
+### Barrier Masking
+
+The `calculate_station_distances()` function automatically identifies where the line-of-sight between receivers and grid cells crosses land barriers (islands, peninsulas). This information is stored in the `crosses_barrier` column and can be used to prevent unrealistic detections through obstacles:
+
+```{r barrier-visualization}
+# Visualize barrier field for one station
+ggplot(station_distances %>% filter(station_no == 1),
+       aes(x, y, fill = crosses_barrier)) +
+  geom_raster() +
+  scale_fill_manual(values = c("#4A90A4", "#D4816F"),
+                   labels = c("Clear path", "Crosses barrier")) +
+  geom_point(data = stations_regular %>% filter(station_id == 1),
+             aes(x, y), col = "green", size = 4, inherit.aes = FALSE) +
+  labs(title = "Barrier Field from Station 1",
+       subtitle = "Locations where line-of-sight crosses land") +
   theme_minimal() +
   coord_sf()
 ```
@@ -220,11 +239,12 @@ Analyze detection performance at the system level to evaluate array design effec
 # Calculate system-level detection probabilities
 # Options: "cumulative" (any receiver), "3_plus" (≥3 receivers), "both"
 system_DE <- calculate_detection_system(
-  distance_frame = station_distances, 
-  receiver_frame = stations_regular, 
-  model = logistic_DE$log_model, 
+  distance_frame = station_distances,
+  receiver_frame = stations_regular,
+  model = logistic_DE$log_model,
   output_type = "cumulative",  # Fast computation
-  plots = TRUE
+  plots = TRUE,
+  include_barriers = TRUE  # Incorporate barrier masking
 )
 
 # Key outputs:
@@ -237,7 +257,11 @@ system_DE <- calculate_detection_system(
 # 🐟 **Fish Movement Simulation**
 
 <div class="alert alert-info">
-Simulating fish movements allows us to evaluate array performance under known conditions. By generating tracks with known properties, we can assess detection probability, positioning accuracy, and space use estimation methods. There are flexible options for generating simulated tracks, users are encouraged to develop movement models specific to species characteristics (see advanced simulation vignette). 
+Simulating fish movements allows us to evaluate array performance under known conditions. By generating tracks with known properties, we can assess detection probability, positioning accuracy, and space use estimation methods. There are flexible options for generating simulated tracks, users are encouraged to develop movement models specific to species characteristics (see advanced simulation vignette).
+</div>
+
+<div class="alert alert-warning">
+**Barrier Masking**: When `include_barriers = TRUE`, the simulation prevents detections through land obstacles (islands, peninsulas). Detection efficiency is set to 0 where the line-of-sight crosses a barrier, creating more realistic detection patterns that account for physical geography.
 </div>
 
 ## Generate Realistic Fish Tracks
@@ -258,8 +282,9 @@ fish_simulation <- simulate_fish_tracks(
   step_length_sd = 30,                   # Step length variability
   time_step = 60,                        # Time between steps (seconds)
   seed = 123,
-  start_time = start_time
-  
+  start_time = start_time,
+  include_barriers = TRUE                # Prevent detections through land
+
   # Optional species-specific parameters:
   # species = "Walleye",              # Available: "Walleye", "Smallmouth Bass", "Muskellunge"
   # fish_size_cm = 45,                # Fish length in cm

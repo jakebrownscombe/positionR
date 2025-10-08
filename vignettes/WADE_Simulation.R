@@ -83,12 +83,14 @@ ggplot(station_distances %>% dplyr::filter(station_no == 10),
 
 # Calculate cumulative system detection efficiency
 # This will be used for generating absence points in habitat selection analysis
+# include_barriers = TRUE incorporates barrier masking into coverage calculations
 system_DE <- calculate_detection_system(
   distance_frame = station_distances,
   receiver_frame = points_regular,
   model = logistic_DE$log_model,
   output_type = "cumulative",  # Probability any receiver detects
-  plots = TRUE
+  plots = TRUE,
+  include_barriers = TRUE  # Prevent detections through land obstacles
 )
 
 
@@ -103,6 +105,7 @@ system_DE <- calculate_detection_system(
 start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
 
 # Generate fish tracks with detections
+# include_barriers = TRUE prevents detections through land obstacles
 fish_simulation <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,  # Contains DE_pred values
@@ -113,6 +116,7 @@ fish_simulation <- simulate_fish_tracks(
   time_step = 180,
   seed = 123,
   start_time = start_time,
+  include_barriers = TRUE  # Prevent detections through land
 )
 
 
@@ -141,6 +145,8 @@ detection_performance$plots$by_path +
 
 # Apply WADE algorithm to estimate fish positions
 # Integrates both detection and non-detection evidence
+# include_barriers = TRUE prevents position estimates through land obstacles,
+# improving accuracy by accounting for physical geography
 positioning_results <- calculate_fish_positions(
   station_detections = fish_simulation$station_detections,
   station_distances_df = station_distances,
@@ -156,6 +162,7 @@ positioning_results <- calculate_fish_positions(
   time_col = "datetime",
   time_aggregation = "day",            # Daily position estimates
   station_col = "station_id",
+  include_barriers = TRUE,             # Account for barriers in positioning
   verbose = TRUE
 )
 
