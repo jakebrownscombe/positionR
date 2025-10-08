@@ -216,8 +216,8 @@ Key dependencies include:
 If you use positionR in your research, please cite:
 
 ```
-Brownscombe, J.W. (2025). positionR: Weighted Average Detection Efficiency (WADE) 
-Positioning for Acoustic Telemetry. R package version 1.0.0. 
+Brownscombe, J.W. (2025). positionR: Tools for Analyzing Acoustic Telemetry Data - 
+Positioning, Simulation, & Array Design. R package version 1.2.0. 
 https://github.com/jakebrownscombe/positionR
 ```
 
