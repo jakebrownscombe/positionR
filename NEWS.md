@@ -1,3 +1,40 @@
+# positionR 1.2.0
+
+## New Features
+
+### Barrier Masking for Realistic Detection Modeling
+
+* Added barrier masking functionality to prevent unrealistic detections through land obstacles (islands, peninsulas, shorelines)
+* New `include_barriers` parameter available in four core functions:
+  - `calculate_station_distances()`: Automatically detects line-of-sight barriers using ray-tracing algorithm
+  - `calculate_detection_system()`: Incorporates barriers into system-wide coverage calculations
+  - `simulate_fish_tracks()`: Prevents simulated detections through land obstacles
+  - `calculate_fish_positions()`: Accounts for barriers in both detection and non-detection probabilities
+
+### How Barrier Masking Works
+
+* Line-of-sight analysis identifies when direct path between receiver and location crosses land
+* Detection efficiency automatically set to 0 where barriers present
+* Works with both static DE mode (pre-computed values) and temporal DE mode (on-the-fly calculation)
+* Generates `crosses_barrier` column in station distances data for downstream use
+
+## Improvements
+
+* Enhanced realism in detection simulations by accounting for physical geography
+* More accurate position estimates that respect landscape features
+* Updated vignettes with barrier masking examples and visualizations:
+  - Array Design & Simulation vignette: barrier field visualization and detection masking
+  - WADE Positioning vignette: barrier-aware positioning workflow
+
+## Documentation
+
+* Added barrier masking sections to both major vignettes
+* New visualizations showing barrier fields from receiver perspectives
+* Documentation for `include_barriers` parameter across all affected functions
+* Alert boxes explaining barrier masking benefits and requirements
+
+---
+
 # positionR 1.1.0
 
 ## New Features

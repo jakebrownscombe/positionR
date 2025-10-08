@@ -104,8 +104,10 @@ station_distances <- calculate_station_distances(
   station_col = "station_id"
 )
 
-str(station_distances) #contains shortest path, euclidean distances, and tortuosity 
+str(station_distances) #contains shortest path, euclidean distances, tortuosity, and barrier info
 ```
+
+The `calculate_station_distances()` function automatically computes barrier information (whether line-of-sight crosses land) that can be used to prevent unrealistic detections through obstacles.
 
 ---
 
@@ -158,12 +160,14 @@ ggplot(station_distances %>% dplyr::filter(station_no == 10),
 ```{r system-detection, fig.width=10, fig.height=8}
 # Calculate cumulative system detection efficiency
 # This will be used for generating absence points later
+# include_barriers = TRUE incorporates barrier masking
 system_DE <- calculate_detection_system(
   distance_frame = station_distances,
   receiver_frame = points_regular,
   model = logistic_DE$log_model,
   output_type = "cumulative",  # Cumulative probability across all receivers
-  plots = TRUE
+  plots = TRUE,
+  include_barriers = TRUE  # Prevent detections through land obstacles
 )
 
 ```
@@ -188,7 +192,8 @@ fish_simulation <- simulate_fish_tracks(
   step_length_sd = 30,        # Step length standard deviation
   time_step = 180,            # Time between steps (seconds)
   seed = 123,
-  start_time = start_time
+  start_time = start_time,
+  include_barriers = TRUE     # Prevent detections through land
 )
 
 ```
@@ -235,6 +240,10 @@ performance_plots +
 
 # 🎯 **WADE Position Estimation**
 
+<div class="alert alert-info">
+**Barrier Masking in WADE**: The barrier masking feature prevents position estimates in areas separated from receivers by land obstacles. Both detection and non-detection probabilities account for barriers, resulting in more accurate position estimates that respect physical geography.
+</div>
+
 ## Calculate Position Probabilities
 
 ```{r positioning-calculation}
@@ -254,6 +263,7 @@ positioning_results <- calculate_fish_positions(
   time_col = "datetime",
   time_aggregation = "day",            # Daily position estimates
   station_col = "station_id",
+  include_barriers = TRUE,             # Account for barriers in positioning
   verbose = TRUE
 )
 

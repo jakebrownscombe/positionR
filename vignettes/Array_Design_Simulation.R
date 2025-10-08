@@ -88,7 +88,20 @@ ggplot(station_distances %>% filter(station_no == 1),
   theme_minimal() +
   coord_sf()
 
-
+# Barrier visualization
+# The crosses_barrier column identifies where line-of-sight crosses land
+# This prevents unrealistic detections through islands/peninsulas
+ggplot(station_distances %>% filter(station_no == 1),
+       aes(x, y, fill = crosses_barrier)) +
+  geom_raster() +
+  scale_fill_manual(values = c("#4A90A4", "#D4816F"),
+                   labels = c("Clear path", "Crosses barrier")) +
+  geom_point(data = stations_regular %>% filter(station_id == 1),
+             aes(x, y), col = "green", size = 4, inherit.aes = FALSE) +
+  labs(title = "Barrier Field from Station 1",
+       subtitle = "Locations where line-of-sight crosses land") +
+  theme_minimal() +
+  coord_sf()
 
 
 # 5. DETECTION RANGE MODEL ===================================================
@@ -136,12 +149,14 @@ ggplot(station_distances %>% filter(station_no == 10),
 # 7. SYSTEM DETECTION COVERAGE ===============================================
 
 # Analyze detection performance at the system level to evaluate array design effectiveness
+# include_barriers = TRUE incorporates barrier masking into system coverage calculations
 system_DE <- calculate_detection_system(
   distance_frame = station_distances,
   receiver_frame = stations_regular,
   model = logistic_DE$log_model,
   output_type = "cumulative",  # Cumulative probability (any receiver detects)
-  plots = TRUE
+  plots = TRUE,
+  include_barriers = TRUE  # Prevent detections through land obstacles
 )
 
 
@@ -153,6 +168,8 @@ start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
 
 # Generate realistic fish movements using correlated random walks
 # and simulate detections based on the array and detection model
+# include_barriers = TRUE prevents detections through land obstacles,
+# creating more realistic detection patterns
 fish_simulation <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,  # Contains DE_pred values
@@ -162,7 +179,8 @@ fish_simulation <- simulate_fish_tracks(
   step_length_sd = 30,                   # Step length variability
   time_step = 60,                        # Time between steps (seconds)
   seed = 1987,
-  start_time = start_time
+  start_time = start_time,
+  include_barriers = TRUE                # Prevent detections through land
 
   # Optional species-specific parameters:
   # species = "Walleye",              # Available: "Walleye", "Smallmouth Bass", "Muskellunge"

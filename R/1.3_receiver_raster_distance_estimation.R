@@ -1,8 +1,39 @@
+#' Check if a straight line between two points crosses NA cells (barriers)
+#'
+#' @param x1 X coordinate of starting point
+#' @param y1 Y coordinate of starting point
+#' @param x2 X coordinate of ending point
+#' @param y2 Y coordinate of ending point
+#' @param raster RasterLayer to check for barriers
+#' @param n_samples Number of points to sample along the line (default 50)
+#'
+#' @return Logical value: TRUE if line crosses any NA cells, FALSE otherwise
+#'
+#' @keywords internal
+check_line_crosses_barrier <- function(x1, y1, x2, y2, raster, n_samples = 50) {
+  # Create sequence of points along the line
+  t_seq <- seq(0, 1, length.out = n_samples)
+
+  # Linear interpolation between points
+  x_points <- x1 + t_seq * (x2 - x1)
+  y_points <- y1 + t_seq * (y2 - y1)
+
+  # Create matrix of coordinates
+  line_coords <- cbind(x_points, y_points)
+
+  # Extract raster values at these points
+  raster_values <- raster::extract(raster, line_coords)
+
+  # Check if any values are NA (barrier encountered)
+  any(is.na(raster_values))
+}
+
 #' Calculate cost distances from receiver stations to all raster cells
 #'
 #' Computes both cost-weighted and straight-line distances from each receiver
-#' station to all valid cells in a raster. Uses least-cost path analysis to
-#' account for landscape constraints on signal transmission.
+#' station to all valid cells in a raster. Uses hybrid distance calculation that
+#' employs straight-line distance in open water and least-cost paths around barriers,
+#' eliminating grid artifacts while preserving meaningful tortuosity.
 #'
 #' @param raster A RasterLayer object representing the study area. Non-NA cells
 #'   are treated as valid locations for distance calculations.
@@ -19,24 +50,31 @@
 #'   \item{y}{Y coordinate of the cell center}
 #'   \item{raster_value}{Original value from the input raster}
 #'   \item{station_no}{Station identifier from receiver_frame$point_id}
-#'   \item{cost_distance}{Least-cost distance from station to cell}
+#'   \item{cost_distance}{Hybrid distance: straight-line when no barriers present,
+#'     least-cost when barriers encountered. Eliminates grid artifacts in open water.}
 #'   \item{straight_distance}{Euclidean distance from station to cell}
-#'   \item{tortuosity}{Ratio of cost distance to straight distance}
+#'   \item{tortuosity}{Ratio of cost distance to straight distance. Values ~1.0
+#'     indicate open water paths, values >1.0 indicate barrier navigation.}
+#'   \item{crosses_barrier}{Logical flag indicating whether the straight-line path
+#'     between station and cell crosses NA cells (barriers)}
 #'
 #' @details
-#' This function uses the gdistance package to perform least-cost path analysis.
-#' The process involves:
+#' This function uses a hybrid distance calculation approach:
 #' \enumerate{
-#'   \item Creating a uniform cost surface from the raster (all valid cells = 1)
-#'   \item Building a transition matrix with 8-directional connectivity
-#'   \item Calculating accumulated cost distances using accCost()
-#'   \item Computing straight-line distances for comparison
-#'   \item Converting results to long format for analysis
+#'   \item Creates a uniform cost surface from the raster (all valid cells = 1)
+#'   \item Builds a transition matrix with 8-directional connectivity
+#'   \item Calculates accumulated cost distances using accCost()
+#'   \item Computes straight-line (Euclidean) distances
+#'   \item Detects barrier crossings via ray-casting along straight-line paths
+#'   \item Uses straight distance when no barriers present, cost distance when barriers encountered
+#'   \item Converts results to long format for analysis
 #' }
 #'
-#' The tortuosity metric (cost/straight distance) indicates how much the
-#' least-cost path deviates from a straight line, with values > 1 indicating
-#' increased path complexity.
+#' The hybrid approach eliminates radial grid artifacts in open water while preserving
+#' meaningful tortuosity around actual barriers. The output \code{cost_distance} column
+#' contains straight-line distance for open water paths and least-cost distance for
+#' barrier-crossing paths. Tortuosity values ~1.0 indicate open water, while values >1.0
+#' indicate navigation around barriers.
 #'
 #' @examples
 #' \dontrun{
@@ -149,22 +187,51 @@ calculate_station_distances <- function(raster,
       straight_distances[straight_distances > max_distance] <- NA
     }
 
+    # Detect barrier crossings for each cell
+    cat("  Detecting barrier crossings...\n")
+    crosses_barrier <- logical(length(valid_cells))
+    for (j in seq_along(valid_cells)) {
+      # Skip if distance is NA
+      if (is.na(straight_distances[j])) {
+        crosses_barrier[j] <- NA
+        next
+      }
+
+      crosses_barrier[j] <- check_line_crosses_barrier(
+        x1 = station_coords[1],
+        y1 = station_coords[2],
+        x2 = cell_coords[j, 1],
+        y2 = cell_coords[j, 2],
+        raster = raster
+      )
+    }
+
+    # Calculate hybrid distance: straight when possible, cost when barrier present
+    hybrid_distances <- ifelse(
+      crosses_barrier,
+      cost_distances,      # Use cost distance when barrier encountered
+      straight_distances   # Use straight distance in open water
+    )
+
     # Add to results dataframe with sanitized column names
     # Replace any non-standard characters in station ID for column naming
     safe_station_id <- gsub("[^[:alnum:]_]", "_", as.character(current_station_id))
     cost_col_name <- paste0("cost_dist_station_", safe_station_id)
     straight_col_name <- paste0("straight_dist_station_", safe_station_id)
+    barrier_col_name <- paste0("crosses_barrier_station_", safe_station_id)
 
-    results_df[[cost_col_name]] <- cost_distances
+    results_df[[cost_col_name]] <- hybrid_distances  # Now contains hybrid distance
     results_df[[straight_col_name]] <- straight_distances
+    results_df[[barrier_col_name]] <- crosses_barrier
   }
 
   # Convert to long format
   cat("Converting to long format...\n")
 
-  # Separate cost and straight distance columns
+  # Separate cost, straight distance, and barrier columns
   cost_cols <- grep("^cost_dist_station_", names(results_df), value = TRUE)
   straight_cols <- grep("^straight_dist_station_", names(results_df), value = TRUE)
+  barrier_cols <- grep("^crosses_barrier_station_", names(results_df), value = TRUE)
 
   # Create a mapping of safe column names back to original station IDs
   station_mapping <- data.frame(
@@ -173,7 +240,7 @@ calculate_station_distances <- function(raster,
     stringsAsFactors = FALSE
   )
 
-  # Pivot cost distances to long format
+  # Pivot cost distances to long format (now contains hybrid distances)
   cost_long <- results_df %>%
     dplyr::select(cell_id, x, y, raster_value, dplyr::all_of(cost_cols)) %>%
     tidyr::pivot_longer(cols = dplyr::all_of(cost_cols),
@@ -195,12 +262,25 @@ calculate_station_distances <- function(raster,
     dplyr::rename(station_no = original_id) %>%
     dplyr::select(-station_col, -safe_name)
 
-  # Combine cost and straight distances
+  # Pivot barrier flags to long format
+  barrier_long <- results_df %>%
+    dplyr::select(cell_id, dplyr::all_of(barrier_cols)) %>%
+    tidyr::pivot_longer(cols = dplyr::all_of(barrier_cols),
+                        names_to = "station_col",
+                        values_to = "crosses_barrier") %>%
+    dplyr::mutate(safe_name = gsub("crosses_barrier_station_", "", station_col)) %>%
+    dplyr::left_join(station_mapping, by = "safe_name") %>%
+    dplyr::rename(station_no = original_id) %>%
+    dplyr::select(-station_col, -safe_name)
+
+  # Combine all components
   final_df <- cost_long %>%
     dplyr::left_join(straight_long, by = c("cell_id", "station_no")) %>%
+    dplyr::left_join(barrier_long, by = c("cell_id", "station_no")) %>%
     dplyr::mutate(tortuosity = cost_distance / straight_distance) %>%
     dplyr::filter(!is.na(cost_distance)) %>%
-    dplyr::select(cell_id, x, y, raster_value, station_no, cost_distance, straight_distance, tortuosity) %>%
+    dplyr::select(cell_id, x, y, raster_value, station_no, cost_distance,
+                  straight_distance, tortuosity, crosses_barrier) %>%
     dplyr::arrange(station_no, cell_id)
 
   cat("Distance calculations complete!\n")

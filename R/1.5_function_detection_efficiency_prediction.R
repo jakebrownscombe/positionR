@@ -68,6 +68,10 @@ calculate_prob_3_plus <- function(probs) {
 #'   }
 #' @param plots Logical. Whether to create and display visualization plots.
 #'   Default is TRUE.
+#' @param include_barriers Logical. If TRUE, sets detection efficiency to zero
+#'   for receiver-cell pairs where the path crosses barriers (land/obstacles).
+#'   Requires the 'crosses_barrier' column in distance_frame (added by updated
+#'   calculate_station_distances function). Default is FALSE.
 #'
 #' @return If plots = TRUE, returns a list containing:
 #'   \item{data}{Data frame with spatial coordinates and calculated probabilities}
@@ -80,6 +84,7 @@ calculate_prob_3_plus <- function(probs) {
 #' The function performs the following calculations:
 #' \enumerate{
 #'   \item Predicts detection efficiency for each cell-receiver pair using the model
+#'   \item (Optional) Masks detections where barriers are present (if include_barriers = TRUE)
 #'   \item Calculates cumulative detection probability: 1 - prod(1 - individual_probs)
 #'   \item Calculates 3+ receiver probability using exact binomial calculations
 #'   \item Creates spatial heatmaps showing detection coverage
@@ -91,6 +96,11 @@ calculate_prob_3_plus <- function(probs) {
 #'
 #' The model predictions use 'cost_distance' as 'dist_m' and absolute
 #' 'raster_value' as 'depth_m' to match expected model inputs.
+#'
+#' When \code{include_barriers = TRUE}, detection efficiency is set to zero for
+#' any receiver-cell pair where the straight-line path crosses land or other
+#' barriers (NA cells in the raster). This prevents unrealistic detections through
+#' obstacles and provides more accurate detection coverage predictions.
 #'
 #' @examples
 #' \dontrun{
@@ -137,6 +147,7 @@ calculate_detection_system <- function(distance_frame,
                                        target_date = NULL,
                                        output_type = "both",  # "cumulative", "3_plus", or "both"
                                        plots = TRUE,
+                                       include_barriers = FALSE,
                                        station_col = "station_id",
                                        deploy_col = "deploy_datetime_UTC",
                                        recover_col = "recover_datetime_UTC") {
@@ -157,6 +168,16 @@ calculate_detection_system <- function(distance_frame,
   if (!station_col %in% names(receiver_frame)) {
     stop("Column '", station_col, "' not found in receiver_frame. ",
          "Available columns: ", paste(names(receiver_frame), collapse = ", "))
+  }
+
+  # Check for crosses_barrier column if barrier masking requested
+  if (include_barriers) {
+    if (!"crosses_barrier" %in% names(distance_frame)) {
+      stop("include_barriers = TRUE requires 'crosses_barrier' column in distance_frame.\n",
+           "This column is added by the updated calculate_station_distances() function.\n",
+           "Please recalculate distances with the barrier-aware version.")
+    }
+    cat("Barrier masking enabled - will set DE = 0 where paths cross barriers\n")
   }
 
   # Determine what to calculate
@@ -226,6 +247,19 @@ calculate_detection_system <- function(distance_frame,
                                              dplyr::rename(dist_m = cost_distance) %>%
                                              dplyr::mutate(depth_m = abs(raster_value)),
                                            type = "response")
+
+  # Apply barrier masking if requested
+  if (include_barriers) {
+    barrier_mask <- distance_frame$crosses_barrier
+    n_total <- nrow(distance_frame)
+    n_masked <- sum(barrier_mask, na.rm = TRUE)
+
+    # Set DE to zero where barriers detected
+    distance_frame$DE_pred[barrier_mask & !is.na(barrier_mask)] <- 0
+
+    cat(sprintf("  Masked %d of %d station-cell pairs (%.1f%%) due to barriers\n",
+                n_masked, n_total, 100 * n_masked / n_total))
+  }
 
   # Calculate system detection probabilities
   cat("Calculating system probabilities...\n")
