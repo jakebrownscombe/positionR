@@ -12,6 +12,7 @@ calculate_detection_system(
   target_date = NULL,
   output_type = "both",
   plots = TRUE,
+  include_barriers = FALSE,
   station_col = "station_id",
   deploy_col = "deploy_datetime_UTC",
   recover_col = "recover_datetime_UTC"
@@ -24,6 +25,7 @@ calculate_detection_system(
   target_date = NULL,
   output_type = "both",
   plots = TRUE,
+  include_barriers = FALSE,
   station_col = "station_id",
   deploy_col = "deploy_datetime_UTC",
   recover_col = "recover_datetime_UTC"
@@ -53,6 +55,11 @@ Only receivers deployed on this date will be included. If NULL, uses all receive
 
 \item{plots}{Logical. Whether to create and display visualization plots.
 Default is TRUE.}
+
+\item{include_barriers}{Logical. If TRUE, sets detection efficiency to zero
+for receiver-cell pairs where the path crosses barriers (land/obstacles).
+Requires the 'crosses_barrier' column in distance_frame (added by updated
+calculate_station_distances function). Default is FALSE.}
 
 \item{station_col}{Character. Column name in receiver_frame containing station IDs.
 Default is "station_id". Must match the station identifiers in distance_frame$station_no.}
@@ -94,6 +101,7 @@ considering only receivers that were deployed at that time.
 The function performs the following calculations:
 \enumerate{
 \item Predicts detection efficiency for each cell-receiver pair using the model
+\item (Optional) Masks detections where barriers are present (if include_barriers = TRUE)
 \item Calculates cumulative detection probability: 1 - prod(1 - individual_probs)
 \item Calculates 3+ receiver probability using exact binomial calculations
 \item Creates spatial heatmaps showing detection coverage
@@ -105,6 +113,11 @@ where fine-scale positioning is possible.
 
 The model predictions use 'cost_distance' as 'dist_m' and absolute
 'raster_value' as 'depth_m' to match expected model inputs.
+
+When \code{include_barriers = TRUE}, detection efficiency is set to zero for
+any receiver-cell pair where the straight-line path crosses land or other
+barriers (NA cells in the raster). This prevents unrealistic detections through
+obstacles and provides more accurate detection coverage predictions.
 
 This enhanced version:
 \itemize{
@@ -120,9 +133,15 @@ The function performs the following steps:
 \item Identifies receivers active on the target date
 \item Filters distance_frame to include only active receivers
 \item Predicts detection efficiency for each cell-receiver pair
+\item (Optional) Masks detections where barriers are present (if include_barriers = TRUE)
 \item Calculates cumulative and/or 3+ receiver probabilities
 \item Creates spatial visualizations showing active receiver coverage
 }
+
+When \code{include_barriers = TRUE}, detection efficiency is set to zero for
+any receiver-cell pair where the straight-line path crosses land or other
+barriers (NA cells in the raster). This prevents unrealistic detections through
+obstacles and provides more accurate detection coverage predictions.
 }
 \examples{
 \dontrun{
