@@ -18,12 +18,13 @@
 #'   uses the last detection time for the selected fish.
 #'
 #' @return A list containing:
-#'   \item{station_detections}{Data frame with columns: path_id, datetime, 
-#'     station_id, detected, detection_prob, distance_to_station, station_x, 
+#'   \item{station_detections}{Data frame with columns: path_id, datetime,
+#'     station_id, detected, detection_prob, distance_to_station, station_x,
 #'     station_y, n_detections. Compatible with calculate_fish_positions function.}
-#'   \item{station_info}{Data frame with columns: station_id, x, y, depth_m (if available).
-#'     Station information for active stations during analysis period.}
-#'   \item{time_periods}{Data frame with time period information: time_period, 
+#'   \item{station_info}{Data frame with columns: station_id, x, y, start_date,
+#'     end_date, depth_m (if available). Station information for active stations
+#'     during analysis period, including deployment dates for temporal filtering.}
+#'   \item{time_periods}{Data frame with time period information: time_period,
 #'     time_period_label, n_detections.}
 #'   \item{deployment_warnings}{Character vector of any deployment warnings.}
 #'   \item{summary_stats}{List with analysis summary statistics.}
@@ -36,9 +37,15 @@
 #'   \item Identifies stations active during the analysis period
 #'   \item Warns if any stations are deployed/recovered during analysis
 #'   \item Aggregates detections by time period (hour/day/week/month)
-#'   \item Creates detection summary with presence/absence for each station-time combination
+#'   \item Creates detection summary with presence/absence only for station-time
+#'     combinations where the station was deployed (filters by deployment dates)
 #'   \item Formats output compatible with calculate_fish_positions
 #' }
+#'
+#' Note: The function now filters station-time combinations to only include periods
+#' when each station was actually deployed. This prevents creation of invalid
+#' combinations and reduces memory usage, particularly important for large datasets
+#' or long analysis periods.
 #'
 #' The station_detections output structure:
 #' - path_id: Always 1 (single fish track)
@@ -221,11 +228,15 @@ prepare_detection_data_for_wade <- function(fish_detections,
     cat("Consider selecting a period with stable station deployment.\n\n")
   }
   
-  # Create station info dataframe
+  # Create station info dataframe with deployment dates
   station_info <- active_stations %>%
-    dplyr::select(station_id, x, y, dplyr::any_of("depth_m")) %>%
+    dplyr::mutate(
+      start_date = as.Date(deploy_datetime_UTC),
+      end_date = as.Date(recover_datetime_UTC)
+    ) %>%
+    dplyr::select(station_id, x, y, start_date, end_date, dplyr::any_of("depth_m")) %>%
     dplyr::arrange(station_id)
-  
+
   # Convert to regular dataframe if sf object
   if ("sf" %in% class(station_info)) {
     station_info <- sf::st_drop_geometry(station_info)
@@ -256,12 +267,20 @@ prepare_detection_data_for_wade <- function(fish_detections,
     to = lubridate::floor_date(end_time, unit = time_aggregation),
     by = time_aggregation
   )
-  
-  # Create all combinations of time periods and active stations
-  all_combinations <- tidyr::crossing(
-    time_period = time_periods,
-    station_id = station_info$station_id
-  )
+
+  # Create only valid station-date combinations (where station was deployed)
+  # This filters to only periods when each station was actually in the water
+  all_combinations <- station_info %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      time_period = list(time_periods[
+        as.Date(time_periods) >= start_date &
+        as.Date(time_periods) <= end_date
+      ])
+    ) %>%
+    tidyr::unnest(time_period) %>%
+    dplyr::select(time_period, station_id) %>%
+    dplyr::ungroup()
   
   # Join with detection summary and station coordinates
   station_detections <- all_combinations %>%
