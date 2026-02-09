@@ -6,6 +6,14 @@
 
 `positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
 
+## Conceptual Diagram
+
+<a href="https://jakebrownscombe.github.io/positionR/conceptual_diagram.html">
+<img src="man/figures/conceptual_diagram.png" width="100%" alt="positionR Conceptual Diagram — click for interactive version">
+</a>
+
+<p align="center"><em>Click the diagram to explore the interactive version</em></p>
+
 ## 📚 Tutorials
 
 ### 📡 <a href="https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html" target="_blank">Array Design & Simulation Tutorial</a>
