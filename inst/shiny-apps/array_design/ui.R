@@ -354,7 +354,7 @@ ui <- dashboardPage(
               h5("Detection Model Parameters:"),
               tags$ul(
                 tags$li(strong("d50:"), " Distance at 50% detection probability - represents effective detection range"),
-                tags$li(strong("d95:"), " Distance at 95% detection probability - represents minimum reliable detection range"),
+                tags$li(strong("d95:"), " Distance at 5% detection probability - represents maximum detection range"),
                 tags$li(strong("Depth Dependency:"), " Detection ranges typically increase with depth due to acoustic layering")
               ),
 

@@ -61,9 +61,9 @@ logistic_DE <- create_logistic_curve_depth(
   min_depth = 1,
   max_depth = 35,
   d50_min_depth = 400,     # Distance at 50% detection efficiency in shallow water
-  d95_min_depth = 800,     # Distance at 95% detection efficiency in shallow water
+  d95_min_depth = 800,     # Distance at 5% detection efficiency in shallow water
   d50_max_depth = 750,     # Distance at 50% detection efficiency in deep water
-  d95_max_depth = 1500,    # Distance at 95% detection efficiency in deep water
+  d95_max_depth = 1500,    # Distance at 5% detection efficiency in deep water
   plot = TRUE,
   return_model = TRUE,
   return_object = TRUE

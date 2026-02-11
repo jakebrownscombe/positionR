@@ -28,13 +28,13 @@ create_logistic_curve_depth(
 \item{d50_min_depth}{Numeric. Distance (m) at which detection efficiency = 50\%
 at minimum depth.}
 
-\item{d95_min_depth}{Numeric. Distance (m) at which detection efficiency = 95\%
+\item{d95_min_depth}{Numeric. Distance (m) at which detection efficiency = 5\%
 at minimum depth.}
 
 \item{d50_max_depth}{Numeric. Distance (m) at which detection efficiency = 50\%
 at maximum depth.}
 
-\item{d95_max_depth}{Numeric. Distance (m) at which detection efficiency = 95\%
+\item{d95_max_depth}{Numeric. Distance (m) at which detection efficiency = 5\%
 at maximum depth.}
 
 \item{dist_step}{Numeric. Distance step size for grid predictions. Default is 5.}

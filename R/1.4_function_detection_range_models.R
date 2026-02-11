@@ -10,11 +10,11 @@
 #' @param max_depth Numeric. Maximum depth in meters for the model.
 #' @param d50_min_depth Numeric. Distance (m) at which detection efficiency = 50%
 #'   at minimum depth.
-#' @param d95_min_depth Numeric. Distance (m) at which detection efficiency = 95%
+#' @param d95_min_depth Numeric. Distance (m) at which detection efficiency = 5%
 #'   at minimum depth.
 #' @param d50_max_depth Numeric. Distance (m) at which detection efficiency = 50%
 #'   at maximum depth.
-#' @param d95_max_depth Numeric. Distance (m) at which detection efficiency = 95%
+#' @param d95_max_depth Numeric. Distance (m) at which detection efficiency = 5%
 #'   at maximum depth.
 #' @param dist_step Numeric. Distance step size for grid predictions. Default is 5.
 #' @param depth_step Numeric. Depth step size for grid predictions. Default is 1.
