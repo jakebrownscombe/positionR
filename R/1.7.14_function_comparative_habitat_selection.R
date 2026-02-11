@@ -75,7 +75,7 @@ analyze_comparative_habitat_selection <- function(positioning_data = NULL,
     cat("\n--- ANALYZING SPACE USE-BASED DATA ---\n")
     results$space_use <- analyze_single_dataset(
       data = space_use_data,
-      dataset_name = "Space Use",
+      dataset_name = "Actual Track",
       formula = formula,
       sample_size = sample_size,
       ntree = ntree,
@@ -230,7 +230,7 @@ create_comparison_analysis <- function(positioning_results, space_use_results, d
   pos_overall$method <- "Positioning"
   
   space_overall <- space_use_results$partial_dependence$overall
-  space_overall$method <- "Space Use"
+  space_overall$method <- "Actual Track"
   
   combined_overall <- rbind(pos_overall, space_overall)
   
@@ -242,13 +242,13 @@ create_comparison_analysis <- function(positioning_results, space_use_results, d
     geom_line(size = 2, alpha = 0.8) +
     geom_hline(yintercept = 0.5, linetype = "dashed", color = "gray", alpha = 0.7) +
     labs(
-      title = "Habitat Selection Comparison: Positioning vs Space Use",
+      title = "Habitat Selection Comparison: Positioning vs Actual Track",
       subtitle = "Overall patterns across all fish and time periods",
       x = paste(tools::toTitleCase(gsub("_", " ", depth_variable))),
       y = "Probability of Presence (Selection)",
       color = "Analysis Method"
     ) +
-    scale_color_manual(values = c("Positioning" = "blue", "Space Use" = "red")) +
+    scale_color_manual(values = c("Positioning" = "blue", "Actual Track" = "red")) +
     theme_minimal() +
     theme(
       plot.title = element_text(size = 14, face = "bold"),
@@ -281,8 +281,8 @@ create_comparison_analysis <- function(positioning_results, space_use_results, d
     geom_ribbon(aes(ymin = pmin(difference, 0), ymax = 0), fill = "red", alpha = 0.3) +
     geom_ribbon(aes(ymin = 0, ymax = pmax(difference, 0)), fill = "blue", alpha = 0.3) +
     labs(
-      title = "Selection Probability Difference: Positioning - Space Use",
-      subtitle = "Blue = Positioning higher | Red = Space Use higher",
+      title = "Selection Probability Difference: Positioning - Actual Track",
+      subtitle = "Blue = Positioning higher | Red = Actual Track higher",
       x = paste(tools::toTitleCase(gsub("_", " ", depth_variable))),
       y = "Difference in Probability"
     ) +
@@ -535,7 +535,7 @@ plot_comparative_results <- function(comp_results, plot_type = "all") {
       plot_layout(widths = c(5, 1)) +
       plot_annotation(
         title = "Comparative Habitat Selection Analysis",
-        subtitle = "Positioning vs Space Use Methods",
+        subtitle = "Positioning vs Actual Track",
         theme = theme(
           plot.title = element_text(size = 16, face = "bold"),
           plot.subtitle = element_text(size = 14)

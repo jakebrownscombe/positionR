@@ -1433,7 +1433,7 @@ plot_space_use_map <- function(space_use_results, track_data, fish_select,
     ggplot2::theme_minimal() +
     ggplot2::labs(
       title = paste("Space Use Map -", stringr::str_to_title(gsub("_", " ", method_select))),
-      subtitle = paste(title_suffix, "| Green =", ifelse(point_type == "track", "track", "points"), ", Red = space use"),
+      subtitle = paste(title_suffix, "| Green =", ifelse(point_type == "track", "track", "points"), ", Red = Actual Track"),
       x = "X Coordinate (m)",
       y = "Y Coordinate (m)"
     ) +
