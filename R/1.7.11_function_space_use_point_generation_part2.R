@@ -395,7 +395,7 @@ plot_space_use_points <- function(space_use_points,
                        " | Area: ", area_hectares, " ha | Points: ", nrow(plot_points)),
       x = "X Coordinate (m)",
       y = "Y Coordinate (m)",
-      caption = "Red = space use area | Green = fish track | Blue = random points"
+      caption = "Red = Actual Track area | Green = fish track | Blue = random points"
     ) +
     ggplot2::theme_minimal() +
     ggplot2::theme(
