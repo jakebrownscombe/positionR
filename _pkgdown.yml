@@ -61,6 +61,7 @@ reference:
 - title: "⚙️ Utility Functions"
   desc: "Data preparation and helper functions"
   contents:
+  - starts_with("apply_")
   - starts_with("create_")
   - starts_with("standardize_")
   - starts_with("sample_")
