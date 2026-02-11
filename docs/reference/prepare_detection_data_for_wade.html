@@ -117,8 +117,9 @@ station_id, detected, detection_prob, distance_to_station, station_x,
 station_y, n_detections. Compatible with calculate_fish_positions function.</p></dd>
 
 <dt>station_info</dt>
-<dd><p>Data frame with columns: station_id, x, y, depth_m (if available).
-Station information for active stations during analysis period.</p></dd>
+<dd><p>Data frame with columns: station_id, x, y, start_date,
+end_date, depth_m (if available). Station information for active stations
+during analysis period, including deployment dates for temporal filtering.</p></dd>
 
 <dt>time_periods</dt>
 <dd><p>Data frame with time period information: time_period,
@@ -138,9 +139,14 @@ time_period_label, n_detections.</p></dd>
 <li><p>Identifies stations active during the analysis period</p></li>
 <li><p>Warns if any stations are deployed/recovered during analysis</p></li>
 <li><p>Aggregates detections by time period (hour/day/week/month)</p></li>
-<li><p>Creates detection summary with presence/absence for each station-time combination</p></li>
+<li><p>Creates detection summary with presence/absence only for station-time
+combinations where the station was deployed (filters by deployment dates)</p></li>
 <li><p>Formats output compatible with calculate_fish_positions</p></li>
-</ol><p>The station_detections output structure:</p><ul><li><p>path_id: Always 1 (single fish track)</p></li>
+</ol><p>Note: The function now filters station-time combinations to only include periods
+when each station was actually deployed. This prevents creation of invalid
+combinations and reduces memory usage, particularly important for large datasets
+or long analysis periods.</p>
+<p>The station_detections output structure:</p><ul><li><p>path_id: Always 1 (single fish track)</p></li>
 <li><p>datetime: Time period timestamp</p></li>
 <li><p>station_id: Station identifier (character, will be converted by WADE function)</p></li>
 <li><p>detected: 1 if fish detected at this station during time period, 0 otherwise</p></li>

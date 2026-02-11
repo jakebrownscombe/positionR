@@ -16,6 +16,9 @@
     <loc>https://jakebrownscombe.github.io/positionR/authors.html</loc>
   </url>
   <url>
+    <loc>https://jakebrownscombe.github.io/positionR/conceptual_diagram.html</loc>
+  </url>
+  <url>
     <loc>https://jakebrownscombe.github.io/positionR/index.html</loc>
   </url>
   <url>
@@ -38,6 +41,9 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/analyze_single_dataset.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/apply_information_weighting.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/calculate_95_ellipse_area.html</loc>
@@ -77,6 +83,9 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/calculate_space_use_zoom.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/calculate_station_de_characteristics.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/calculate_station_distances.html</loc>
@@ -257,6 +266,9 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/print_detection_summary.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/print_station_characteristics.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/run_array_design.html</loc>
