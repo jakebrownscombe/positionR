@@ -52,9 +52,9 @@ logistic_DE <- create_logistic_curve_depth(
   min_depth = 1,           # Minimum depth (m)
   max_depth = 35,          # Maximum depth (m)
   d50_min_depth = 400,     # 50% detection range at shallow depth (m)
-  d95_min_depth = 800,     # 95% detection range at shallow depth (m)
+  d95_min_depth = 800,     # 5% detection range at shallow depth (m)
   d50_max_depth = 750,     # 50% detection range at deep depth (m)
-  d95_max_depth = 1500,    # 95% detection range at deep depth (m)
+  d95_max_depth = 1500,    # 5% detection range at deep depth (m)
   plot = TRUE,
   return_model = TRUE,
   return_object = TRUE
