@@ -165,6 +165,11 @@ get_depth_bias <- function(current_depth, spawning_phase, species_params) {
 #' @param temporal_info Data frame with daily environmental conditions. Default is NULL.
 #' @param de_model Model object for predicting detection efficiency based on temporal conditions. Default is NULL.
 #' @param spawning_behavior Logical. Whether to enable spawning behavior modifications. Default is FALSE.
+#' @param depth_state_bias Logical. Whether to enable depth-dependent behavioural
+#'   state transition bias. When TRUE, fish in shallow water are more likely to
+#'   transition to search state, and fish in deep water are more likely to transition
+#'   to rest state. Depth thresholds are defined in species_behavioral_params.
+#'   Default is FALSE.
 #' @param species Character. Species name for preset movement parameters ("Walleye", "Smallmouth Bass", "Muskellunge"). Default is NULL.
 #' @param fish_size_cm Numeric. Fish length in centimeters for size-scaled movement parameters. Default is NULL.
 #' @param species_params Data frame with custom species movement parameters. Default is NULL.
@@ -191,7 +196,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
                                  seed = NULL, station_info = NULL, temporal_info = NULL, de_model = NULL,
                                  species = NULL, fish_size_cm = NULL, species_params = NULL,
                                  temperature_data = NULL, behavioral_states = NULL, spawning_behavior = FALSE,
-                                 include_barriers = FALSE) {
+                                 depth_state_bias = FALSE, include_barriers = FALSE) {
 
   if (!is.null(seed)) set.seed(seed)
   
@@ -232,6 +237,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       cat("Using 3-state behavioral model for", species, "(size:", fish_size_cm, "cm)\n")
       cat("  States: cruise, search, rest\n")
       cat("  Temperature-dependent state switching enabled\n")
+      if (depth_state_bias) cat("  Depth-dependent state bias enabled\n")
       cat("  Movement style:", species_row$movement_description, "\n")
     } else {
       # Use simple speed-based parameters (backward compatibility)
@@ -556,10 +562,17 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
         spawning_phase <- "none"
         depth_bias <- 1.0
         
+        if (depth_state_bias) {
+          current_depth <- abs(raster::extract(raster, cbind(track_x[step], track_y[step])))
+          if (is.na(current_depth)) current_depth <- 5
+        }
+
         if (spawning_behavior) {
           # Get current depth (simplified - use raster value at current position)
-          current_depth <- abs(raster::extract(raster, cbind(track_x[step], track_y[step])))
-          if (is.na(current_depth)) current_depth <- 5  # Default depth if NA
+          if (!depth_state_bias) {
+            current_depth <- abs(raster::extract(raster, cbind(track_x[step], track_y[step])))
+            if (is.na(current_depth)) current_depth <- 5  # Default depth if NA
+          }
           
           # Calculate spawning probability and phase
           spawn_result <- calculate_spawning_probability(current_temp, current_date, species_row)
@@ -601,7 +614,31 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
             rest_multiplier <- 1.0 + spawning_probability * 1.5  # Up to 2.5x rest probability
           }
         }
-        
+
+        if (depth_state_bias) {
+          # Shallow water: boost search transitions
+          if (current_depth <= species_row$search_depth_max) {
+            if (current_depth <= species_row$search_depth_preferred_max) {
+              search_multiplier <- search_multiplier * species_row$depth_bias_strength
+            } else {
+              frac <- (species_row$search_depth_max - current_depth) /
+                      (species_row$search_depth_max - species_row$search_depth_preferred_max)
+              search_multiplier <- search_multiplier * (1 + frac * (species_row$depth_bias_strength - 1))
+            }
+          }
+
+          # Deep water: boost rest transitions
+          if (current_depth >= species_row$rest_depth_min) {
+            if (current_depth >= species_row$rest_depth_preferred_min) {
+              rest_multiplier <- rest_multiplier * species_row$depth_bias_strength
+            } else {
+              frac <- (current_depth - species_row$rest_depth_min) /
+                      (species_row$rest_depth_preferred_min - species_row$rest_depth_min)
+              rest_multiplier <- rest_multiplier * (1 + frac * (species_row$depth_bias_strength - 1))
+            }
+          }
+        }
+
         if (current_state == "cruise") {
           search_prob <- species_row$base_cruise_to_search * activity_multiplier * search_multiplier
           rest_prob <- species_row$base_cruise_to_rest * (2 - activity_multiplier) * rest_multiplier
@@ -879,6 +916,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       behavioral_states = use_behavioral_states,
       temperature_dependent = use_behavioral_states && !is.null(temperature_data),
       spawning_behavior = spawning_behavior,
+      depth_state_bias = depth_state_bias,
       timezone = original_timezone
     )
   )
