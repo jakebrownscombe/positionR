@@ -26,6 +26,7 @@ simulate_fish_tracks(
   temperature_data = NULL,
   behavioral_states = NULL,
   spawning_behavior = FALSE,
+  depth_state_bias = FALSE,
   include_barriers = FALSE
 )
 }
@@ -71,6 +72,12 @@ simulate_fish_tracks(
 \item{behavioral_states}{Logical. Whether to use 3-state behavioral model (cruise/search/rest). Default is TRUE when species specified.}
 
 \item{spawning_behavior}{Logical. Whether to enable spawning behavior modifications. Default is FALSE.}
+
+\item{depth_state_bias}{Logical. Whether to enable depth-dependent behavioural
+state transition bias. When TRUE, fish in shallow water are more likely to
+transition to search state, and fish in deep water are more likely to transition
+to rest state. Depth thresholds are defined in species_behavioral_params.
+Default is FALSE.}
 
 \item{include_barriers}{Logical. Whether to apply barrier masking to prevent detections through land obstacles. Default is FALSE.
 When TRUE, detection efficiency is set to 0 for any receiver where the line-of-sight crosses a barrier.
