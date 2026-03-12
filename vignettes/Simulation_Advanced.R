@@ -10,8 +10,7 @@
 # functionality relies on species_behavioral_params and daily_temperature files in the data folder.
 
 
-# For development - reload functions
-devtools::load_all()
+library(positionR)
 
 
 #load and process necessary data

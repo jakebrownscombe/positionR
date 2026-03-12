@@ -1,3 +1,14 @@
+# positionR 1.3.0
+
+## New Features
+
+* **Depth-dependent behavioural state bias**: New `depth_state_bias` parameter in `simulate_fish_tracks()` biases state transition probabilities based on fish depth relative to species-specific depth thresholds, producing more ecologically realistic movement patterns.
+* **Goal-directed movement (BCRW)**: New `goal_locations`, `goal_bias`, and `goal_tolerance` parameters enable biased correlated random walks where fish navigate toward specified destinations with tunable directedness.
+* **`path_color` parameter**: New option in `plot_fish_tracks()` to override automatic colouring with a single colour for all paths.
+* **New vignette**: `Simulation_Goal_Directed.R` demonstrates goal-directed movement across a range of bias strengths.
+
+---
+
 # positionR 1.2.0
 
 ## New Features

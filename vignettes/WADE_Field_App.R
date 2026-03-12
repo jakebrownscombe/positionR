@@ -20,9 +20,6 @@ library(lubridate)
 library(tibble)
 
 
-# For development - reload functions
-devtools::load_all()
-
 # Set seed for reproducibility
 set.seed(123)
 
