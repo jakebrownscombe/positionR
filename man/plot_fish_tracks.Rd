@@ -11,6 +11,7 @@ plot_fish_tracks(
   show_detections = TRUE,
   path_alpha = 0.7,
   color_by = "path_id",
+  path_color = NULL,
   point_size = 1.5,
   sample_rate = 1
 )
@@ -32,6 +33,9 @@ Default is TRUE.}
 \item{color_by}{Character. What to color the tracks by: "path_id" (default),
 "behavioral_state" (if behavioral states used), or "spawning_phase" (if spawning behavior used).
 Default is "path_id".}
+
+\item{path_color}{Character. Optional single colour for all paths (e.g., "yellow").
+When specified, overrides color_by for path colouring. Default is NULL.}
 
 \item{point_size}{Numeric. Size of points when plotting states/phases. Default is 1.5.}
 

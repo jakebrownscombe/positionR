@@ -27,6 +27,9 @@ simulate_fish_tracks(
   behavioral_states = NULL,
   spawning_behavior = FALSE,
   depth_state_bias = FALSE,
+  goal_locations = NULL,
+  goal_bias = 0.5,
+  goal_tolerance = NULL,
   include_barriers = FALSE
 )
 }
@@ -78,6 +81,16 @@ state transition bias. When TRUE, fish in shallow water are more likely to
 transition to search state, and fish in deep water are more likely to transition
 to rest state. Depth thresholds are defined in species_behavioral_params.
 Default is FALSE.}
+
+\item{goal_locations}{Matrix or data frame with x,y goal coordinates, one row per path. When provided,
+fish navigate toward the goal using a biased correlated random walk and stop upon arrival.
+Requires \code{start_locations} to be specified. Default is NULL.}
+
+\item{goal_bias}{Numeric between 0 and 1. Strength of directional bias toward goal.
+0 = pure CRW (no bias), 1 = beeline toward goal. Default is 0.5.}
+
+\item{goal_tolerance}{Numeric. Distance (map units) at which fish is considered "arrived" at goal.
+Defaults to \code{step_length_mean} if NULL.}
 
 \item{include_barriers}{Logical. Whether to apply barrier masking to prevent detections through land obstacles. Default is FALSE.
 When TRUE, detection efficiency is set to 0 for any receiver where the line-of-sight crosses a barrier.

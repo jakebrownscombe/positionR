@@ -37,8 +37,9 @@ A list containing:
 \item{station_detections}{Data frame with columns: path_id, datetime,
 station_id, detected, detection_prob, distance_to_station, station_x,
 station_y, n_detections. Compatible with calculate_fish_positions function.}
-\item{station_info}{Data frame with columns: station_id, x, y, depth_m (if available).
-Station information for active stations during analysis period.}
+\item{station_info}{Data frame with columns: station_id, x, y, start_date,
+end_date, depth_m (if available). Station information for active stations
+during analysis period, including deployment dates for temporal filtering.}
 \item{time_periods}{Data frame with time period information: time_period,
 time_period_label, n_detections.}
 \item{deployment_warnings}{Character vector of any deployment warnings.}
@@ -57,9 +58,15 @@ This function performs the following steps:
 \item Identifies stations active during the analysis period
 \item Warns if any stations are deployed/recovered during analysis
 \item Aggregates detections by time period (hour/day/week/month)
-\item Creates detection summary with presence/absence for each station-time combination
+\item Creates detection summary with presence/absence only for station-time
+combinations where the station was deployed (filters by deployment dates)
 \item Formats output compatible with calculate_fish_positions
 }
+
+Note: The function now filters station-time combinations to only include periods
+when each station was actually deployed. This prevents creation of invalid
+combinations and reduces memory usage, particularly important for large datasets
+or long analysis periods.
 
 The station_detections output structure:
 \itemize{
