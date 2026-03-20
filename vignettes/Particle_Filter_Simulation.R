@@ -22,7 +22,7 @@ data("depth_raster")
 raster::crs(depth_raster) <- "EPSG:32617"
 
 # Generate receiver array
-points_regular <- generate_exact_regular_points(depth_raster, n_points = 40, seed = 123)
+points_regular <- generate_exact_regular_points(depth_raster, n_points = 80, seed = 123)
 
 # Calculate station distances
 station_distances <- calculate_station_distances(
@@ -57,8 +57,8 @@ start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
 fish_simulation <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,
-  n_paths = 3,
-  n_steps = 200,
+  n_paths = 5,
+  n_steps = 480,
   step_length_mean = 50,
   step_length_sd = 30,
   time_step = 180,  # 3-minute intervals
@@ -184,14 +184,14 @@ p1 <- ggplot() +
   # Particle cloud (light, transparent)
   geom_point(data = particles_sub, aes(x = x, y = y),
              colour = "yellow", alpha = 0.02, size = 0.3) +
-  # True track (green)
-  geom_path(data = comparison, aes(x = x_true, y = y_true),
-            colour = "green3", linewidth = 0.4, alpha = 0.7) +
   # Estimated track (white)
   geom_path(data = comparison, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.5, alpha = 0.8) +
   geom_point(data = comparison, aes(x = x_mean, y = y_mean),
              colour = "white", size = 0.5, alpha = 0.6) +
+  # True track (green)
+  geom_path(data = comparison, aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.4, alpha = 0.7) +
   # Receiver stations
   geom_point(data = stations_plot %>% filter(!has_detections),
              aes(x = station_x, y = station_y),
@@ -214,9 +214,6 @@ p2 <- ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
   scale_fill_gradient(low = "blue4", high = "cornflowerblue",
                       na.value = "transparent", name = "Depth (m)") +
-  # True track
-  geom_path(data = comparison, aes(x = x_true, y = y_true),
-            colour = "green3", linewidth = 0.3, alpha = 0.6) +
   # Estimated positions coloured by error
   geom_point(data = comparison, aes(x = x_mean, y = y_mean, colour = error_m),
              size = 1) +
@@ -230,6 +227,9 @@ p2 <- ggplot() +
                aes(x = x_mean, xend = x_mean,
                    y = y_mean - 2*y_sd, yend = y_mean + 2*y_sd),
                colour = "red", alpha = 0.3, linewidth = 0.2) +
+  # True track
+  geom_path(data = comparison, aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.3, alpha = 0.6) +
   # Stations
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
@@ -347,5 +347,6 @@ for (np in c(100, 500, 1000, 2000)) {
   })
   cat(sprintf("  %4d particles: %.1f s\n", np, t["elapsed"]))
 }
+
 
 cat("\nDone!\n")
