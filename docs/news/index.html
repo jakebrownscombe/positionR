@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,42 @@
       <small>Source: <a href="https://github.com/jakebrownscombe/positionR/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.0" id="positionr-140">positionR 1.4.0<a class="anchor" aria-label="anchor" href="#positionr-140"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-1-4-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-4-0"></a></h3>
+<ul><li>
+<strong>New default integration method</strong>: <code><a href="../reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> now defaults to <code>integration_method = "subtractive"</code>, which produces tighter position estimates anchored to actual detection zones. The previous additive method inflated spatial footprint by assigning positive probability everywhere non-detecting stations had low detection efficiency. To replicate previous behaviour, set <code>integration_method = "additive"</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-1-4-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-4-0"></a></h3>
+<ul><li>
+<p><strong>Integration method parameter</strong>: New <code>integration_method</code> parameter in <code><a href="../reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> with three options:</p>
+<ul><li>
+<code>"subtractive"</code> (new default): Detection field minus non-detection penalty, clamped to 0. Produces detection-anchored positions.</li>
+<li>
+<code>"multiplicative"</code>: Detection field scaled down proportionally by non-detection evidence. Smoother penalty than subtractive.</li>
+<li>
+<code>"additive"</code>: Original WADE formula preserved for backward compatibility.</li>
+</ul></li>
+<li><p>For subtractive and multiplicative methods, <code>detection_weight</code> is no longer used (detection is always the base); only <code>non_detection_weight</code> controls non-detection penalty strength (0-1).</p></li>
+<li><p><code>integrated_prob</code> values are now rescaled to [0, 1] per fish/time period after integration, ensuring consistent probability ranges across all integration methods.</p></li>
+</ul><hr></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.3.0" id="positionr-130">positionR 1.3.0<a class="anchor" aria-label="anchor" href="#positionr-130"></a></h2>
+<div class="section level3">
+<h3 id="new-features-1-3-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-3-0"></a></h3>
+<ul><li>
+<strong>Depth-dependent behavioural state bias</strong>: New <code>depth_state_bias</code> parameter in <code><a href="../reference/simulate_fish_tracks.html">simulate_fish_tracks()</a></code> biases state transition probabilities based on fish depth relative to species-specific depth thresholds, producing more ecologically realistic movement patterns.</li>
+<li>
+<strong>Goal-directed movement (BCRW)</strong>: New <code>goal_locations</code>, <code>goal_bias</code>, and <code>goal_tolerance</code> parameters enable biased correlated random walks where fish navigate toward specified destinations with tunable directedness.</li>
+<li>
+<strong><code>path_color</code> parameter</strong>: New option in <code><a href="../reference/plot_fish_tracks.html">plot_fish_tracks()</a></code> to override automatic colouring with a single colour for all paths.</li>
+<li>
+<strong>New vignette</strong>: <code>Simulation_Goal_Directed.R</code> demonstrates goal-directed movement across a range of bias strengths.</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.2.0" id="positionr-120">positionR 1.2.0<a class="anchor" aria-label="anchor" href="#positionr-120"></a></h2>
 <div class="section level3">

@@ -12,7 +12,7 @@ background, showing detection events and receiver station performance."><meta pr
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,6 +68,7 @@ background, showing detection events and receiver station performance.</p>
 <span>  show_detections <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  path_alpha <span class="op">=</span> <span class="fl">0.7</span>,</span>
 <span>  color_by <span class="op">=</span> <span class="st">"path_id"</span>,</span>
+<span>  path_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  sample_rate <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -102,6 +103,11 @@ Default is TRUE.</p></dd>
 <dd><p>Character. What to color the tracks by: "path_id" (default),
 "behavioral_state" (if behavioral states used), or "spawning_phase" (if spawning behavior used).
 Default is "path_id".</p></dd>
+
+
+<dt>path_color</dt>
+<dd><p>Character. Optional single colour for all paths (e.g., "yellow").
+When specified, overrides color_by for path colouring. Default is NULL.</p></dd>
 
 
 <dt>point_size</dt>
