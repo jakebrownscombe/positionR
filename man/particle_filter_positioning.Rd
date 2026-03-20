@@ -25,14 +25,11 @@ particle_filter_positioning(
 }
 \arguments{
 \item{detection_data}{Data frame of detections with columns for fish ID, time,
-station ID, and detection status. Should include both detecting and non-detecting
-stations per time step (e.g., from \code{prepare_detection_data_for_wade()}).}
+station ID, and detection status.}
 
-\item{station_info}{Data frame or sf object with station coordinates and depths.
-Must include station_id, x/y coordinates, and depth (raster_value or depth_m).}
+\item{station_info}{Data frame or sf object with station coordinates and depths.}
 
-\item{de_model}{A fitted detection efficiency model (e.g., from
-\code{create_logistic_curve_depth()}).}
+\item{de_model}{A fitted detection efficiency model.}
 
 \item{raster}{A RasterLayer defining the study area. NA cells are barriers.}
 
@@ -54,13 +51,11 @@ Must include station_id, x/y coordinates, and depth (raster_value or depth_m).}
 
 \item{station_col}{Character. Name of station ID column (default "station_id").}
 
-\item{ess_threshold}{Numeric. Effective sample size threshold for resampling,
-as fraction of n_particles (default 0.5).}
+\item{ess_threshold}{Numeric. ESS threshold for resampling as fraction of n_particles (default 0.5).}
 
-\item{return_particles}{Logical. Whether to return full particle histories (default FALSE).
-Can be memory-intensive for large datasets.}
+\item{return_particles}{Logical. Return full particle histories (default FALSE).}
 
-\item{verbose}{Logical. Print progress messages (default TRUE).}
+\item{verbose}{Logical. Print progress (default TRUE).}
 }
 \value{
 A list with components:
@@ -71,36 +66,4 @@ A list with components:
 Estimates fish positions using a Sequential Monte Carlo (particle filter) approach.
 Particles represent possible fish locations and are propagated forward using a
 Correlated Random Walk, then weighted by detection likelihood at each time step.
-}
-\details{
-The algorithm proceeds in three steps at each time point:
-\enumerate{
-\item \strong{Predict}: Move all particles forward using a Correlated Random Walk.
-Step lengths scale with time between observations.
-\item \strong{Update}: Weight particles by detection likelihood. For each particle,
-detection probability is looked up from a pre-computed grid (not model prediction),
-and the likelihood is the product across all stations of P(detected|position) or
-P(not detected|position).
-\item \strong{Resample}: When the effective sample size drops below the threshold,
-particles are resampled with replacement proportional to their weights using
-systematic resampling.
-}
-
-Detection efficiency lookups use a pre-computed grid (via \code{create_de_lookup()})
-instead of calling \code{stats::predict()}, providing orders-of-magnitude speedup.
-}
-\examples{
-\dontrun{
-results <- particle_filter_positioning(
-  detection_data = wade_data$station_detections,
-  station_info = receiver_stations,
-  de_model = logistic_DE$log_model,
-  raster = depth_raster,
-  n_particles = 1000,
-  fish_id_col = "path_id",
-  time_col = "datetime",
-  station_col = "station_id"
-)
-}
-
 }
