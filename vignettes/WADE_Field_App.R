@@ -149,6 +149,8 @@ positioning_results <- calculate_fish_positions(
   station_info = wade_data$station_info,
   de_model = logistic_DE$log_model,
   integration_method = "subtractive",  # "subtractive", "multiplicative", or "additive"
+  non_detection_weight = 1,
+  scale_non_detections = TRUE,  # Scale non-detection evidence by total period detections
   max_non_detection_distance = 2000,  # Max distance to consider non-detections
   weighting_method = "normalize_stations",  # Method for combining probabilities
   normalization_method = "min_max", #normalization approach
