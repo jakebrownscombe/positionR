@@ -26,6 +26,9 @@ Complete workflow for fish positioning using WADE methodology with simulated dat
 ### 🐟 <a href="vignettes/WADE_Field_App.R" target="_blank">WADE Field Application Tutorial</a>
 Application of WADE positioning to real acoustic telemetry data
 
+### 🎯 <a href="vignettes/Particle_Filter_Simulation.R" target="_blank">Particle Filter Positioning Tutorial</a>
+Sequential Monte Carlo positioning with continuous movement path estimation
+
 ### 🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>
 Advanced movement model simulations using species specific parameters (beta)
 
@@ -135,6 +138,8 @@ The vignettes folder has a range of R worksheets providing example code for gett
 - `simulate_fish_tracks()` - Behavioral movement simulation with species parameters
 - `prepare_detection_data_for_wade()` - Process field detection data
 - `calculate_fish_positions()` - WADE positioning algorithm
+- `particle_filter_positioning()` - Particle filter positioning with continuous path estimation
+- `create_de_lookup()` - Pre-compute detection efficiency grid for fast lookup
 
 ### 📈 **Space Use Analysis**
 - `calculate_space_use()` - Multiple space use estimation methods
@@ -224,8 +229,8 @@ Key dependencies include:
 If you use positionR in your research, please cite:
 
 ```
-Brownscombe, J.W. (2025). positionR: Tools for Analyzing Acoustic Telemetry Data - 
-Positioning, Simulation, & Array Design. R package version 1.2.0. 
+Brownscombe, J.W. (2025). positionR: Tools for Analyzing Acoustic Telemetry Data -
+Positioning, Simulation, & Array Design. R package version 1.5.0.
 https://github.com/jakebrownscombe/positionR
 ```
 
