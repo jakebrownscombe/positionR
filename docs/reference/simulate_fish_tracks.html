@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,6 +80,10 @@
 <span>  temperature_data <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  behavioral_states <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  spawning_behavior <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  depth_state_bias <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  goal_locations <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  goal_bias <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  goal_tolerance <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include_barriers <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -168,6 +172,30 @@
 
 <dt>spawning_behavior</dt>
 <dd><p>Logical. Whether to enable spawning behavior modifications. Default is FALSE.</p></dd>
+
+
+<dt>depth_state_bias</dt>
+<dd><p>Logical. Whether to enable depth-dependent behavioural
+state transition bias. When TRUE, fish in shallow water are more likely to
+transition to search state, and fish in deep water are more likely to transition
+to rest state. Depth thresholds are defined in species_behavioral_params.
+Default is FALSE.</p></dd>
+
+
+<dt>goal_locations</dt>
+<dd><p>Matrix or data frame with x,y goal coordinates, one row per path. When provided,
+fish navigate toward the goal using a biased correlated random walk and stop upon arrival.
+Requires <code>start_locations</code> to be specified. Default is NULL.</p></dd>
+
+
+<dt>goal_bias</dt>
+<dd><p>Numeric between 0 and 1. Strength of directional bias toward goal.
+0 = pure CRW (no bias), 1 = beeline toward goal. Default is 0.5.</p></dd>
+
+
+<dt>goal_tolerance</dt>
+<dd><p>Numeric. Distance (map units) at which fish is considered "arrived" at goal.
+Defaults to <code>step_length_mean</code> if NULL.</p></dd>
 
 
 <dt>include_barriers</dt>

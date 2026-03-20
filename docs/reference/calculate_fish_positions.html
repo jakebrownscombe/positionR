@@ -14,7 +14,7 @@ bins, models detection efficiency, and calculates weighted position probabilitie
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,6 +73,7 @@ bins, models detection efficiency, and calculates weighted position probabilitie
 <span>  bin_size_seconds <span class="op">=</span> <span class="fl">3600</span>,</span>
 <span>  detection_weight <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  non_detection_weight <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  integration_method <span class="op">=</span> <span class="st">"subtractive"</span>,</span>
 <span>  max_non_detection_distance <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  weighting_method <span class="op">=</span> <span class="st">"information_theoretic"</span>,</span>
 <span>  percentile_cutoff <span class="op">=</span> <span class="fl">0.95</span>,</span>
@@ -138,6 +139,22 @@ integrated probability calculation (0-1). Default is 0.5.</p></dd>
 <dt>non_detection_weight</dt>
 <dd><p>Numeric. Weight given to non-detection events
 in the integrated probability calculation (0-1). Default is 0.5.</p></dd>
+
+
+<dt>integration_method</dt>
+<dd><p>Character. Method for integrating detection and
+non-detection evidence. Options are:</p><ul><li><p>"subtractive" (default): Detection field is the base; non-detection
+evidence subtracts from it: <code>det - (nondet * non_detection_weight)</code>,
+clamped to 0. Produces tight, detection-anchored position estimates.</p></li>
+<li><p>"multiplicative": Detection field scaled down by non-detection
+evidence: <code>det * (1 - nondet * non_detection_weight)</code>. Smoother
+penalty than subtractive; stays non-negative naturally.</p></li>
+<li><p>"additive": Original WADE formula: weighted sum of detection and
+inverted non-detection probabilities. Can inflate spatial footprint
+beyond detection zones.</p></li>
+</ul><p>For "subtractive" and "multiplicative", <code>detection_weight</code> is ignored
+(detection is always the base); only <code>non_detection_weight</code> controls
+the strength of non-detection penalty.</p></dd>
 
 
 <dt>max_non_detection_distance</dt>
@@ -208,7 +225,8 @@ Requires <code>crosses_barrier</code> column in <code>station_distances_df</code
 <p>A list containing:</p>
 <dl><dt>position_probabilities</dt>
 <dd><p>Data frame with integrated position probabilities
-for each fish, time period, and spatial cell</p></dd>
+for each fish, time period, and spatial cell. The <code>integrated_prob</code>
+column is rescaled to 0, 1 per fish/time period.</p></dd>
 
 <dt>detection_data</dt>
 <dd><p>Data frame with processed detection probability data</p></dd>
@@ -235,9 +253,11 @@ and station coordinates</p></dd>
 <li><p>Normalization of detection efficiency across receivers</p></li>
 <li><p>Integration of detection and non-detection probabilities</p></li>
 <li><p>Calculation of weighted position estimates</p></li>
-</ol><p>Detection and non-detection weights must sum to 1. The algorithm focuses
-non-detection analysis on stations within a specified distance of detecting
-stations to maintain biological realism and computational efficiency.</p>
+</ol><p>For additive integration, detection and non-detection weights must sum to 1.
+For subtractive and multiplicative integration, only non_detection_weight
+controls the penalty strength (0-1); detection_weight is ignored. The algorithm
+focuses non-detection analysis on stations within a specified distance of
+detecting stations to maintain biological realism and computational efficiency.</p>
 <p>Barrier Masking:
 When <code>include_barriers = TRUE</code>, the function masks position estimates at cells
 where the direct path to any receiver crosses a land barrier. This prevents physically
