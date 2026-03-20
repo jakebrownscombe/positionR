@@ -7,6 +7,9 @@
     <loc>https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html</loc>
   </url>
   <url>
+    <loc>https://jakebrownscombe.github.io/positionR/articles/Particle_Filter_Simulation.html</loc>
+  </url>
+  <url>
     <loc>https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html</loc>
   </url>
   <url>
@@ -115,6 +118,9 @@
     <loc>https://jakebrownscombe.github.io/positionR/reference/create_constrained_grid_raster_data.html</loc>
   </url>
   <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/create_de_lookup.html</loc>
+  </url>
+  <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/create_ellipse_polygon.html</loc>
   </url>
   <url>
@@ -146,6 +152,9 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/create_threshold_comparison_plots.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/de_lookup_fast.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/extract_absence_time_info.html</loc>
@@ -212,6 +221,27 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/line_intersects_box.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/particle_filter_positioning.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_analyze_gaps.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_compute_single_ud.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_prepare_detections.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_prepare_stations.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_smooth.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_utilization_distribution.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/plot_behavioral_states.html</loc>

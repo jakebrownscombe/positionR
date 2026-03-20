@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">positionR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown--tutorials">
     <a class="dropdown-item" href="../articles/WADE_Simulation.html">🐟 WADE Positioning Tutorial</a>
     <a class="dropdown-item" href="../articles/Array_Design_Simulation.html">📡 Array Design &amp; Simulation</a>
+    <a class="dropdown-item" href="../articles/Particle_Filter_Simulation.html">🎯 Particle Filter Positioning</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -51,6 +52,25 @@
       <small>Source: <a href="https://github.com/jakebrownscombe/positionR/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.5.0" id="positionr-150">positionR 1.5.0<a class="anchor" aria-label="anchor" href="#positionr-150"></a></h2>
+<div class="section level3">
+<h3 id="new-features-1-5-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-5-0"></a></h3>
+<ul><li><p><strong>Particle filter positioning</strong>: New <code><a href="../reference/particle_filter_positioning.html">particle_filter_positioning()</a></code> function implements Sequential Monte Carlo positioning for acoustic telemetry. Tracks continuous movement paths using a Correlated Random Walk model with detection likelihood weighting. Key optimizations include a pre-computed DE lookup grid (<code><a href="../reference/create_de_lookup.html">create_de_lookup()</a></code>) replacing <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">stats::predict()</a></code> calls, fully vectorized movement and likelihood calculations, and systematic resampling. Achieves ~1s runtime for 5 fish x 480 time steps x 1000 particles x 80 stations.</p></li>
+<li><p><strong>Effort-balanced non-detection weighting</strong>: New <code>scale_non_detections</code> parameter (default TRUE) in <code><a href="../reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> scales non-detection evidence by total detections per fish/time period, balancing the detection-weighted mean that favours high-count stations.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="performance-1-5-0">Performance<a class="anchor" aria-label="anchor" href="#performance-1-5-0"></a></h3>
+<ul><li><p><strong>data.table conversion</strong>: All internal WADE helper functions converted from dplyr to data.table for ~10x speedup on large datasets. Affects <code>aggregate_detections_for_prediction()</code>, <code>create_non_detections()</code>, <code>aggregate_non_detections()</code>, <code>aggregate_probability()</code>, <code>normalize_DE_by_station()</code>, and information weighting helpers.</p></li>
+<li><p><strong>Vectorized barrier detection</strong>: New <code><a href="../reference/check_line_crosses_barrier_vectorized.html">check_line_crosses_barrier_vectorized()</a></code> calls <code><a href="https://rspatial.github.io/terra/reference/extract.html" class="external-link">raster::extract()</a></code> once per station instead of once per cell (~20-100x faster for barrier checking in <code><a href="../reference/calculate_station_distances.html">calculate_station_distances()</a></code>).</p></li>
+<li><p><strong>Optimized reshaping</strong>: <code><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">tidyr::pivot_longer()</a></code> replaced with <code><a href="https://rdrr.io/pkg/data.table/man/melt.data.table.html" class="external-link">data.table::melt()</a></code> in <code><a href="../reference/calculate_station_distances.html">calculate_station_distances()</a></code>.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-1-5-0">Improvements<a class="anchor" aria-label="anchor" href="#improvements-1-5-0"></a></h3>
+<ul><li><p>Reduced console output verbosity: <code><a href="../reference/calculate_station_distances.html">calculate_station_distances()</a></code> progress line only in interactive sessions; removed per-station detection rate printout from <code><a href="../reference/analyze_detection_performance.html">analyze_detection_performance()</a></code>.</p></li>
+<li><p>New dependency: <code>data.table</code> added to Imports.</p></li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.4.0" id="positionr-140">positionR 1.4.0<a class="anchor" aria-label="anchor" href="#positionr-140"></a></h2>
 <div class="section level3">
