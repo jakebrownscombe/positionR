@@ -13,6 +13,8 @@ simulate_fish_tracks(
   step_length_sd = NULL,
   turning_angle_mean = NULL,
   turning_angle_sd = NULL,
+  turning_angle_kappa = NULL,
+  crw_species = NULL,
   time_step = 60,
   start_locations = NULL,
   start_time = as.POSIXct("2025-07-01 08:00:00", tz = "America/Toronto"),

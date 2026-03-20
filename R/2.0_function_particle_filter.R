@@ -81,11 +81,12 @@ pf_is_valid <- function(x, y, raster, raster_ext) {
 #' @keywords internal
 pf_move_particles <- function(px, py, headings, time_diff_sec,
                                step_length_mean, step_length_sd, kappa,
-                               time_step, raster, raster_ext) {
+                               time_step, raster, raster_ext,
+                               ta_mean = 0) {
   n <- length(px)
   time_scale <- time_diff_sec / time_step
   steps <- pmax(stats::rnorm(n, step_length_mean, step_length_sd), 5) * time_scale
-  turns <- as.numeric(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
+  turns <- as.numeric(circular::rvonmises(n, mu = circular::circular(ta_mean), kappa = kappa))
   new_headings <- headings + turns
   new_x <- px + steps * cos(new_headings)
   new_y <- py + steps * sin(new_headings)
@@ -273,12 +274,33 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
                                          n_particles = 1000,
                                          step_length_mean = 50, step_length_sd = 30,
                                          turning_angle_sd = 45, time_step = 180,
+                                         turning_angle_kappa = NULL,
+                                         turning_angle_mean = 0,
+                                         crw_species = NULL,
                                          max_distance = 30000,
                                          fish_id_col = "path_id", time_col = "datetime",
                                          station_col = "station_id",
                                          ess_threshold = 0.5,
                                          position_method = "mean",
                                          return_particles = FALSE, verbose = TRUE) {
+
+  # Load species-specific CRW parameters if requested
+  if (!is.null(crw_species)) {
+    data("crw_movement_params", envir = environment())
+    sp_row <- crw_movement_params[crw_movement_params$common_name == crw_species, ]
+    if (nrow(sp_row) == 0) {
+      stop("Species '", crw_species, "' not found. Available: ",
+           paste(crw_movement_params$common_name, collapse = ", "))
+    }
+    step_length_mean <- sp_row$step_mean_180s
+    step_length_sd <- sp_row$step_sd_180s
+    turning_angle_kappa <- sp_row$ta_kappa
+    turning_angle_mean <- sp_row$ta_mean
+    time_step <- sp_row$step_duration_s
+    if (verbose) cat("Using CRW parameters for", crw_species,
+                      "(step:", round(step_length_mean, 1), "m, kappa:",
+                      round(turning_angle_kappa, 3), ")\n")
+  }
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
   stn <- pf_prepare_stations(station_info)
@@ -293,8 +315,15 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
   raster_ext <- raster::extent(raster)
   fish_ids <- unique(dt$fish_id)
   n_fish <- length(fish_ids)
-  turning_angle_sd_rad <- turning_angle_sd * pi / 180
-  kappa <- 1 / (turning_angle_sd_rad^2)
+
+  # Resolve kappa: direct specification > species lookup > convert from SD
+  if (!is.null(turning_angle_kappa)) {
+    kappa <- turning_angle_kappa
+  } else {
+    turning_angle_sd_rad <- turning_angle_sd * pi / 180
+    kappa <- 1 / (turning_angle_sd_rad^2)
+  }
+  ta_mean <- turning_angle_mean
 
   all_positions <- list()
   all_particles <- if (return_particles) list() else NULL
@@ -376,7 +405,7 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
 
       moved <- pf_move_particles(px, py, headings, time_diff_sec,
                                   step_length_mean, step_length_sd, kappa,
-                                  time_step, raster, raster_ext)
+                                  time_step, raster, raster_ext, ta_mean = ta_mean)
       px <- moved$x; py <- moved$y; headings <- moved$heading
 
       dets_t <- fish_dt[time == time_steps_vec[t] & detected == 1]
@@ -475,6 +504,9 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
 pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster,
                        step_length_mean = 50, step_length_sd = 30,
                        turning_angle_sd = 45, time_step = 180,
+                       turning_angle_kappa = NULL,
+                       turning_angle_mean = 0,
+                       crw_species = NULL,
                        max_distance = 30000, n_backward_particles = NULL,
                        fish_id_col = "path_id", time_col = "datetime",
                        station_col = "station_id", ess_threshold = 0.5,
@@ -483,6 +515,21 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
 
   if (is.null(pf_results$particles)) {
     stop("pf_results must include particles (run particle_filter_positioning with return_particles = TRUE)")
+  }
+
+  # Load species-specific CRW parameters if requested
+  if (!is.null(crw_species)) {
+    data("crw_movement_params", envir = environment())
+    sp_row <- crw_movement_params[crw_movement_params$common_name == crw_species, ]
+    if (nrow(sp_row) == 0) {
+      stop("Species '", crw_species, "' not found. Available: ",
+           paste(crw_movement_params$common_name, collapse = ", "))
+    }
+    step_length_mean <- sp_row$step_mean_180s
+    step_length_sd <- sp_row$step_sd_180s
+    turning_angle_kappa <- sp_row$ta_kappa
+    turning_angle_mean <- sp_row$ta_mean
+    time_step <- sp_row$step_duration_s
   }
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
@@ -494,8 +541,13 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
                                  max_depth = depth_range[2] + 5)
 
   raster_ext <- raster::extent(raster)
-  turning_angle_sd_rad <- turning_angle_sd * pi / 180
-  kappa <- 1 / (turning_angle_sd_rad^2)
+  if (!is.null(turning_angle_kappa)) {
+    kappa <- turning_angle_kappa
+  } else {
+    turning_angle_sd_rad <- turning_angle_sd * pi / 180
+    kappa <- 1 / (turning_angle_sd_rad^2)
+  }
+  ta_mean <- turning_angle_mean
 
   fwd_particles <- data.table::as.data.table(pf_results$particles)
   fish_ids <- unique(fwd_particles$fish_id)
@@ -562,7 +614,7 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
       # Move backward (same CRW, different headings naturally explore backward)
       moved <- pf_move_particles(bpx, bpy, b_headings, time_diff_sec,
                                   step_length_mean, step_length_sd, kappa,
-                                  time_step, raster, raster_ext)
+                                  time_step, raster, raster_ext, ta_mean = ta_mean)
       bpx <- moved$x; bpy <- moved$y; b_headings <- moved$heading
 
       # Weight by likelihood at this time step

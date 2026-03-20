@@ -198,6 +198,8 @@ get_depth_bias <- function(current_depth, spawning_phase, species_params) {
 simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps = 100,
                                  step_length_mean = NULL, step_length_sd = NULL,
                                  turning_angle_mean = NULL, turning_angle_sd = NULL,
+                                 turning_angle_kappa = NULL,
+                                 crw_species = NULL,
                                  time_step = 60, start_locations = NULL,
                                  start_time = as.POSIXct("2025-07-01 08:00:00", tz = "America/Toronto"),
                                  seed = NULL, station_info = NULL, temporal_info = NULL, de_model = NULL,
@@ -208,6 +210,24 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
                                  include_barriers = FALSE) {
 
   if (!is.null(seed)) set.seed(seed)
+
+  # Load species-specific CRW parameters if crw_species specified
+  if (!is.null(crw_species)) {
+    data("crw_movement_params", envir = environment())
+    sp_row <- crw_movement_params[crw_movement_params$common_name == crw_species, ]
+    if (nrow(sp_row) == 0) {
+      stop("crw_species '", crw_species, "' not found. Available: ",
+           paste(crw_movement_params$common_name, collapse = ", "))
+    }
+    step_length_mean <- sp_row$step_mean_180s
+    step_length_sd <- sp_row$step_sd_180s
+    turning_angle_kappa <- sp_row$ta_kappa
+    turning_angle_mean <- sp_row$ta_mean
+    time_step <- sp_row$step_duration_s
+    cat("Using CRW parameters for", crw_species,
+        "(step:", round(step_length_mean, 1), "m, kappa:",
+        round(turning_angle_kappa, 3), ")\n")
+  }
   
   # Handle species-specific movement parameters and behavioral states
   movement_params_resolved <- FALSE
@@ -524,9 +544,15 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
 
   lookup_coords <- as.matrix(unique_cells[, c("x", "y")])
 
-  # Convert parameters
-  turning_angle_sd_rad <- turning_angle_sd * pi / 180
-  turning_angle_mean_rad <- turning_angle_mean * pi / 180
+  # Convert parameters — use kappa directly if provided
+  if (!is.null(turning_angle_kappa)) {
+    crw_kappa <- turning_angle_kappa
+    turning_angle_mean_rad <- if (!is.null(turning_angle_mean)) turning_angle_mean else 0
+  } else {
+    turning_angle_sd_rad <- turning_angle_sd * pi / 180
+    crw_kappa <- 1 / (turning_angle_sd_rad^2)
+    turning_angle_mean_rad <- turning_angle_mean * pi / 180
+  }
 
   # Get raster properties
   raster_extent <- raster::extent(raster)
@@ -786,7 +812,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
         step_length <- max(stats::rnorm(1, step_length_mean, step_length_sd), 5)
         suppressWarnings({
           turning_angle <- circular::rvonmises(1, mu = turning_angle_mean_rad,
-                                               kappa = 1 / (turning_angle_sd_rad^2))
+                                               kappa = crw_kappa)
         })
       }
 
