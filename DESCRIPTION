@@ -44,6 +44,8 @@ Suggests:
     rmarkdown,
     shiny,
     shinydashboard,
+    spatstat.explore,
+    spatstat.geom,
     tibble
 VignetteBuilder: knitr
 Depends: 

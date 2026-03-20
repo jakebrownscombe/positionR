@@ -692,6 +692,7 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
 #' @export
 pf_utilization_distribution <- function(pf_results, raster,
                                          contour_levels = c(0.5, 0.95),
+                                         bandwidth = NULL,
                                          by_time = FALSE,
                                          verbose = TRUE) {
 
@@ -718,7 +719,7 @@ pf_utilization_distribution <- function(pf_results, raster,
       for (tv in time_vals) {
         tp <- fish_p[time == tv]
         ud_result <- pf_compute_single_ud(tp$x, tp$y, tp$weight, raster,
-                                            cell_area, contour_levels)
+                                            cell_area, contour_levels, bandwidth)
         for (cl in contour_levels) {
           all_hr[[length(all_hr) + 1]] <- data.frame(
             fish_id = current_fish, time = tv,
@@ -729,7 +730,7 @@ pf_utilization_distribution <- function(pf_results, raster,
     } else {
       fish_p <- particles[fish_id == current_fish]
       ud_result <- pf_compute_single_ud(fish_p$x, fish_p$y, fish_p$weight,
-                                          raster, cell_area, contour_levels)
+                                          raster, cell_area, contour_levels, bandwidth)
       ud_rasters[[as.character(current_fish)]] <- ud_result$ud_raster
       for (cl in contour_levels) {
         all_hr[[length(all_hr) + 1]] <- data.frame(
@@ -747,36 +748,99 @@ pf_utilization_distribution <- function(pf_results, raster,
 }
 
 #' Compute single UD from weighted particles
+#'
+#' Uses spatstat KDE with boundary-aware window when available,
+#' falls back to grid-binning otherwise.
 #' @keywords internal
-pf_compute_single_ud <- function(x, y, weights, raster, cell_area, contour_levels) {
-  # Assign particles to raster cells
-  cell_ids <- raster::cellFromXY(raster, cbind(x, y))
-  valid <- !is.na(cell_ids)
-  cell_ids <- cell_ids[valid]
-  w <- weights[valid]
+pf_compute_single_ud <- function(x, y, weights, raster, cell_area,
+                                  contour_levels, bandwidth = NULL) {
 
-  # Aggregate weights per cell
-  dt <- data.table::data.table(cell = cell_ids, w = w)
-  cell_sums <- dt[, .(prob = sum(w)), by = cell]
+  use_spatstat <- requireNamespace("spatstat.geom", quietly = TRUE) &&
+                  requireNamespace("spatstat.explore", quietly = TRUE)
 
-  # Normalize to sum to 1
-  cell_sums[, prob := prob / sum(prob)]
+  if (use_spatstat) {
+    # --- spatstat KDE (boundary-aware) ---
+    ext <- raster::extent(raster)
+    res_x <- raster::res(raster)[1]
+    res_y <- raster::res(raster)[2]
 
-  # Create UD raster
-  ud_raster <- raster
-  raster::values(ud_raster) <- NA
-  ud_raster[cell_sums$cell] <- cell_sums$prob
+    # Create spatial window from raster (water cells only)
+    r_mat <- raster::as.matrix(raster)
+    # im() expects rows = y ascending, raster matrix is y descending
+    r_mat_flip <- r_mat[nrow(r_mat):1, ]
+    mask_im <- spatstat.geom::im(
+      !is.na(r_mat_flip),
+      xcol = seq(ext@xmin + res_x/2, ext@xmax - res_x/2, length.out = ncol(raster)),
+      yrow = seq(ext@ymin + res_y/2, ext@ymax - res_y/2, length.out = nrow(raster))
+    )
+    win <- spatstat.geom::as.owin(mask_im)
 
-  # Extract home range areas at each contour level
+    # Filter points to within window
+    valid <- x >= ext@xmin & x <= ext@xmax & y >= ext@ymin & y <= ext@ymax
+    x_v <- x[valid]; y_v <- y[valid]; w_v <- weights[valid]
+
+    # Clamp to window bounds (avoid edge rejection)
+    x_v <- pmin(pmax(x_v, ext@xmin + res_x), ext@xmax - res_x)
+    y_v <- pmin(pmax(y_v, ext@ymin + res_y), ext@ymax - res_y)
+
+    # Create point pattern
+    pp <- spatstat.geom::ppp(x_v, y_v, window = win)
+
+    # Normalize weights
+    w_v <- w_v / sum(w_v)
+
+    # Compute bandwidth if not specified
+    if (is.null(bandwidth)) {
+      bandwidth <- spatstat.explore::bw.scott(pp)
+    }
+
+    # Weighted KDE
+    kde_im <- spatstat.explore::density.ppp(pp, sigma = bandwidth,
+                                             weights = w_v,
+                                             dimyx = c(nrow(raster), ncol(raster)))
+
+    # Convert im to raster
+    kde_mat <- spatstat.geom::as.matrix.im(kde_im)
+    # Flip back (im is y-ascending, raster is y-descending)
+    kde_mat <- kde_mat[nrow(kde_mat):1, ]
+    ud_raster <- raster
+    raster::values(ud_raster) <- as.vector(t(kde_mat))
+
+    # Mask to water and normalize
+    land <- is.na(raster::values(raster))
+    raster::values(ud_raster)[land] <- NA
+    vals <- raster::values(ud_raster)
+    vals[!is.na(vals) & vals < 0] <- 0  # KDE can produce tiny negatives
+    total <- sum(vals, na.rm = TRUE)
+    if (total > 0) vals <- vals / total
+    raster::values(ud_raster) <- vals
+
+  } else {
+    # --- Fallback: grid binning ---
+    cell_ids <- raster::cellFromXY(raster, cbind(x, y))
+    valid <- !is.na(cell_ids)
+    dt <- data.table::data.table(cell = cell_ids[valid], w = weights[valid])
+    cell_sums <- dt[, .(prob = sum(w)), by = cell]
+    cell_sums[, prob := prob / sum(prob)]
+
+    ud_raster <- raster
+    raster::values(ud_raster) <- NA
+    ud_raster[cell_sums$cell] <- cell_sums$prob
+    vals <- raster::values(ud_raster)
+  }
+
+  # Extract home range areas from UD
+  vals_df <- data.table::data.table(
+    cell = which(!is.na(vals) & vals > 0),
+    prob = vals[!is.na(vals) & vals > 0]
+  )
+  vals_df <- vals_df[order(-prob)]
+  vals_df[, cum_prob := cumsum(prob)]
+
   areas <- list()
-  # Sort cells by probability (descending) for isopleth extraction
-  cell_sums <- cell_sums[order(-prob)]
-  cell_sums[, cum_prob := cumsum(prob)]
-
   for (cl in contour_levels) {
-    # Home range = smallest area containing cl proportion of total probability
-    n_cells <- sum(cell_sums$cum_prob <= cl) + 1
-    n_cells <- min(n_cells, nrow(cell_sums))
+    n_cells <- sum(vals_df$cum_prob <= cl) + 1
+    n_cells <- min(n_cells, nrow(vals_df))
     areas[[as.character(cl)]] <- n_cells * cell_area
   }
 

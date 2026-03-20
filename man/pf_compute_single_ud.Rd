@@ -4,9 +4,18 @@
 \alias{pf_compute_single_ud}
 \title{Compute single UD from weighted particles}
 \usage{
-pf_compute_single_ud(x, y, weights, raster, cell_area, contour_levels)
+pf_compute_single_ud(
+  x,
+  y,
+  weights,
+  raster,
+  cell_area,
+  contour_levels,
+  bandwidth = NULL
+)
 }
 \description{
-Compute single UD from weighted particles
+Uses spatstat KDE with boundary-aware window when available,
+falls back to grid-binning otherwise.
 }
 \keyword{internal}
