@@ -171,18 +171,16 @@ p1 <- ggplot() +
             colour = "white", linewidth = 0.5, alpha = 0.8) +
   geom_point(data = pos, aes(x = x_mean, y = y_mean),
              colour = "white", size = 0.3, alpha = 0.4) +
-  # Stations
-  geom_point(data = stations_plot %>% filter(!has_detections),
-             aes(x = station_x, y = station_y),
-             colour = "red", size = 1, shape = 4) +
-  geom_point(data = stations_plot %>% filter(has_detections),
-             aes(x = station_x, y = station_y, size = total_dets),
+  # Stations sized by total detections
+  geom_point(data = stations_plot,
+             aes(x = station_x, y = station_y, size = total_dets + 1),
              colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
-  scale_size_continuous(range = c(1, 5), name = "Detections") +
+  scale_size_continuous(range = c(0.5, 5), name = "Detections",
+                        breaks = c(1, 50, 200, 500)) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = paste("Particle Filter Path Estimate -", selected_fish),
-       subtitle = "White = smoothed path | Orange = detecting stations | Red = non-detecting")
+       subtitle = "White = smoothed path | Orange circles = receivers (sized by detections)")
 
 print(p1)
 
