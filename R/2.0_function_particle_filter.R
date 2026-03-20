@@ -1,3 +1,8 @@
+# Suppress R CMD check notes for data.table NSE variables
+utils::globalVariables(c("fish_id", "detected", "time", "station_id",
+                         "depth_m", "raster_value", "total_dets",
+                         "has_detections"))
+
 #' Create Detection Efficiency Lookup Grid
 #'
 #' Pre-computes a dense grid of detection efficiency values from a DE model,
@@ -318,7 +323,7 @@ particle_filter_positioning <- function(detection_data,
     current_fish <- fish_ids[fi]
     if (verbose && interactive()) {
       cat("\rProcessing fish", fi, "of", n_fish, "(", current_fish, ")    ")
-      flush.console()
+      utils::flush.console()
     }
 
     # Get time steps for this fish — only those with at least one detection
