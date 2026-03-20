@@ -135,7 +135,8 @@ cat("Smoother time:", smooth_time["elapsed"], "s\n")
 
 raster_df <- as.data.frame(depth_raster, xy = TRUE)
 
-# Station coordinates for plotting
+# Station coordinates with detections — aggregate by location
+# (some stations have multiple deployments at the same coordinates)
 station_coords <- sf::st_coordinates(stoney_rx_deploy)
 stations_df <- data.frame(
   station_id = stoney_rx_deploy$station_id,
@@ -143,15 +144,16 @@ stations_df <- data.frame(
   station_y = station_coords[, 2]
 )
 
-# Detection summary for station sizing (aggregate to unique locations)
 det_summary <- pf_data %>%
   filter(detected == 1) %>%
-  group_by(station_id) %>%
-  summarise(total_dets = n(), .groups = "drop")
-stations_plot <- stations_df %>%
+  left_join(stations_df, by = "station_id") %>%
   group_by(station_x, station_y) %>%
-  summarise(station_id = first(station_id), .groups = "drop") %>%
-  left_join(det_summary, by = "station_id") %>%
+  summarise(total_dets = sum(detected), .groups = "drop")
+
+# All unique station locations (one point per physical location)
+stations_plot <- stations_df %>%
+  distinct(station_x, station_y) %>%
+  left_join(det_summary, by = c("station_x", "station_y")) %>%
   mutate(total_dets = ifelse(is.na(total_dets), 0, total_dets))
 
 # Zoom extent from estimated positions
