@@ -43,7 +43,7 @@ logistic_DE <- create_logistic_curve_depth(
   max_depth = 35,
   d50_min_depth = 300,
   d95_min_depth = 600,
-  d50_max_depth = 500,
+  d50_max_depth = 600,
   d95_max_depth = 1200,
   plot = TRUE,
   return_model = TRUE,
