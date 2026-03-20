@@ -230,9 +230,11 @@ calculate_station_distances <- function(raster,
   # Calculate cost distances from each station
   for (i in 1:nrow(receiver_frame)) {
     current_station_id <- station_ids[i]
-    cat("\rCalculating distances for station", i, "of", nrow(receiver_frame),
-        "(ID:", current_station_id, ")    ")
-    flush.console()
+    if (interactive()) {
+      cat("\rCalculating distances for station", i, "of", nrow(receiver_frame),
+          "(ID:", current_station_id, ")    ")
+      flush.console()
+    }
 
     # Get single point
     single_point <- points_sp[i, ]
@@ -288,7 +290,7 @@ calculate_station_distances <- function(raster,
   }
 
   # Convert to long format using data.table::melt
-  cat("\n")  # End the progress line
+  if (interactive()) cat("\n")
 
   dt_results <- data.table::as.data.table(results_df)
 
