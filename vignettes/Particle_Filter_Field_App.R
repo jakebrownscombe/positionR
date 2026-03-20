@@ -150,47 +150,69 @@ x_buf <- diff(x_range) * 0.15; y_buf <- diff(y_range) * 0.15
 zoom_xlim <- c(x_range[1] - x_buf, x_range[2] + x_buf)
 zoom_ylim <- c(y_range[1] - y_buf, y_range[2] + y_buf)
 
-# Plot: smoothed path with receiver array
+# --- Plot 1: Particle cloud + resolved path ---
+# Subsample particles to avoid overplotting
+pf_times <- unique(smooth_results$particles$time)
+sampled_times <- pf_times[seq(1, length(pf_times), by = 10)]
+particles_sub <- smooth_results$particles %>%
+  filter(time %in% sampled_times) %>%
+  group_by(fish_id, time) %>%
+  slice_sample(n = 500) %>%
+  ungroup()
+
 p1 <- ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
   scale_fill_gradient(low = "blue4", high = "cornflowerblue",
                       na.value = "transparent", name = "Depth (m)") +
+  # Particle cloud
+  geom_point(data = particles_sub, aes(x = x, y = y),
+             colour = "yellow", alpha = 0.1, size = 0.3) +
   # Smoothed path
   geom_path(data = pos, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.5, alpha = 0.8) +
   geom_point(data = pos, aes(x = x_mean, y = y_mean),
              colour = "white", size = 0.3, alpha = 0.4) +
-  # Non-detecting stations (small grey)
+  # Stations
   geom_point(data = stations_plot %>% filter(total_dets == 0),
              aes(x = station_x, y = station_y),
              colour = "grey60", size = 0.5, shape = 3) +
-  # Detecting stations sized by count
   geom_point(data = stations_plot %>% filter(total_dets > 0),
              aes(x = station_x, y = station_y, size = total_dets),
              colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
   scale_size_continuous(range = c(1, 5), name = "Detections") +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
-  labs(title = paste("Particle Filter Path Estimate -", selected_fish),
-       subtitle = "White = smoothed path | Orange circles = receivers (sized by detections)")
+  labs(title = paste("Particle Filter: Particle Cloud + Path -", selected_fish),
+       subtitle = "Yellow = particles | White = smoothed path")
 
 print(p1)
 
 
-# Plot: path coloured by uncertainty
+# --- Plot 2: Positions with uncertainty bars ---
 p2 <- ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
   scale_fill_gradient(low = "blue4", high = "cornflowerblue",
                       na.value = "transparent", name = "Depth (m)") +
+  # Positions coloured by uncertainty
   geom_point(data = pos, aes(x = x_mean, y = y_mean, colour = x_sd + y_sd),
              size = 0.8) +
   scale_colour_viridis_c(option = "magma", name = "Uncertainty\n(SD, m)") +
+  # Uncertainty bars (95% CI ~ 2*SD)
+  geom_segment(data = pos,
+               aes(x = x_mean - 2*x_sd, xend = x_mean + 2*x_sd,
+                   y = y_mean, yend = y_mean),
+               colour = "red", alpha = 0.15, linewidth = 0.2) +
+  geom_segment(data = pos,
+               aes(x = x_mean, xend = x_mean,
+                   y = y_mean - 2*y_sd, yend = y_mean + 2*y_sd),
+               colour = "red", alpha = 0.15, linewidth = 0.2) +
+  # Stations
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
-  labs(title = "Position Uncertainty",
-       subtitle = "Colour = combined x + y standard deviation")
+  labs(title = paste("Position Uncertainty -", selected_fish),
+       subtitle = "Red bars = 95% CI | Colour = uncertainty (x_sd + y_sd)")
 
 print(p2)
 
