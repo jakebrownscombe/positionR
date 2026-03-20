@@ -139,13 +139,22 @@ stations_df <- data.frame(
   station_y = station_coords[, 2]
 )
 
-# Summarize detections per station for sizing
-det_summary <- fish_simulation$station_detections %>%
+# Summarize detections per station per fish (for correct faceting)
+det_summary_by_fish <- fish_simulation$station_detections %>%
   filter(detected == 1) %>%
-  group_by(station_id) %>%
+  rename(fish_id = path_id) %>%
+  group_by(fish_id, station_id) %>%
   summarise(total_dets = n(), .groups = "drop")
-stations_plot <- stations_df %>%
-  left_join(det_summary, by = "station_id") %>%
+
+# Create per-fish station data: all stations for each fish, with detection counts
+fish_ids_plot <- unique(pf_results$positions$fish_id)
+stations_plot <- do.call(rbind, lapply(fish_ids_plot, function(fid) {
+  s <- stations_df
+  s$fish_id <- fid
+  s
+}))
+stations_plot <- stations_plot %>%
+  left_join(det_summary_by_fish, by = c("fish_id", "station_id")) %>%
   mutate(total_dets = ifelse(is.na(total_dets), 0, total_dets),
          has_detections = total_dets > 0)
 
@@ -189,7 +198,7 @@ p1 <- ggplot() +
              colour = "red", size = 1, shape = 4) +
   geom_point(data = stations_plot %>% filter(has_detections),
              aes(x = station_x, y = station_y, size = total_dets),
-             colour = "yellow", fill = NA, shape = 21, stroke = 0.8) +
+             colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
   scale_size_continuous(range = c(1, 5), name = "Detections") +
   facet_wrap(~fish_id) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
