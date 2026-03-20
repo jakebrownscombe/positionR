@@ -436,6 +436,51 @@ p8 <- ggplot() +
 
 print(p8)
 
+# Plot 50% and 95% UD contours for all fish
+# Classify UD cells into contour bands
+ud_contour_list <- list()
+for (fid in names(ud_results$ud_rasters)) {
+  ud_r <- ud_results$ud_rasters[[fid]]
+  ud_vals <- as.data.frame(ud_r, xy = TRUE)
+  names(ud_vals)[3] <- "prob"
+  ud_vals <- ud_vals %>% filter(!is.na(prob) & prob > 0)
+
+  # Sort by probability descending, compute cumulative sum
+  ud_vals <- ud_vals %>% arrange(desc(prob)) %>%
+    mutate(cum_prob = cumsum(prob),
+           contour = case_when(
+             cum_prob <= 0.50 ~ "Core (50%)",
+             cum_prob <= 0.95 ~ "Home range (95%)",
+             TRUE ~ NA_character_
+           ),
+           fish_id = as.integer(fid))
+  ud_contour_list[[fid]] <- ud_vals %>% filter(!is.na(contour))
+}
+ud_contours_df <- do.call(rbind, ud_contour_list)
+
+p9 <- ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  ggnewscale::new_scale_fill() +
+  geom_raster(data = ud_contours_df,
+              aes(x = x, y = y, fill = contour), alpha = 0.7) +
+  scale_fill_manual(values = c("Core (50%)" = "red", "Home range (95%)" = "orange"),
+                    name = "UD Contour") +
+  # True track
+  geom_path(data = comparison, aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.3, alpha = 0.7) +
+  # Smoothed track
+  geom_path(data = smooth_comparison, aes(x = x_mean, y = y_mean),
+            colour = "white", linewidth = 0.3, alpha = 0.5) +
+  facet_wrap(~fish_id) +
+  coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
+  theme_minimal() +
+  labs(title = "Utilization Distribution Contours (50% and 95%)",
+       subtitle = "Green = true track | White = smoothed estimate")
+
+print(p9)
+
 
 # 9. BENCHMARK SCALING =========================================================
 
