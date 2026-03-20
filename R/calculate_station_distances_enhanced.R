@@ -188,7 +188,6 @@ calculate_station_distances <- function(raster,
   cost_raster[!is.na(cost_raster)] <- 1
 
   # Create transition matrix
-  cat("Creating transition matrix...\n")
   tr <- gdistance::transition(cost_raster, transitionFunction = mean, directions = 8)
   tr <- gdistance::geoCorrection(tr, type = "c")
 
@@ -231,8 +230,9 @@ calculate_station_distances <- function(raster,
   # Calculate cost distances from each station
   for (i in 1:nrow(receiver_frame)) {
     current_station_id <- station_ids[i]
-    cat("Calculating distances for station", i, "of", nrow(receiver_frame),
-        "(ID:", current_station_id, ")\n")
+    cat("\rCalculating distances for station", i, "of", nrow(receiver_frame),
+        "(ID:", current_station_id, ")    ")
+    flush.console()
 
     # Get single point
     single_point <- points_sp[i, ]
@@ -259,7 +259,6 @@ calculate_station_distances <- function(raster,
     }
 
     # Detect barrier crossings for all cells at once (vectorized)
-    cat("  Detecting barrier crossings...\n")
     crosses_barrier <- check_line_crosses_barrier_vectorized(
       x1 = station_coords[1],
       y1 = station_coords[2],
@@ -288,8 +287,8 @@ calculate_station_distances <- function(raster,
     results_df[[barrier_col_name]] <- crosses_barrier
   }
 
-  # Convert to long format using data.table::melt (much faster than pivot_longer)
-  cat("Converting to long format...\n")
+  # Convert to long format using data.table::melt
+  cat("\n")  # End the progress line
 
   dt_results <- data.table::as.data.table(results_df)
 
