@@ -67,6 +67,22 @@ restore_timezone <- function(datetime_col, original_tz) {
 #'   integrated probability calculation (0-1). Default is 0.5.
 #' @param non_detection_weight Numeric. Weight given to non-detection events
 #'   in the integrated probability calculation (0-1). Default is 0.5.
+#' @param integration_method Character. Method for integrating detection and
+#'   non-detection evidence. Options are:
+#'   \itemize{
+#'     \item "subtractive" (default): Detection field is the base; non-detection
+#'       evidence subtracts from it: \code{det - (nondet * non_detection_weight)},
+#'       clamped to 0. Produces tight, detection-anchored position estimates.
+#'     \item "multiplicative": Detection field scaled down by non-detection
+#'       evidence: \code{det * (1 - nondet * non_detection_weight)}. Smoother
+#'       penalty than subtractive; stays non-negative naturally.
+#'     \item "additive": Original WADE formula: weighted sum of detection and
+#'       inverted non-detection probabilities. Can inflate spatial footprint
+#'       beyond detection zones.
+#'   }
+#'   For "subtractive" and "multiplicative", \code{detection_weight} is ignored
+#'   (detection is always the base); only \code{non_detection_weight} controls
+#'   the strength of non-detection penalty.
 #' @param max_non_detection_distance Numeric. Maximum distance (in meters) from
 #'   detecting stations to consider non-detecting stations. Set to NULL to
 #'   include all stations. Default is 2000.
@@ -101,7 +117,8 @@ restore_timezone <- function(datetime_col, original_tz) {
 #'
 #' @return A list containing:
 #'   \item{position_probabilities}{Data frame with integrated position probabilities
-#'     for each fish, time period, and spatial cell}
+#'     for each fish, time period, and spatial cell. The \code{integrated_prob}
+#'     column is rescaled to [0, 1] per fish/time period.}
 #'   \item{detection_data}{Data frame with processed detection probability data}
 #'   \item{non_detection_data}{Data frame with processed non-detection probability data}
 #'   \item{station_detections_binned}{Data frame with time-binned detection events
@@ -120,9 +137,11 @@ restore_timezone <- function(datetime_col, original_tz) {
 #'   \item Calculation of weighted position estimates
 #' }
 #'
-#' Detection and non-detection weights must sum to 1. The algorithm focuses
-#' non-detection analysis on stations within a specified distance of detecting
-#' stations to maintain biological realism and computational efficiency.
+#' For additive integration, detection and non-detection weights must sum to 1.
+#' For subtractive and multiplicative integration, only non_detection_weight
+#' controls the penalty strength (0-1); detection_weight is ignored. The algorithm
+#' focuses non-detection analysis on stations within a specified distance of
+#' detecting stations to maintain biological realism and computational efficiency.
 #'
 #' Barrier Masking:
 #' When \code{include_barriers = TRUE}, the function masks position estimates at cells
@@ -181,6 +200,7 @@ calculate_fish_positions <- function(station_detections,
                                      bin_size_seconds = 3600,
                                      detection_weight = 0.5,
                                      non_detection_weight = 0.5,
+                                     integration_method = "subtractive",
                                      max_non_detection_distance = 2000,
                                      weighting_method = "information_theoretic",
                                      percentile_cutoff = 0.95,
@@ -321,10 +341,25 @@ calculate_fish_positions <- function(station_detections,
   }
 
   # Validate inputs
-  if (abs(detection_weight + non_detection_weight - 1) > 1e-10) {
-    stop("detection_weight and non_detection_weight must sum to 1")
+  if (!integration_method %in% c("subtractive", "multiplicative", "additive")) {
+    stop("integration_method must be 'subtractive', 'multiplicative', or 'additive'")
   }
-  
+
+  if (integration_method == "additive") {
+    if (abs(detection_weight + non_detection_weight - 1) > 1e-10) {
+      stop("For additive integration, detection_weight and non_detection_weight must sum to 1")
+    }
+  } else {
+    if (non_detection_weight < 0 || non_detection_weight > 1) {
+      stop("non_detection_weight must be between 0 and 1")
+    }
+    if (!missing(detection_weight) && detection_weight != 0.5) {
+      warning("detection_weight is ignored for '", integration_method,
+              "' integration (detection field is always the base). ",
+              "Only non_detection_weight controls non-detection strength.")
+    }
+  }
+
   if (!weighting_method %in% c("information_theoretic", "normalize_stations", "raw")) {
     stop("weighting_method must be 'information_theoretic', 'normalize_stations', or 'raw'")
   }
@@ -826,6 +861,7 @@ calculate_fish_positions <- function(station_detections,
     df = position_probs_combined,
     detection_weight = detection_weight,
     non_detection_weight = non_detection_weight,
+    integration_method = integration_method,
     normalize_method = if(weighting_method == "information_theoretic") "none" else "global"
   )
 
@@ -898,6 +934,7 @@ calculate_fish_positions <- function(station_detections,
     time_bin_size = if(time_aggregation == "seconds") bin_size_seconds else NA,
     detection_weight = detection_weight,
     non_detection_weight = non_detection_weight,
+    integration_method = integration_method,
     total_detections = nrow(station_detections_processed),
     total_position_estimates = nrow(position_probs)
   )
@@ -2281,11 +2318,14 @@ aggregate_non_detections <- function(non_detections,
 }
 
 # Function to aggregate probabilities
-aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weight = 0.5, normalize_method = "global") {
+aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weight = 0.5,
+                                  integration_method = "subtractive", normalize_method = "global") {
 
-  # Validate weights sum to 1
-  if (abs(detection_weight + non_detection_weight - 1) > 1e-10) {
-    stop("Weights must sum to 1")
+  # Validate weights for additive method
+  if (integration_method == "additive") {
+    if (abs(detection_weight + non_detection_weight - 1) > 1e-10) {
+      stop("Weights must sum to 1 for additive integration")
+    }
   }
 
   # Get unique x,y coordinates for each cell_id
@@ -2357,14 +2397,50 @@ aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weig
     dplyr::left_join(cell_coords, by = "cell_id") %>%
     dplyr::mutate(
       weighted_mean_DE_normalized_scaled = ifelse(is.na(weighted_mean_DE_normalized_scaled), 0, weighted_mean_DE_normalized_scaled),
-      non_det_DE_normalized_scaled = ifelse(is.na(non_det_DE_normalized_scaled), 0, non_det_DE_normalized_scaled),
-      # Non-detection contribution uses inverted probability (1 - DE)
-      # High DE non-detection = strong absence evidence = low contribution to presence probability
-      # Low/Zero DE non-detection = weak absence evidence = medium contribution to presence probability
-      # This properly makes non-detections at high-DE stations push fish away
-      integrated_prob = (weighted_mean_DE_normalized_scaled * detection_weight) +
-        ((1.0 - non_det_DE_normalized_scaled) * non_detection_weight)
+      non_det_DE_normalized_scaled = ifelse(is.na(non_det_DE_normalized_scaled), 0, non_det_DE_normalized_scaled)
+    )
+
+  if (integration_method == "subtractive") {
+    # Detection field is the base; non-detection carves away from it
+    # Cells with no detection evidence remain at 0
+    result <- result %>%
+      dplyr::mutate(
+        integrated_prob = pmax(0, weighted_mean_DE_normalized_scaled -
+          (non_det_DE_normalized_scaled * non_detection_weight))
+      )
+  } else if (integration_method == "multiplicative") {
+    # Detection field scaled down proportionally by non-detection evidence
+    # Smoother penalty than subtractive; naturally non-negative
+    result <- result %>%
+      dplyr::mutate(
+        integrated_prob = weighted_mean_DE_normalized_scaled *
+          (1 - non_det_DE_normalized_scaled * non_detection_weight)
+      )
+  } else {
+    # Additive (original WADE formula)
+    # Weighted sum of detection and inverted non-detection probabilities
+    result <- result %>%
+      dplyr::mutate(
+        integrated_prob = (weighted_mean_DE_normalized_scaled * detection_weight) +
+          ((1.0 - non_det_DE_normalized_scaled) * non_detection_weight)
+      )
+  }
+
+  # Rescale integrated_prob to [0, 1] per fish/time period
+  result <- result %>%
+    dplyr::group_by(fish_id, time_period) %>%
+    dplyr::mutate(
+      ip_min = min(integrated_prob, na.rm = TRUE),
+      ip_max = max(integrated_prob, na.rm = TRUE),
+      ip_range = ip_max - ip_min,
+      integrated_prob = ifelse(ip_range > 0,
+        (integrated_prob - ip_min) / ip_range,
+        integrated_prob)
     ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-ip_min, -ip_max, -ip_range)
+
+  result <- result %>%
     dplyr::select(
       fish_id, time_period, cell_id, x, y, detections,
       weighted_mean_DE_normalized, non_det_DE_normalized,

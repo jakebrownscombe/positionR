@@ -253,8 +253,8 @@ positioning_results <- calculate_fish_positions(
   station_distances_df = station_distances,
   station_info = points_regular,
   de_model = logistic_DE$log_model,
-  detection_weight = 0.5,              # Weight for detection evidence
-  non_detection_weight = 0.5,          # Weight for non-detection evidence
+  non_detection_weight = 0.5,          # Strength of non-detection penalty (0-1)
+  integration_method = "subtractive",  # "subtractive", "multiplicative", or "additive"
   max_non_detection_distance = 2000,   # Maximum range for non-detection inference
   weighting_method = "normalize_stations",  # Normalize across stations
   # weighting_method = "information_theoretic",  # Alternative option
@@ -304,7 +304,7 @@ p3 <- plot_fish_positions(
   fish_select = fish_select,
   time_select = time_select,
   plot_type = "integrated",
-  prob_threshold = 0.4,
+  prob_threshold = 0.01,
   detection_threshold = 0.01,  # Filter to detection area
   track_data = fish_simulation$tracks
 ) + ggtitle("Integrated Position Estimate",

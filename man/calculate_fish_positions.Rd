@@ -13,6 +13,7 @@ calculate_fish_positions(
   bin_size_seconds = 3600,
   detection_weight = 0.5,
   non_detection_weight = 0.5,
+  integration_method = "subtractive",
   max_non_detection_distance = 2000,
   weighting_method = "information_theoretic",
   percentile_cutoff = 0.95,
@@ -65,6 +66,23 @@ integrated probability calculation (0-1). Default is 0.5.}
 \item{non_detection_weight}{Numeric. Weight given to non-detection events
 in the integrated probability calculation (0-1). Default is 0.5.}
 
+\item{integration_method}{Character. Method for integrating detection and
+non-detection evidence. Options are:
+\itemize{
+\item "subtractive" (default): Detection field is the base; non-detection
+evidence subtracts from it: \code{det - (nondet * non_detection_weight)},
+clamped to 0. Produces tight, detection-anchored position estimates.
+\item "multiplicative": Detection field scaled down by non-detection
+evidence: \code{det * (1 - nondet * non_detection_weight)}. Smoother
+penalty than subtractive; stays non-negative naturally.
+\item "additive": Original WADE formula: weighted sum of detection and
+inverted non-detection probabilities. Can inflate spatial footprint
+beyond detection zones.
+}
+For "subtractive" and "multiplicative", \code{detection_weight} is ignored
+(detection is always the base); only \code{non_detection_weight} controls
+the strength of non-detection penalty.}
+
 \item{max_non_detection_distance}{Numeric. Maximum distance (in meters) from
 detecting stations to consider non-detecting stations. Set to NULL to
 include all stations. Default is 2000.}
@@ -109,7 +127,8 @@ Requires \code{crosses_barrier} column in \code{station_distances_df} (generated
 \value{
 A list containing:
 \item{position_probabilities}{Data frame with integrated position probabilities
-for each fish, time period, and spatial cell}
+for each fish, time period, and spatial cell. The \code{integrated_prob}
+column is rescaled to \link{0, 1} per fish/time period.}
 \item{detection_data}{Data frame with processed detection probability data}
 \item{non_detection_data}{Data frame with processed non-detection probability data}
 \item{station_detections_binned}{Data frame with time-binned detection events
@@ -133,9 +152,11 @@ The function implements a multi-step positioning algorithm:
 \item Calculation of weighted position estimates
 }
 
-Detection and non-detection weights must sum to 1. The algorithm focuses
-non-detection analysis on stations within a specified distance of detecting
-stations to maintain biological realism and computational efficiency.
+For additive integration, detection and non-detection weights must sum to 1.
+For subtractive and multiplicative integration, only non_detection_weight
+controls the penalty strength (0-1); detection_weight is ignored. The algorithm
+focuses non-detection analysis on stations within a specified distance of
+detecting stations to maintain biological realism and computational efficiency.
 
 Barrier Masking:
 When \code{include_barriers = TRUE}, the function masks position estimates at cells
