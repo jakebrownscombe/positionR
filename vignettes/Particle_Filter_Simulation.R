@@ -86,12 +86,13 @@ pf_time <- system.time({
     fish_id_col = "path_id",
     time_col = "datetime",
     station_col = "station_id",
-    return_particles = FALSE,
+    return_particles = TRUE,  # Need particles for visualization
     verbose = TRUE
   )
 })
 cat("Particle filter time:", pf_time["elapsed"], "s\n")
 cat("Position estimates:", nrow(pf_results$positions), "\n")
+cat("Particle records:", nrow(pf_results$particles), "\n")
 
 
 # 5. COMPARE WITH GROUND TRUTH ================================================
@@ -130,25 +131,140 @@ print(error_by_fish)
 
 raster_df <- as.data.frame(depth_raster, xy = TRUE)
 
-# Plot: estimated vs true positions for each fish
+# Prepare receiver station coordinates for plotting
+station_coords <- sf::st_coordinates(points_regular)
+stations_df <- data.frame(
+  station_id = points_regular$station_id,
+  station_x = station_coords[, 1],
+  station_y = station_coords[, 2]
+)
+
+# Summarize detections per station for sizing
+det_summary <- fish_simulation$station_detections %>%
+  filter(detected == 1) %>%
+  group_by(station_id) %>%
+  summarise(total_dets = n(), .groups = "drop")
+stations_plot <- stations_df %>%
+  left_join(det_summary, by = "station_id") %>%
+  mutate(total_dets = ifelse(is.na(total_dets), 0, total_dets),
+         has_detections = total_dets > 0)
+
+
+# --- Plot 1: Particle cloud + resolved paths + true tracks ---
+# Subsample particles to avoid overplotting
+particles_sub <- pf_results$particles %>%
+  group_by(fish_id, time) %>%
+  slice_sample(n = 200) %>%
+  ungroup()
+
 p1 <- ggplot() +
   geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
   scale_fill_gradient(low = "blue4", high = "cornflowerblue",
                       na.value = "transparent", name = "Depth (m)") +
+  # Particle cloud (light, transparent)
+  geom_point(data = particles_sub, aes(x = x, y = y),
+             colour = "yellow", alpha = 0.02, size = 0.3) +
+  # True track (green)
   geom_path(data = comparison, aes(x = x_true, y = y_true),
-            col = "white", alpha = 0.5, linewidth = 0.3) +
-  geom_point(data = comparison, aes(x = x_mean, y = y_mean, colour = error_m),
-             size = 0.8) +
-  scale_colour_viridis_c(option = "magma", name = "Error (m)") +
+            colour = "green3", linewidth = 0.4, alpha = 0.7) +
+  # Estimated track (white)
+  geom_path(data = comparison, aes(x = x_mean, y = y_mean),
+            colour = "white", linewidth = 0.5, alpha = 0.8) +
+  geom_point(data = comparison, aes(x = x_mean, y = y_mean),
+             colour = "white", size = 0.5, alpha = 0.6) +
+  # Receiver stations
+  geom_point(data = stations_plot %>% filter(!has_detections),
+             aes(x = station_x, y = station_y),
+             colour = "red", size = 1, shape = 4) +
+  geom_point(data = stations_plot %>% filter(has_detections),
+             aes(x = station_x, y = station_y, size = total_dets),
+             colour = "yellow", fill = NA, shape = 21, stroke = 0.8) +
+  scale_size_continuous(range = c(1, 5), name = "Detections") +
   facet_wrap(~fish_id) +
   theme_minimal() +
-  labs(title = "Particle Filter Position Estimates",
-       subtitle = "Points = estimates, white line = true track")
+  labs(title = "Particle Filter: Particle Cloud + Resolved Paths",
+       subtitle = "Yellow = particles | White = estimated path | Green = true path")
 
 print(p1)
 
-# Plot: position error over time
-p2 <- ggplot(comparison, aes(x = time, y = error_m)) +
+
+# --- Plot 2: Estimated vs true with error colouring ---
+p2 <- ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  # True track
+  geom_path(data = comparison, aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.3, alpha = 0.6) +
+  # Estimated positions coloured by error
+  geom_point(data = comparison, aes(x = x_mean, y = y_mean, colour = error_m),
+             size = 1) +
+  scale_colour_viridis_c(option = "magma", name = "Error (m)") +
+  # Uncertainty bars (95% CI ~ 2*SD)
+  geom_segment(data = comparison,
+               aes(x = x_mean - 2*x_sd, xend = x_mean + 2*x_sd,
+                   y = y_mean, yend = y_mean),
+               colour = "red", alpha = 0.3, linewidth = 0.2) +
+  geom_segment(data = comparison,
+               aes(x = x_mean, xend = x_mean,
+                   y = y_mean - 2*y_sd, yend = y_mean + 2*y_sd),
+               colour = "red", alpha = 0.3, linewidth = 0.2) +
+  # Stations
+  geom_point(data = stations_plot, aes(x = station_x, y = station_y),
+             colour = "grey80", size = 0.5, shape = 3) +
+  facet_wrap(~fish_id) +
+  theme_minimal() +
+  labs(title = "Position Estimates with Error and Uncertainty",
+       subtitle = "Green = true track | Red bars = 95% CI | Colour = position error")
+
+print(p2)
+
+
+# --- Plot 3: Particle cloud at selected time steps ---
+# Show particle spread at a few key time steps for one fish
+fish1_times <- comparison %>%
+  filter(fish_id == comparison$fish_id[1]) %>%
+  arrange(time)
+# Select ~6 evenly spaced time steps
+time_idx <- round(seq(1, nrow(fish1_times), length.out = 6))
+selected_times <- fish1_times$time[time_idx]
+
+particles_snapshot <- pf_results$particles %>%
+  filter(fish_id == comparison$fish_id[1], time %in% selected_times)
+positions_snapshot <- comparison %>%
+  filter(fish_id == comparison$fish_id[1], time %in% selected_times)
+
+p3 <- ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  # Particles coloured by weight
+  geom_point(data = particles_snapshot,
+             aes(x = x, y = y, colour = weight),
+             size = 0.5, alpha = 0.4) +
+  scale_colour_viridis_c(option = "magma", name = "Weight") +
+  # Weighted mean position (white)
+  geom_point(data = positions_snapshot,
+             aes(x = x_mean, y = y_mean),
+             colour = "white", size = 2, shape = 4, stroke = 1.5) +
+  # True position (green)
+  geom_point(data = positions_snapshot,
+             aes(x = x_true, y = y_true),
+             colour = "green3", size = 2, shape = 3, stroke = 1.5) +
+  # Stations
+  geom_point(data = stations_plot, aes(x = station_x, y = station_y),
+             colour = "grey80", size = 0.5, shape = 3) +
+  facet_wrap(~time, nrow = 2) +
+  theme_minimal() +
+  labs(title = paste("Particle Distributions at Selected Time Steps - Fish",
+                     comparison$fish_id[1]),
+       subtitle = "White cross = estimate | Green cross = true position | Colour = particle weight")
+
+print(p3)
+
+
+# --- Plot 4: Position error over time ---
+p4 <- ggplot(comparison, aes(x = time, y = error_m)) +
   geom_line(alpha = 0.5) +
   geom_point(aes(colour = n_detecting), size = 0.8) +
   scale_colour_viridis_c(name = "Detecting\nStations") +
@@ -157,19 +273,11 @@ p2 <- ggplot(comparison, aes(x = time, y = error_m)) +
   labs(title = "Position Error Over Time",
        x = "Time", y = "Error (m)")
 
-print(p2)
+print(p4)
 
-# Plot: error vs number of detecting stations
-p3 <- ggplot(comparison, aes(x = factor(n_detecting), y = error_m)) +
-  geom_boxplot(fill = "steelblue", alpha = 0.5) +
-  theme_minimal() +
-  labs(title = "Position Error by Number of Detecting Stations",
-       x = "Detecting Stations", y = "Error (m)")
 
-print(p3)
-
-# Plot: ESS over time
-p4 <- ggplot(comparison, aes(x = time, y = ess)) +
+# --- Plot 5: ESS over time ---
+p5 <- ggplot(comparison, aes(x = time, y = ess)) +
   geom_line() +
   geom_hline(yintercept = 1000 * 0.5, linetype = "dashed", colour = "red") +
   geom_point(aes(colour = resampled), size = 0.8) +
@@ -181,7 +289,17 @@ p4 <- ggplot(comparison, aes(x = time, y = ess)) +
        subtitle = "Red dashed = resampling threshold",
        x = "Time", y = "ESS")
 
-print(p4)
+print(p5)
+
+
+# --- Plot 6: Error by detecting stations ---
+p6 <- ggplot(comparison, aes(x = factor(n_detecting), y = error_m)) +
+  geom_boxplot(fill = "steelblue", alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Position Error by Number of Detecting Stations",
+       x = "Detecting Stations", y = "Error (m)")
+
+print(p6)
 
 
 # 7. BENCHMARK SCALING =========================================================
