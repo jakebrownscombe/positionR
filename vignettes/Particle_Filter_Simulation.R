@@ -150,6 +150,17 @@ stations_plot <- stations_df %>%
          has_detections = total_dets > 0)
 
 
+# Compute zoom extent from true tracks + estimates with 15% buffer
+all_x <- c(comparison$x_true, comparison$x_mean)
+all_y <- c(comparison$y_true, comparison$y_mean)
+x_range <- range(all_x, na.rm = TRUE)
+y_range <- range(all_y, na.rm = TRUE)
+x_buf <- diff(x_range) * 0.15
+y_buf <- diff(y_range) * 0.15
+zoom_xlim <- c(x_range[1] - x_buf, x_range[2] + x_buf)
+zoom_ylim <- c(y_range[1] - y_buf, y_range[2] + y_buf)
+
+
 # --- Plot 1: Particle cloud + resolved paths + true tracks ---
 # Subsample particles to avoid overplotting
 particles_sub <- pf_results$particles %>%
@@ -181,6 +192,7 @@ p1 <- ggplot() +
              colour = "yellow", fill = NA, shape = 21, stroke = 0.8) +
   scale_size_continuous(range = c(1, 5), name = "Detections") +
   facet_wrap(~fish_id) +
+  coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Particle Filter: Particle Cloud + Resolved Paths",
        subtitle = "Yellow = particles | White = estimated path | Green = true path")
@@ -213,6 +225,7 @@ p2 <- ggplot() +
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
   facet_wrap(~fish_id) +
+  coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Position Estimates with Error and Uncertainty",
        subtitle = "Green = true track | Red bars = 95% CI | Colour = position error")
@@ -255,6 +268,8 @@ p3 <- ggplot() +
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
   facet_wrap(~time, nrow = 2) +
+  coord_sf(xlim = range(c(particles_snapshot$x, positions_snapshot$x_mean), na.rm = TRUE) + c(-500, 500),
+           ylim = range(c(particles_snapshot$y, positions_snapshot$y_mean), na.rm = TRUE) + c(-500, 500)) +
   theme_minimal() +
   labs(title = paste("Particle Distributions at Selected Time Steps - Fish",
                      comparison$fish_id[1]),
