@@ -1380,17 +1380,6 @@ print_detection_summary <- function(detection_stats) {
   }
   cat("\n")
 
-  # Individual station performance
-  cat("DETECTION RATE BY RECEIVER STATION:\n")
-  for (i in 1:nrow(detection_stats$by_station)) {
-    station_data <- detection_stats$by_station[i, ]
-    cat(sprintf("  Station %s: %d/%d opportunities detected (%.1f%%, expected %.1f%%)\n",
-                station_data$station_id,
-                station_data$detections,
-                station_data$total_opportunities,
-                station_data$detection_rate * 100,
-                station_data$mean_detection_prob * 100))
-  }
   cat("\n")
 }
 
