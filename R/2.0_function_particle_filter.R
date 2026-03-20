@@ -1,7 +1,9 @@
 # Suppress R CMD check notes for data.table NSE variables
 utils::globalVariables(c("fish_id", "detected", "time", "station_id",
                          "depth_m", "raster_value", "total_dets",
-                         "has_detections"))
+                         "has_detections", "deploy_datetime_UTC",
+                         "recover_datetime_UTC", "detection_timestamp_utc",
+                         "detection_prob", "n_detections"))
 
 #' Create Detection Efficiency Lookup Grid
 #'
@@ -863,4 +865,130 @@ pf_analyze_gaps <- function(pf_results, true_tracks = NULL) {
     gaps = gaps_df,
     time_series = as.data.frame(pos)
   )
+}
+
+
+# ============================================================================
+# Data preparation for particle filter (field data)
+# ============================================================================
+
+#' Prepare Detection Data for Particle Filter
+#'
+#' Converts raw acoustic telemetry detections into the format required by
+#' \code{particle_filter_positioning()}. Unlike the WADE prep function, this
+#' preserves exact detection timestamps without temporal aggregation, creating
+#' one time step per unique detection time with detecting and non-detecting
+#' stations identified.
+#'
+#' @param fish_detections Data frame of raw detections with columns:
+#'   \code{fish_id}, \code{station_id}, \code{detection_timestamp_utc}.
+#' @param station_deployments Data frame or sf object of station deployments with
+#'   columns: \code{station_id}, coordinates (x/y or geometry), \code{depth_m},
+#'   \code{deploy_datetime_UTC}, \code{recover_datetime_UTC}.
+#' @param selected_fish_id Character. Fish ID to process.
+#' @param start_time POSIXct. Start of analysis window.
+#' @param end_time POSIXct. End of analysis window.
+#' @param min_gap_sec Numeric. Minimum seconds between time steps. Detections
+#'   closer than this are merged into the same time step (default 60).
+#'
+#' @return A data frame with columns: fish_id, time (datetime), station_id,
+#'   detected (0/1), station_x, station_y, depth_m, detection_prob, n_detections.
+#'   Compatible with \code{particle_filter_positioning()}.
+#'
+#' @export
+prepare_detection_data_for_pf <- function(fish_detections,
+                                           station_deployments,
+                                           selected_fish_id,
+                                           start_time,
+                                           end_time,
+                                           min_gap_sec = 60) {
+
+  dt <- data.table::as.data.table(fish_detections)
+
+  # Filter to selected fish and time window
+  dt <- dt[fish_id == selected_fish_id &
+           detection_timestamp_utc >= start_time &
+           detection_timestamp_utc <= end_time]
+
+  if (nrow(dt) == 0) {
+    stop("No detections found for fish '", selected_fish_id,
+         "' in the specified time window.")
+  }
+
+  # Extract station coordinates
+  if ("sf" %in% class(station_deployments)) {
+    coords <- sf::st_coordinates(station_deployments)
+    stn <- data.table::data.table(
+      station_id = station_deployments$station_id,
+      station_x = coords[, 1],
+      station_y = coords[, 2],
+      depth_m = if ("depth_m" %in% names(station_deployments))
+        station_deployments$depth_m else NA_real_,
+      deploy_datetime_UTC = station_deployments$deploy_datetime_UTC,
+      recover_datetime_UTC = station_deployments$recover_datetime_UTC
+    )
+  } else {
+    stn <- data.table::as.data.table(station_deployments)
+    if (!"station_x" %in% names(stn)) {
+      if ("x" %in% names(stn)) {
+        data.table::setnames(stn, c("x", "y"), c("station_x", "station_y"))
+      }
+    }
+  }
+
+  # Round detection times to nearest min_gap_sec to merge close detections
+  dt[, time := as.POSIXct(round(as.numeric(detection_timestamp_utc) /
+    min_gap_sec) * min_gap_sec, origin = "1970-01-01", tz = "UTC")]
+
+  # Get unique time steps
+  unique_times <- sort(unique(dt$time))
+
+  # For each time step, identify deployed stations and detection status
+  result_list <- vector("list", length(unique_times))
+
+  for (i in seq_along(unique_times)) {
+    current_time <- unique_times[i]
+
+    # Stations deployed at this time
+    deployed <- stn[deploy_datetime_UTC <= current_time &
+                    recover_datetime_UTC >= current_time]
+
+    if (nrow(deployed) == 0) next
+
+    # Stations that detected at this time step
+    detecting_ids <- unique(dt[time == current_time]$station_id)
+
+    # Build rows for all deployed stations
+    step_data <- data.table::data.table(
+      fish_id = selected_fish_id,
+      time = current_time,
+      station_id = deployed$station_id,
+      detected = as.integer(deployed$station_id %in% detecting_ids),
+      station_x = deployed$station_x,
+      station_y = deployed$station_y,
+      depth_m = deployed$depth_m,
+      detection_prob = NA_real_,
+      n_detections = 0L
+    )
+
+    # Count detections per station at this time step
+    det_counts <- dt[time == current_time, .N, by = station_id]
+    if (nrow(det_counts) > 0) {
+      step_data <- det_counts[step_data, on = .(station_id)]
+      step_data[!is.na(N), n_detections := N]
+      step_data[, N := NULL]
+    }
+
+    result_list[[i]] <- step_data
+  }
+
+  result <- data.table::rbindlist(result_list[!vapply(result_list, is.null, logical(1))])
+  data.table::setorderv(result, c("fish_id", "time", "station_id"))
+
+  cat("Prepared", length(unique_times), "time steps for fish", selected_fish_id, "\n")
+  cat("Date range:", as.character(range(result$time)), "\n")
+  cat("Deployed stations per step:", round(mean(result[, .N, by = time]$N)), "(mean)\n")
+  cat("Detection events:", sum(result$detected), "\n")
+
+  return(as.data.frame(result))
 }
