@@ -185,19 +185,33 @@ pf_prepare_detections <- function(detection_data, fish_id_col, time_col, station
 
 
 #' Compute MAP or mean position estimate from weighted particles
+#' @param prev_x,prev_y Previous position for MAP continuity (NULL for first step).
+#' @param movement_scale Expected movement distance for MAP continuity penalty.
 #' @keywords internal
-pf_position_estimate <- function(px, py, weights, method, raster) {
+pf_position_estimate <- function(px, py, weights, method, raster,
+                                  prev_x = NULL, prev_y = NULL,
+                                  movement_scale = NULL) {
   if (method == "map") {
-    # MAP: highest-density raster cell
+    # MAP: highest-density raster cell with continuity penalty
     cell_ids <- raster::cellFromXY(raster, cbind(px, py))
     valid <- !is.na(cell_ids)
     if (!any(valid)) {
-      # Fallback to weighted mean if no valid cells
       return(list(x = sum(px * weights), y = sum(py * weights)))
     }
     dt_cells <- data.table::data.table(cell = cell_ids[valid], w = weights[valid])
     cell_sums <- dt_cells[, .(total_w = sum(w)), by = cell]
-    best_cell <- cell_sums$cell[which.max(cell_sums$total_w)]
+
+    if (!is.null(prev_x) && !is.null(movement_scale) && movement_scale > 0) {
+      # Penalise jumps from previous position
+      cell_xy <- raster::xyFromCell(raster, cell_sums$cell)
+      dist_to_prev <- sqrt((cell_xy[, 1] - prev_x)^2 + (cell_xy[, 2] - prev_y)^2)
+      proximity_weight <- exp(-dist_to_prev / movement_scale)
+      cell_sums[, adjusted_w := total_w * proximity_weight]
+      best_cell <- cell_sums$cell[which.max(cell_sums$adjusted_w)]
+    } else {
+      best_cell <- cell_sums$cell[which.max(cell_sums$total_w)]
+    }
+
     xy <- raster::xyFromCell(raster, best_cell)
     list(x = xy[1, 1], y = xy[1, 2])
   } else {
@@ -327,6 +341,9 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
     )
     fish_particle_list <- if (return_particles) vector("list", n_times) else NULL
 
+    # Track previous position for MAP continuity
+    prev_x <- NULL; prev_y <- NULL
+
     # First time step
     dets_t <- fish_dt[time == time_steps_vec[1] & detected == 1]
     detecting_ids <- unique(dets_t$station_id)
@@ -334,6 +351,7 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
     weights <- weights / sum(weights)
     pos_est <- pf_position_estimate(px, py, weights, position_method, raster)
     xm <- pos_est$x; ym <- pos_est$y
+    prev_x <- xm; prev_y <- ym
     data.table::set(fish_positions, 1L, "x_mean", xm)
     data.table::set(fish_positions, 1L, "y_mean", ym)
     data.table::set(fish_positions, 1L, "x_sd", sqrt(sum(weights * (px - xm)^2)))
@@ -379,8 +397,12 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
         ess <- n_particles; did_resample <- TRUE
       }
 
-      pos_est <- pf_position_estimate(px, py, weights, position_method, raster)
+      mv_scale <- step_length_mean * (time_diff_sec / time_step) * 3
+      pos_est <- pf_position_estimate(px, py, weights, position_method, raster,
+                                       prev_x = prev_x, prev_y = prev_y,
+                                       movement_scale = mv_scale)
       xm <- pos_est$x; ym <- pos_est$y
+      prev_x <- xm; prev_y <- ym
       ti <- as.integer(t)
       data.table::set(fish_positions, ti, "x_mean", xm)
       data.table::set(fish_positions, ti, "y_mean", ym)
@@ -575,6 +597,7 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
       resampled = logical(n_times)
     )
     smoothed_particle_list <- if (return_particles) vector("list", n_times) else NULL
+    prev_x <- NULL; prev_y <- NULL
 
     for (t in seq_len(n_times)) {
       # Forward particles and weights at time t
@@ -588,16 +611,29 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
       # Combine: pool forward and backward particles
       all_x <- c(fwd_x, bwd_x)
       all_y <- c(fwd_y, bwd_y)
-      # Combined log-weight = forward log-weight + backward log-weight (for matched)
-      # Since forward and backward have different particles, combine by pooling
       fwd_log_w <- log(pmax(fwd_w, 1e-300))
       all_log_w <- c(fwd_log_w, bwd_log_w)
       all_log_w <- all_log_w - max(all_log_w)
       all_w <- exp(all_log_w)
       all_w <- all_w / sum(all_w)
 
-      pos_est <- pf_position_estimate(all_x, all_y, all_w, position_method, raster)
+      # Compute time diff for movement scale
+      if (t > 1) {
+        if (inherits(time_steps_vec[t], "POSIXct")) {
+          td <- as.numeric(difftime(time_steps_vec[t], time_steps_vec[t-1], units = "secs"))
+        } else {
+          td <- as.numeric(time_steps_vec[t] - time_steps_vec[t-1])
+        }
+        mv_scale <- step_length_mean * (max(td, 1) / time_step) * 3
+      } else {
+        mv_scale <- NULL
+      }
+
+      pos_est <- pf_position_estimate(all_x, all_y, all_w, position_method, raster,
+                                       prev_x = prev_x, prev_y = prev_y,
+                                       movement_scale = mv_scale)
       xm <- pos_est$x; ym <- pos_est$y
+      prev_x <- xm; prev_y <- ym
 
       dets_t <- fish_dt[time == time_steps_vec[t] & detected == 1]
 
