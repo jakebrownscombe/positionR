@@ -26,7 +26,7 @@ Complete workflow for fish positioning using WADE methodology with simulated dat
 ### 🐟 <a href="vignettes/WADE_Field_App.R" target="_blank">WADE Field Application Tutorial</a>
 Application of WADE positioning to real acoustic telemetry data
 
-### 🎯 <a href="vignettes/Particle_Filter_Simulation.R" target="_blank">Particle Filter Positioning Tutorial</a>
+### 🎯 <a href="https://jakebrownscombe.github.io/positionR/articles/Particle_Filter_Simulation.html" target="_blank">Particle Filter Positioning Tutorial</a>
 Sequential Monte Carlo positioning with continuous movement path estimation
 
 ### 🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>

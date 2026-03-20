@@ -21,8 +21,11 @@ navbar:
         href: articles/WADE_Simulation.html
         description: "Complete workflow for fine-scale fish positioning"
       - text: "📡 Array Design & Simulation"
-        href: articles/Array_Design_Simulation.html  
+        href: articles/Array_Design_Simulation.html
         description: "Optimize receiver arrays and simulate fish movements"
+      - text: "🎯 Particle Filter Positioning"
+        href: articles/Particle_Filter_Simulation.html
+        description: "Sequential Monte Carlo positioning with path estimation"
 
 articles:
 - title: "Comprehensive Tutorials"
@@ -30,6 +33,7 @@ articles:
   contents:
   - WADE_Simulation
   - Array_Design_Simulation
+  - Particle_Filter_Simulation
 
 reference:
 - title: "🎯 Array Design Functions"
@@ -45,6 +49,10 @@ reference:
   - starts_with("simulate_")
   - starts_with("prepare_")
   - calculate_fish_positions
+  - starts_with("particle_filter")
+  - starts_with("pf_")
+  - starts_with("de_lookup")
+  - starts_with("check_line")
   
 - title: "📊 Analysis Functions"
   desc: "Space use, habitat selection, and performance analysis"
