@@ -172,9 +172,13 @@ zoom_ylim <- c(y_range[1] - y_buf, y_range[2] + y_buf)
 
 # --- Plot 1: Particle cloud + resolved paths + true tracks ---
 # Subsample particles to avoid overplotting
+# Sample every 10th time step, 50 particles each
+pf_times <- unique(pf_results$particles$time)
+sampled_times <- pf_times[seq(1, length(pf_times), by = 10)]
 particles_sub <- pf_results$particles %>%
+  filter(time %in% sampled_times) %>%
   group_by(fish_id, time) %>%
-  slice_sample(n = 200) %>%
+  slice_sample(n = 50) %>%
   ungroup()
 
 p1 <- ggplot() +
