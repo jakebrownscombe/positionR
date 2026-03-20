@@ -41,10 +41,10 @@ station_distances <- calculate_station_distances(
 logistic_DE <- create_logistic_curve_depth(
   min_depth = 1,
   max_depth = 35,
-  d50_min_depth = 400,
-  d95_min_depth = 800,
-  d50_max_depth = 750,
-  d95_max_depth = 1500,
+  d50_min_depth = 300,
+  d95_min_depth = 600,
+  d50_max_depth = 500,
+  d95_max_depth = 1200,
   plot = TRUE,
   return_model = TRUE,
   return_object = TRUE
@@ -90,7 +90,7 @@ pf_time <- system.time({
     de_model = logistic_DE$log_model,
     raster = depth_raster,
     n_particles = 1000,
-    step_length_mean = 50,
+    step_length_mean = 10,
     step_length_sd = 30,
     turning_angle_sd = 45,
     time_step = 180,
@@ -98,6 +98,7 @@ pf_time <- system.time({
     fish_id_col = "fish_id",
     time_col = "time",
     station_col = "station_id",
+    position_method = "mean",
     return_particles = TRUE,
     verbose = TRUE
   )
@@ -124,6 +125,7 @@ smooth_time <- system.time({
     fish_id_col = "fish_id",
     time_col = "time",
     station_col = "station_id",
+    position_method = "mean",
     return_particles = TRUE,
     verbose = TRUE
   )
@@ -169,9 +171,9 @@ p1 <- ggplot() +
              colour = "yellow", alpha = 0.1, size = 0.3) +
   # Smoothed path
   geom_path(data = pos, aes(x = x_mean, y = y_mean),
-            colour = "white", linewidth = 0.5, alpha = 0.8) +
+            colour = "green", linewidth = 0.5, alpha = 0.8) +
   geom_point(data = pos, aes(x = x_mean, y = y_mean),
-             colour = "white", size = 0.3, alpha = 0.4) +
+             colour = "green", size = 0.3, alpha = 0.4) +
   # Stations
   geom_point(data = stations_plot %>% filter(total_dets == 0),
              aes(x = station_x, y = station_y),

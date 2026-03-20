@@ -4,7 +4,21 @@
 \alias{pf_position_estimate}
 \title{Compute MAP or mean position estimate from weighted particles}
 \usage{
-pf_position_estimate(px, py, weights, method, raster)
+pf_position_estimate(
+  px,
+  py,
+  weights,
+  method,
+  raster,
+  prev_x = NULL,
+  prev_y = NULL,
+  movement_scale = NULL
+)
+}
+\arguments{
+\item{prev_x, prev_y}{Previous position for MAP continuity (NULL for first step).}
+
+\item{movement_scale}{Expected movement distance for MAP continuity penalty.}
 }
 \description{
 Compute MAP or mean position estimate from weighted particles

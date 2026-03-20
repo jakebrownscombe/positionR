@@ -19,7 +19,7 @@ particle_filter_positioning(
   time_col = "datetime",
   station_col = "station_id",
   ess_threshold = 0.5,
-  position_method = "map",
+  position_method = "mean",
   return_particles = FALSE,
   verbose = TRUE
 )
@@ -55,9 +55,9 @@ station ID, and detection status.}
 \item{ess_threshold}{Numeric. ESS threshold for resampling as fraction of n_particles (default 0.5).}
 
 \item{position_method}{Character. Method for computing point position estimates:
-\code{"map"} (default) uses the highest-density raster cell, which always falls
-on valid water cells within the particle cloud; \code{"mean"} uses the
-weighted mean of particle positions (can land on land or between clusters).}
+\code{"mean"} (default) uses the weighted mean of particle positions, snapped
+to the nearest valid particle if it lands on land; \code{"map"} uses the
+highest-density raster cell with continuity penalty to avoid track jumping.}
 
 \item{return_particles}{Logical. Return full particle histories (default FALSE).}
 

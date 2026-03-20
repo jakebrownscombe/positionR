@@ -86,6 +86,7 @@ pf_time <- system.time({
     fish_id_col = "path_id",
     time_col = "datetime",
     station_col = "station_id",
+    position_method = "mean",
     return_particles = TRUE,  # Need particles for visualization
     verbose = TRUE
   )
@@ -351,6 +352,7 @@ smooth_time <- system.time({
     fish_id_col = "path_id",
     time_col = "datetime",
     station_col = "station_id",
+    position_method = "mean",
     return_particles = TRUE,
     verbose = TRUE
   )
@@ -554,6 +556,7 @@ for (np in c(100, 500, 1000, 2000)) {
       max_distance = 30000,
       fish_id_col = "path_id", time_col = "datetime",
       station_col = "station_id",
+      position_method = "mean",
       verbose = FALSE
     )
   })
