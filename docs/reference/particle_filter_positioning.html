@@ -80,6 +80,7 @@ Correlated Random Walk, then weighted by detection likelihood at each time step.
 <span>  time_col <span class="op">=</span> <span class="st">"datetime"</span>,</span>
 <span>  station_col <span class="op">=</span> <span class="st">"station_id"</span>,</span>
 <span>  ess_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  position_method <span class="op">=</span> <span class="st">"mean"</span>,</span>
 <span>  return_particles <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -144,6 +145,13 @@ station ID, and detection status.</p></dd>
 <dd><p>Numeric. ESS threshold for resampling as fraction of n_particles (default 0.5).</p></dd>
 
 
+<dt>position_method</dt>
+<dd><p>Character. Method for computing point position estimates:
+<code>"mean"</code> (default) uses the weighted mean of particle positions, snapped
+to the nearest valid particle if it lands on land; <code>"map"</code> uses the
+highest-density raster cell with continuity penalty to avoid track jumping.</p></dd>
+
+
 <dt>return_particles</dt>
 <dd><p>Logical. Return full particle histories (default FALSE).</p></dd>
 
@@ -158,7 +166,7 @@ station ID, and detection status.</p></dd>
 
 <p>A list with components:</p>
 <dl><dt>positions</dt>
-<dd><p>Data frame with weighted mean position estimates per fish/time</p></dd>
+<dd><p>Data frame with position estimates per fish/time</p></dd>
 
 <dt>particles</dt>
 <dd><p>(Optional) Data frame with all particle positions and weights</p></dd>
