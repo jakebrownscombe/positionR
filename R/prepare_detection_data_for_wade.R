@@ -92,7 +92,7 @@
 #' )
 #' }
 #'
-#' @seealso \code{\link{calculate_fish_positions}}, \code{\link{prepare_detection_data_for_particle_filter}}
+#' @seealso \code{\link{calculate_fish_positions}}, \code{\link{particle_filter_positioning}}
 #'
 #' @export
 prepare_detection_data_for_wade <- function(fish_detections,
