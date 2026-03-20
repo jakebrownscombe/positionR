@@ -199,7 +199,7 @@ calculate_fish_positions <- function(station_detections,
                                      time_aggregation = "seconds",
                                      bin_size_seconds = 3600,
                                      detection_weight = 0.5,
-                                     non_detection_weight = 0.5,
+                                     non_detection_weight = 1,
                                      integration_method = "subtractive",
                                      max_non_detection_distance = 2000,
                                      weighting_method = "information_theoretic",
@@ -2318,7 +2318,7 @@ aggregate_non_detections <- function(non_detections,
 }
 
 # Function to aggregate probabilities
-aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weight = 0.5,
+aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weight = 1,
                                   integration_method = "subtractive", normalize_method = "global") {
 
   # Validate weights for additive method

@@ -12,7 +12,7 @@ calculate_fish_positions(
   time_aggregation = "seconds",
   bin_size_seconds = 3600,
   detection_weight = 0.5,
-  non_detection_weight = 0.5,
+  non_detection_weight = 1,
   integration_method = "subtractive",
   max_non_detection_distance = 2000,
   weighting_method = "information_theoretic",
