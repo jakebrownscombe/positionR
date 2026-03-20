@@ -234,7 +234,7 @@ p3 <- ggplot() +
                     name = "UD Contour") +
   geom_path(data = pos, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.3, alpha = 0.5) +
-  geom_point(data = stations_plot %>% filter(has_detections),
+  geom_point(data = stations_plot %>% filter(total_dets > 0),
              aes(x = station_x, y = station_y),
              colour = "yellow", size = 1) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
