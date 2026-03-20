@@ -232,6 +232,9 @@
     <loc>https://jakebrownscombe.github.io/positionR/reference/pf_compute_single_ud.html</loc>
   </url>
   <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_position_estimate.html</loc>
+  </url>
+  <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/pf_prepare_detections.html</loc>
   </url>
   <url>
@@ -287,6 +290,9 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/point_in_polygon.html</loc>
+  </url>
+  <url>
+    <loc>https://jakebrownscombe.github.io/positionR/reference/prepare_detection_data_for_pf.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/prepare_detection_data_for_wade.html</loc>
