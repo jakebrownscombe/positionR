@@ -1,3 +1,34 @@
+# positionR 1.4.0
+
+## Breaking Changes
+
+* **New default integration method**: `calculate_fish_positions()` now defaults to
+  `integration_method = "subtractive"`, which produces tighter position estimates
+  anchored to actual detection zones. The previous additive method inflated spatial
+  footprint by assigning positive probability everywhere non-detecting stations had
+  low detection efficiency. To replicate previous behaviour, set
+  `integration_method = "additive"`.
+
+## New Features
+
+* **Integration method parameter**: New `integration_method` parameter in
+  `calculate_fish_positions()` with three options:
+  - `"subtractive"` (new default): Detection field minus non-detection penalty,
+    clamped to 0. Produces detection-anchored positions.
+  - `"multiplicative"`: Detection field scaled down proportionally by
+    non-detection evidence. Smoother penalty than subtractive.
+  - `"additive"`: Original WADE formula preserved for backward compatibility.
+
+* For subtractive and multiplicative methods, `detection_weight` is no longer
+  used (detection is always the base); only `non_detection_weight` controls
+  non-detection penalty strength (0-1).
+
+* `integrated_prob` values are now rescaled to [0, 1] per fish/time period
+  after integration, ensuring consistent probability ranges across all
+  integration methods.
+
+---
+
 # positionR 1.3.0
 
 ## New Features

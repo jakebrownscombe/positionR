@@ -148,8 +148,8 @@ positioning_results <- calculate_fish_positions(
   station_distances_df = station_distances,
   station_info = wade_data$station_info,
   de_model = logistic_DE$log_model,
-  detection_weight = 0.3,        # Weight for detected receivers
-  non_detection_weight = 0.7,    # Weight for non-detected receivers. Overweighting non-dets as eg here
+  non_detection_weight = 0.5,    # Strength of non-detection penalty (0-1)
+  integration_method = "subtractive",  # "subtractive", "multiplicative", or "additive"
   max_non_detection_distance = 2000,  # Max distance to consider non-detections
   weighting_method = "normalize_stations",  # Method for combining probabilities
   normalization_method = "min_max", #normalization approach
@@ -203,7 +203,7 @@ plot_fish_positions(
   fish_select = selected_fish,  # Use original fish ID variable
   time_select = available_times[12],
   plot_type = "integrated",
-  prob_threshold = 0.7,
+  prob_threshold = 0.01,
   detection_threshold = 0.01, #note to apply integrated, need to filter data down or else it will include other areas outside detection area**
   track_data = NULL)
 
@@ -213,7 +213,7 @@ plot_fish_positions(
   fish_select = selected_fish,  # Use original fish ID variable
   time_select = available_times[13],
   plot_type = "detection",
-  prob_threshold = 0.05,
+  prob_threshold = 0.01,
   detection_threshold = 0.0, #note to apply integrated, need to filter data down or else it will include other areas outside detection area**
   track_data = NULL)
 
@@ -223,7 +223,7 @@ plot_fish_positions(
   fish_select = selected_fish,  # Use original fish ID variable
   time_select = available_times[13],
   plot_type = "integrated",
-  prob_threshold = 0.7,
+  prob_threshold = 0.01,
   detection_threshold = 0.01, #note to apply integrated, need to filter data down or else it will include other areas outside detection area**
   track_data = NULL)
 
@@ -243,7 +243,7 @@ ggplot() +
                       na.value = "transparent", name = "Depth (m)") +
   new_scale_fill() +
   geom_tile(data = positioning_results$position_probabilities %>%
-              filter(weighted_mean_DE_normalized_scaled > 0.01 & integrated_prob>0.7),
+              filter(weighted_mean_DE_normalized_scaled > 0.01 & integrated_prob>0.01),
             aes(x, y, fill = integrated_prob)) +
   scale_fill_viridis_c(option = "magma", name = "Probability", alpha = 0.8) +
   geom_point(data = dets_sum_det, aes(station_x, station_y, size = dets),
@@ -262,7 +262,7 @@ ggplot() +
                       na.value = "transparent", name = "Depth (m)") +
   new_scale_fill() +
   geom_tile(data = positioning_results$position_probabilities %>%
-              filter(weighted_mean_DE_normalized_scaled > 0.01 & integrated_prob>0.7 & time_period_label=="2023-10-27"),
+              filter(weighted_mean_DE_normalized_scaled > 0.01 & integrated_prob>0.01 & time_period_label=="2023-10-27"),
             aes(x, y, fill = integrated_prob), alpha=1) +
   scale_fill_viridis_c(option = "magma", name = "Probability", alpha = 0.8) +
   geom_point(data = dets_sum_det %>% filter(time_period_label=="2023-10-27"),
@@ -280,28 +280,16 @@ ggplot() +
 
 
 #pre filter data based on selected probability thresholds (flexible options here)
-#also rescaling the positioning field (integrated_prob selected here) to 0-1 after filtering,
-#which works better for generating a reasonable point distribution
+#integrated_prob is already rescaled to [0,1] per fish/time period by calculate_fish_positions()
 filtered_results <- positioning_results
 filtered_results$position_probabilities <- positioning_results$position_probabilities %>%
-  filter(integrated_prob > 0.7,                        # integrated threshold
-         weighted_mean_DE_normalized_scaled > 0.01) %>% # detection threshold
-  mutate(
-    # Rescale integrated_prob to use full [0,1] range after filtering
-    integrated_prob_min = min(integrated_prob, na.rm = TRUE),
-    integrated_prob_max = max(integrated_prob, na.rm = TRUE),
-    integrated_prob_range = integrated_prob_max - integrated_prob_min,
-    integrated_prob_rescaled = ifelse(integrated_prob_range > 0,
-                                      (integrated_prob - integrated_prob_min) /
-                                        integrated_prob_range,
-                                      0.5)  # Fallback if no variation
-  ) %>%
-  select(-integrated_prob_min, -integrated_prob_max, -integrated_prob_range)
+  filter(integrated_prob > 0.01,                        # integrated threshold
+         weighted_mean_DE_normalized_scaled > 0.01)    # detection threshold
 
-#generate points based on rescaled probability
+#generate points based on integrated probability
 position_points <- sample_points_from_probabilities(
   filtered_results,
-  prob_column = "integrated_prob_rescaled",
+  prob_column = "integrated_prob",
   n_points = 1000,
   crs = 32617,
   by_group = TRUE,
