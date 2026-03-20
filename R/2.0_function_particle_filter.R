@@ -202,7 +202,18 @@ pf_position_estimate <- function(px, py, weights, method, raster) {
     list(x = xy[1, 1], y = xy[1, 2])
   } else {
     # Weighted mean
-    list(x = sum(px * weights), y = sum(py * weights))
+    xm <- sum(px * weights)
+    ym <- sum(py * weights)
+    # Snap to nearest valid particle if mean lands on land
+    if (is.na(raster::extract(raster, cbind(xm, ym)))) {
+      valid_p <- which(!is.na(raster::extract(raster, cbind(px, py))))
+      if (length(valid_p) > 0) {
+        dists <- (px[valid_p] - xm)^2 + (py[valid_p] - ym)^2
+        nearest <- valid_p[which.min(dists)]
+        xm <- px[nearest]; ym <- py[nearest]
+      }
+    }
+    list(x = xm, y = ym)
   }
 }
 
