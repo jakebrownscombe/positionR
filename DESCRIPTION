@@ -1,6 +1,6 @@
 Package: positionR
 Title: Weighted Average Detection Efficiency (WADE) Positioning for Acoustic Telemetry
-Version: 1.4.0
+Version: 1.5.0
 Author: Jacob Brownscombe <jakebrownscombe@gmail.com> [aut, cre]
 Maintainer: Jacob Brownscombe <jakebrownscombe@gmail.com>
 Authors@R: 

@@ -1,3 +1,45 @@
+# positionR 1.5.0
+
+## New Features
+
+* **Particle filter positioning**: New `particle_filter_positioning()` function
+  implements Sequential Monte Carlo positioning for acoustic telemetry. Tracks
+  continuous movement paths using a Correlated Random Walk model with detection
+  likelihood weighting. Key optimizations include a pre-computed DE lookup grid
+  (`create_de_lookup()`) replacing `stats::predict()` calls, fully vectorized
+  movement and likelihood calculations, and systematic resampling. Achieves
+  ~1s runtime for 5 fish x 480 time steps x 1000 particles x 80 stations.
+
+* **Effort-balanced non-detection weighting**: New `scale_non_detections`
+  parameter (default TRUE) in `calculate_fish_positions()` scales non-detection
+  evidence by total detections per fish/time period, balancing the
+  detection-weighted mean that favours high-count stations.
+
+## Performance
+
+* **data.table conversion**: All internal WADE helper functions converted from
+  dplyr to data.table for ~10x speedup on large datasets. Affects
+  `aggregate_detections_for_prediction()`, `create_non_detections()`,
+  `aggregate_non_detections()`, `aggregate_probability()`,
+  `normalize_DE_by_station()`, and information weighting helpers.
+
+* **Vectorized barrier detection**: New `check_line_crosses_barrier_vectorized()`
+  calls `raster::extract()` once per station instead of once per cell (~20-100x
+  faster for barrier checking in `calculate_station_distances()`).
+
+* **Optimized reshaping**: `tidyr::pivot_longer()` replaced with
+  `data.table::melt()` in `calculate_station_distances()`.
+
+## Improvements
+
+* Reduced console output verbosity: `calculate_station_distances()` progress
+  line only in interactive sessions; removed per-station detection rate printout
+  from `analyze_detection_performance()`.
+
+* New dependency: `data.table` added to Imports.
+
+---
+
 # positionR 1.4.0
 
 ## Breaking Changes
