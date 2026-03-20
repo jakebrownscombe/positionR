@@ -143,15 +143,16 @@ stations_df <- data.frame(
   station_y = station_coords[, 2]
 )
 
-# Detection summary for station sizing
+# Detection summary for station sizing (aggregate to unique locations)
 det_summary <- pf_data %>%
   filter(detected == 1) %>%
   group_by(station_id) %>%
   summarise(total_dets = n(), .groups = "drop")
 stations_plot <- stations_df %>%
+  group_by(station_x, station_y) %>%
+  summarise(station_id = first(station_id), .groups = "drop") %>%
   left_join(det_summary, by = "station_id") %>%
-  mutate(total_dets = ifelse(is.na(total_dets), 0, total_dets),
-         has_detections = total_dets > 0)
+  mutate(total_dets = ifelse(is.na(total_dets), 0, total_dets))
 
 # Zoom extent from estimated positions
 pos <- smooth_results$positions
