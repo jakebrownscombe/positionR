@@ -702,3 +702,165 @@ pf_compute_single_ud <- function(x, y, weights, raster, cell_area, contour_level
 
   list(ud_raster = ud_raster, areas = areas)
 }
+
+
+# ============================================================================
+# Detection gap analysis
+# ============================================================================
+
+#' Analyse Detection Gaps and Position Error Accumulation
+#'
+#' Identifies periods without detections (gaps) in particle filter output and
+#' characterises how position uncertainty and error grow during these gaps.
+#' Useful for evaluating array coverage and setting confidence thresholds.
+#'
+#' @param pf_results Output from \code{particle_filter_positioning()} or
+#'   \code{pf_smooth()}.
+#' @param true_tracks Optional data frame with columns \code{fish_id},
+#'   \code{time}, \code{x_true}, \code{y_true} for error calculation
+#'   (e.g., from simulation ground truth). If NULL, only uncertainty-based
+#'   metrics are returned.
+#'
+#' @return A list with components:
+#'   \item{gaps}{Data frame with one row per gap event, including duration,
+#'     uncertainty, ESS, and error metrics (if true_tracks provided)}
+#'   \item{time_series}{Enriched version of positions with gap indicators,
+#'     time since last detection, and error (if true_tracks provided)}
+#'
+#' @details
+#' A gap is defined as one or more consecutive time steps where
+#' \code{n_detecting == 0}. For each gap, the function computes:
+#' \itemize{
+#'   \item Duration in seconds and number of time steps
+#'   \item Mean positional uncertainty (\code{x_sd + y_sd}) during the gap
+#'   \item Minimum ESS during the gap (low ESS indicates particle degeneracy)
+#'   \item If true tracks are provided: error at gap start/end, maximum error,
+#'     and error growth rate (metres per minute)
+#' }
+#'
+#' The \code{time_series} output adds \code{time_since_last_detection_sec}
+#' to every time step, enabling analysis of error as a continuous function
+#' of time since the last informative observation.
+#'
+#' @export
+pf_analyze_gaps <- function(pf_results, true_tracks = NULL) {
+
+  pos <- data.table::as.data.table(pf_results$positions)
+
+  # Merge true tracks if provided
+  has_truth <- !is.null(true_tracks)
+  if (has_truth) {
+    tt <- data.table::as.data.table(true_tracks)
+    # Standardize column names
+    if ("x" %in% names(tt) && !"x_true" %in% names(tt)) {
+      data.table::setnames(tt, c("x", "y"), c("x_true", "y_true"))
+    }
+    if ("path_id" %in% names(tt) && !"fish_id" %in% names(tt)) {
+      data.table::setnames(tt, "path_id", "fish_id")
+    }
+    if ("datetime" %in% names(tt) && !"time" %in% names(tt)) {
+      data.table::setnames(tt, "datetime", "time")
+    }
+    pos <- tt[, .(fish_id, time, x_true, y_true)][pos, on = .(fish_id, time)]
+    pos[, error_m := sqrt((x_mean - x_true)^2 + (y_mean - y_true)^2)]
+  }
+
+  fish_ids <- unique(pos$fish_id)
+  all_gaps <- list()
+  gap_counter <- 0L
+
+  for (fid in fish_ids) {
+    fp <- pos[fish_id == fid]
+    data.table::setorder(fp, time)
+    n <- nrow(fp)
+
+    # Compute time since last detection
+    fp[, in_gap := (n_detecting == 0)]
+    last_det_time <- fp$time[1]
+    tsld <- numeric(n)
+    for (i in seq_len(n)) {
+      if (fp$n_detecting[i] > 0) {
+        last_det_time <- fp$time[i]
+        tsld[i] <- 0
+      } else {
+        if (inherits(fp$time[i], "POSIXct")) {
+          tsld[i] <- as.numeric(difftime(fp$time[i], last_det_time, units = "secs"))
+        } else {
+          tsld[i] <- as.numeric(fp$time[i] - last_det_time)
+        }
+      }
+    }
+    fp[, time_since_last_detection_sec := tsld]
+
+    # Identify gap runs using rle
+    r <- rle(fp$in_gap)
+    gap_ids <- rep(NA_integer_, n)
+    idx <- 1L
+    for (j in seq_along(r$lengths)) {
+      end_idx <- idx + r$lengths[j] - 1L
+      if (r$values[j]) {
+        gap_counter <- gap_counter + 1L
+        gap_ids[idx:end_idx] <- gap_counter
+
+        # Extract gap info
+        gap_rows <- fp[idx:end_idx]
+        gap_start <- gap_rows$time[1]
+        gap_end <- gap_rows$time[nrow(gap_rows)]
+        if (inherits(gap_start, "POSIXct")) {
+          dur_sec <- as.numeric(difftime(gap_end, gap_start, units = "secs"))
+        } else {
+          dur_sec <- as.numeric(gap_end - gap_start)
+        }
+
+        gap_info <- data.frame(
+          fish_id = fid,
+          gap_id = gap_counter,
+          gap_start_time = gap_start,
+          gap_end_time = gap_end,
+          gap_duration_sec = dur_sec,
+          gap_duration_min = dur_sec / 60,
+          n_steps_in_gap = nrow(gap_rows),
+          mean_uncertainty = mean(gap_rows$x_sd + gap_rows$y_sd, na.rm = TRUE),
+          ess_min = min(gap_rows$ess, na.rm = TRUE),
+          stringsAsFactors = FALSE
+        )
+
+        if (has_truth) {
+          errors <- gap_rows$error_m
+          gap_info$error_at_start <- errors[1]
+          gap_info$error_at_end <- errors[length(errors)]
+          gap_info$max_error_in_gap <- max(errors, na.rm = TRUE)
+          gap_info$mean_error_in_gap <- mean(errors, na.rm = TRUE)
+          # Error growth rate (m/min)
+          if (dur_sec > 0 && length(errors) > 1) {
+            gap_info$error_growth_rate_m_per_min <-
+              (errors[length(errors)] - errors[1]) / (dur_sec / 60)
+          } else {
+            gap_info$error_growth_rate_m_per_min <- NA_real_
+          }
+        }
+
+        all_gaps[[length(all_gaps) + 1]] <- gap_info
+      }
+      idx <- end_idx + 1L
+    }
+    fp[, gap_id := gap_ids]
+
+    # Update pos in place
+    pos[fish_id == fid, `:=`(
+      in_gap = fp$in_gap,
+      gap_id = fp$gap_id,
+      time_since_last_detection_sec = fp$time_since_last_detection_sec
+    )]
+    if (has_truth) {
+      pos[fish_id == fid, error_m := fp$error_m]
+    }
+  }
+
+  gaps_df <- if (length(all_gaps) > 0) do.call(rbind, all_gaps) else data.frame()
+
+  list(
+    gaps = gaps_df,
+    time_series = as.data.frame(pos)
+  )
+}
