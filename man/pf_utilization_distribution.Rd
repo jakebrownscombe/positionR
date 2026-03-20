@@ -8,6 +8,7 @@ pf_utilization_distribution(
   pf_results,
   raster,
   contour_levels = c(0.5, 0.95),
+  bandwidth = NULL,
   by_time = FALSE,
   verbose = TRUE
 )
