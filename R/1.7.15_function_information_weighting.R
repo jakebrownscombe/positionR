@@ -14,99 +14,73 @@
 #'
 #' @return Data frame with station characteristics including effective DE by temporal group
 #' @export
-calculate_station_de_characteristics <- function(detection_probs, 
+calculate_station_de_characteristics <- function(detection_probs,
                                                 percentile_cutoff = 0.95,
                                                 temporal_grouping = "day",
                                                 time_aggregation = "seconds") {
-  
+
   # Validate inputs
   if (percentile_cutoff <= 0 || percentile_cutoff > 1) {
     stop("percentile_cutoff must be between 0 and 1")
   }
-  
+
+  dt <- data.table::as.data.table(detection_probs)
+
   # Create temporal grouping column based on aggregation method
   if (temporal_grouping == "none") {
-    # No temporal grouping - calculate single value per station
-    detection_probs <- detection_probs %>%
-      dplyr::mutate(temporal_group = 1)
+    dt[, temporal_group := 1L]
   } else {
-    # Create temporal grouping based on the time_period format
-    # time_period comes from the main function's aggregation
-    
-    # Detect the format of time_period
-    sample_time <- detection_probs$time_period[1]
-    
+    sample_time <- dt$time_period[1]
     if (temporal_grouping == "day") {
       if (inherits(sample_time, c("Date", "POSIXt"))) {
-        # Already date/datetime format
-        detection_probs <- detection_probs %>%
-          dplyr::mutate(temporal_group = as.Date(time_period))
+        dt[, temporal_group := as.Date(time_period)]
       } else if (is.numeric(sample_time)) {
         if (time_aggregation == "seconds") {
-          # Numeric seconds - convert to days
-          detection_probs <- detection_probs %>%
-            dplyr::mutate(temporal_group = floor(time_period / 86400))
+          dt[, temporal_group := floor(time_period / 86400)]
+        } else if (sample_time > 10000) {
+          dt[, temporal_group := as.Date(time_period, origin = "1970-01-01")]
         } else {
-          # Numeric days or other - use as-is or convert with origin
-          if (sample_time > 10000) {
-            # Likely days since epoch
-            detection_probs <- detection_probs %>%
-              dplyr::mutate(temporal_group = as.Date(time_period, origin = "1970-01-01"))
-          } else {
-            # Small numbers - probably relative days
-            detection_probs <- detection_probs %>%
-              dplyr::mutate(temporal_group = time_period)
-          }
+          dt[, temporal_group := time_period]
         }
       } else {
-        # Character or other - try to convert
-        detection_probs <- detection_probs %>%
-          dplyr::mutate(temporal_group = as.Date(time_period))
+        dt[, temporal_group := as.Date(time_period)]
       }
     } else if (temporal_grouping == "hour") {
       if (inherits(sample_time, "POSIXt")) {
-        detection_probs <- detection_probs %>%
-          dplyr::mutate(temporal_group = lubridate::floor_date(time_period, "hour"))
+        dt[, temporal_group := lubridate::floor_date(time_period, "hour")]
       } else if (is.numeric(sample_time)) {
         if (time_aggregation == "seconds") {
-          detection_probs <- detection_probs %>%
-            dplyr::mutate(temporal_group = floor(time_period / 3600))
+          dt[, temporal_group := floor(time_period / 3600)]
         } else {
-          detection_probs <- detection_probs %>%
-            dplyr::mutate(temporal_group = time_period)
+          dt[, temporal_group := time_period]
         }
       }
     }
   }
-  
+
   # Calculate station characteristics by temporal group
-  station_chars <- detection_probs %>%
-    dplyr::group_by(station_id, temporal_group) %>%
-    dplyr::summarise(
-      # Count of cells for this station
-      n_cells = dplyr::n(),
-      
-      # Robust station DE using top percentile
-      top_percentile_threshold = stats::quantile(DE_pred, percentile_cutoff, na.rm = TRUE),
-      station_effective_DE = mean(DE_pred[DE_pred >= top_percentile_threshold], na.rm = TRUE),
-      
-      # Alternative metrics for diagnostics
-      station_max_DE = max(DE_pred, na.rm = TRUE),
-      station_mean_DE = mean(DE_pred, na.rm = TRUE),
-      station_median_DE = stats::median(DE_pred, na.rm = TRUE),
-      station_min_DE = min(DE_pred, na.rm = TRUE),
-      station_range_DE = station_max_DE - station_min_DE,
-      
-      .groups = "drop"
-    ) %>%
-    # Handle any NA values in effective DE
-    dplyr::mutate(
-      station_effective_DE = ifelse(is.na(station_effective_DE) | !is.finite(station_effective_DE),
-                                    station_mean_DE,  # Fallback to mean
-                                    station_effective_DE)
-    )
-  
-  return(station_chars)
+  station_chars <- dt[, {
+    thresh <- stats::quantile(DE_pred, percentile_cutoff, na.rm = TRUE)
+    eff_de <- mean(DE_pred[DE_pred >= thresh], na.rm = TRUE)
+    max_de <- max(DE_pred, na.rm = TRUE)
+    mean_de <- mean(DE_pred, na.rm = TRUE)
+    med_de <- stats::median(DE_pred, na.rm = TRUE)
+    min_de <- min(DE_pred, na.rm = TRUE)
+    .(n_cells = .N,
+      top_percentile_threshold = thresh,
+      station_effective_DE = eff_de,
+      station_max_DE = max_de,
+      station_mean_DE = mean_de,
+      station_median_DE = med_de,
+      station_min_DE = min_de,
+      station_range_DE = max_de - min_de)
+  }, by = .(station_id, temporal_group)]
+
+  # Handle NA values in effective DE
+  station_chars[is.na(station_effective_DE) | !is.finite(station_effective_DE),
+    station_effective_DE := station_mean_DE]
+
+  return(as.data.frame(station_chars))
 }
 
 #' Apply Information-Theoretic Weighting
@@ -127,133 +101,75 @@ calculate_station_de_characteristics <- function(detection_probs,
 #'
 #' @return Data frame with added weighting columns
 #' @export
-apply_information_weighting <- function(probs_data, 
+apply_information_weighting <- function(probs_data,
                                       station_characteristics,
                                       weighting_type = "detection",
                                       dampening_factor = 1) {
-  
+
   # Validate weighting type
   if (!weighting_type %in% c("detection", "non_detection")) {
     stop("weighting_type must be 'detection' or 'non_detection'")
   }
-  
+
+  dt <- data.table::as.data.table(probs_data)
+  dt_sc <- data.table::as.data.table(station_characteristics)
+
   # Add temporal grouping to match station characteristics
-  # Detect temporal grouping type from station_characteristics
-  if ("temporal_group" %in% names(station_characteristics)) {
-    if ("time_period" %in% names(probs_data)) {
-      
-      # Get the type of temporal_group from station_characteristics
-      sample_station_temporal <- station_characteristics$temporal_group[1]
-      sample_data_time <- probs_data$time_period[1]
-      
-      # Check for valid data
-      if (is.na(sample_data_time) || is.null(sample_data_time) || nrow(probs_data) == 0) {
-        # For empty or invalid data, match the station_characteristics temporal_group type
-        warning("Invalid or empty time_period data - skipping temporal grouping")
-        if (inherits(sample_station_temporal, "Date")) {
-          # Match Date type
-          probs_data <- probs_data %>% dplyr::mutate(temporal_group = as.Date("1970-01-01"))
-        } else {
-          # Match numeric type
-          probs_data <- probs_data %>% dplyr::mutate(temporal_group = 1)
-        }
-      } else {
-      
+  if ("temporal_group" %in% names(dt_sc) && "time_period" %in% names(dt)) {
+    sample_station_temporal <- dt_sc$temporal_group[1]
+    sample_data_time <- dt$time_period[1]
+
+    if (is.na(sample_data_time) || is.null(sample_data_time) || nrow(dt) == 0) {
+      warning("Invalid or empty time_period data - skipping temporal grouping")
       if (inherits(sample_station_temporal, "Date")) {
-        # Station characteristics use Date - convert probs_data to Date
-        if (inherits(sample_data_time, c("Date", "POSIXt"))) {
-          probs_data <- probs_data %>%
-            dplyr::mutate(temporal_group = as.Date(time_period))
-        } else if (is.numeric(sample_data_time)) {
-          if (!is.na(sample_data_time) && sample_data_time > 10000) {
-            # Large number - likely days since epoch
-            probs_data <- probs_data %>%
-              dplyr::mutate(temporal_group = as.Date(time_period, origin = "1970-01-01"))
-          } else {
-            # Small number - relative days, convert to Date
-            probs_data <- probs_data %>%
-              dplyr::mutate(temporal_group = as.Date(time_period, origin = "1970-01-01"))
-          }
-        }
-      } else if (is.numeric(sample_station_temporal)) {
-        # Station characteristics use numeric - convert probs_data to numeric
-        if (inherits(sample_data_time, c("Date", "POSIXt"))) {
-          probs_data <- probs_data %>%
-            dplyr::mutate(temporal_group = as.numeric(as.Date(time_period)))
-        } else {
-          # Already numeric - use directly or convert
-          if (!is.na(sample_data_time) && sample_data_time > 1000000) {
-            # Likely seconds - convert to days
-            probs_data <- probs_data %>%
-              dplyr::mutate(temporal_group = floor(time_period / 86400))
-          } else {
-            # Already in right scale
-            probs_data <- probs_data %>%
-              dplyr::mutate(temporal_group = time_period)
-          }
-        }
+        dt[, temporal_group := as.Date("1970-01-01")]
       } else {
-        # Other type - try to match
-        probs_data <- probs_data %>%
-          dplyr::mutate(temporal_group = time_period)
+        dt[, temporal_group := 1L]
       }
-      } # Close the else block for valid data
+    } else if (inherits(sample_station_temporal, "Date")) {
+      if (inherits(sample_data_time, c("Date", "POSIXt"))) {
+        dt[, temporal_group := as.Date(time_period)]
+      } else if (is.numeric(sample_data_time)) {
+        dt[, temporal_group := as.Date(time_period, origin = "1970-01-01")]
+      }
+    } else if (is.numeric(sample_station_temporal)) {
+      if (inherits(sample_data_time, c("Date", "POSIXt"))) {
+        dt[, temporal_group := as.numeric(as.Date(time_period))]
+      } else if (!is.na(sample_data_time) && sample_data_time > 1000000) {
+        dt[, temporal_group := floor(time_period / 86400)]
+      } else {
+        dt[, temporal_group := time_period]
+      }
+    } else {
+      dt[, temporal_group := time_period]
     }
   }
-  
+
   # Join with station characteristics
-  weighted_data <- probs_data %>%
-    dplyr::left_join(station_characteristics, 
-                     by = if("temporal_group" %in% names(probs_data)) 
-                       c("station_id", "temporal_group") else "station_id")
-  
+  join_cols <- if ("temporal_group" %in% names(dt)) c("station_id", "temporal_group") else "station_id"
+  dt <- dt_sc[dt, on = join_cols]
+
   if (weighting_type == "detection") {
-    # Information-theoretic weighting for detections
-    weighted_data <- weighted_data %>%
-      dplyr::mutate(
-        # Detection multiplier based on station's effective DE
-        # Low-DE stations get higher multipliers (more surprising detections)
-        detection_multiplier = n_detections / (station_effective_DE + 0.01),
-        
-        # Apply optional dampening to prevent extreme weights
-        detection_multiplier_dampened = if (dampening_factor == 1) {
-          detection_multiplier
-        } else if (dampening_factor == 0.5) {
-          sqrt(detection_multiplier)  # Square root dampening
-        } else {
-          detection_multiplier^dampening_factor  # Custom power dampening
-        },
-        
-        # Final weight: multiplier × spatial DE
-        # This preserves within-station spatial gradients
-        DE_pred_weighted = detection_multiplier_dampened * DE_pred,
-        
-        # Keep normalized column name for compatibility with existing code
-        DE_pred_normalized = DE_pred_weighted
-      )
-    
-  } else if (weighting_type == "non_detection") {
-    # Raw DE weighting for non-detections (no information adjustment)
-    # High-DE non-detection = strong absence evidence
-    # Low-DE non-detection = weak absence evidence
-    weighted_data <- weighted_data %>%
-      dplyr::mutate(
-        # Use raw DE - already encodes strength of absence evidence
-        DE_pred_weighted = DE_pred,
-        
-        # For compatibility with existing code
-        DE_pred_normalized = DE_pred
-      )
+    dt[, detection_multiplier := n_detections / (station_effective_DE + 0.01)]
+    if (dampening_factor == 1) {
+      dt[, detection_multiplier_dampened := detection_multiplier]
+    } else if (dampening_factor == 0.5) {
+      dt[, detection_multiplier_dampened := sqrt(detection_multiplier)]
+    } else {
+      dt[, detection_multiplier_dampened := detection_multiplier^dampening_factor]
+    }
+    dt[, `:=`(DE_pred_weighted = detection_multiplier_dampened * DE_pred,
+              DE_pred_normalized = detection_multiplier_dampened * DE_pred)]
+  } else {
+    dt[, `:=`(DE_pred_weighted = DE_pred,
+              DE_pred_normalized = DE_pred)]
   }
-  
+
   # Add diagnostic information
-  weighted_data <- weighted_data %>%
-    dplyr::mutate(
-      weighting_method_used = weighting_type,
-      station_info_available = !is.na(station_effective_DE)
-    )
-  
-  return(weighted_data)
+  dt[, `:=`(weighting_method_used = weighting_type,
+            station_info_available = !is.na(station_effective_DE))]
+
+  return(as.data.frame(dt))
 }
 
 #' Print Station Characteristics Summary
