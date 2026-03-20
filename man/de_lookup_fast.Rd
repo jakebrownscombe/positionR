@@ -14,9 +14,9 @@ de_lookup_fast(distances, depths, de_lookup)
 \item{de_lookup}{List from \code{create_de_lookup()}.}
 }
 \value{
-Numeric vector or matrix of detection probabilities (same shape as distances).
+Numeric vector or matrix of detection probabilities.
 }
 \description{
-Vectorized lookup of detection efficiency values using array indexing.
+Fast DE Lookup from Pre-computed Grid
 }
 \keyword{internal}

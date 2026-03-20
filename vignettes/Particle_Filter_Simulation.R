@@ -326,7 +326,118 @@ p6 <- ggplot(comparison, aes(x = factor(n_detecting), y = error_m)) +
 print(p6)
 
 
-# 7. BENCHMARK SCALING =========================================================
+# 7. TWO-FILTER SMOOTHER ======================================================
+
+# The smoother runs a backward filter and combines with the forward pass,
+# incorporating both past and future observations at each time step.
+
+cat("\n=== Running Two-Filter Smoother ===\n")
+smooth_time <- system.time({
+  smooth_results <- pf_smooth(
+    pf_results = pf_results,
+    detection_data = fish_simulation$station_detections,
+    station_info = points_regular,
+    de_model = logistic_DE$log_model,
+    raster = depth_raster,
+    step_length_mean = 50,
+    step_length_sd = 30,
+    turning_angle_sd = 45,
+    time_step = 180,
+    max_distance = 30000,
+    fish_id_col = "path_id",
+    time_col = "datetime",
+    station_col = "station_id",
+    return_particles = TRUE,
+    verbose = TRUE
+  )
+})
+cat("Smoother time:", smooth_time["elapsed"], "s\n")
+
+# Compare forward vs smoothed error
+smooth_comparison <- smooth_results$positions %>%
+  left_join(true_tracks, by = c("fish_id", "time")) %>%
+  filter(!is.na(x_true)) %>%
+  mutate(error_m = sqrt((x_mean - x_true)^2 + (y_mean - y_true)^2))
+
+cat("\n=== Forward vs Smoothed Error ===\n")
+cat("Forward  - mean:", round(mean(comparison$error_m, na.rm = TRUE), 1),
+    "m, median:", round(median(comparison$error_m, na.rm = TRUE), 1), "m\n")
+cat("Smoothed - mean:", round(mean(smooth_comparison$error_m, na.rm = TRUE), 1),
+    "m, median:", round(median(smooth_comparison$error_m, na.rm = TRUE), 1), "m\n")
+cat("Improvement:", round((1 - mean(smooth_comparison$error_m, na.rm = TRUE) /
+    mean(comparison$error_m, na.rm = TRUE)) * 100, 1), "%\n")
+
+# Plot: forward vs smoothed positions
+p7 <- ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  # True track
+  geom_path(data = comparison, aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.4, alpha = 0.7) +
+  # Forward estimate (red)
+  geom_path(data = comparison, aes(x = x_mean, y = y_mean),
+            colour = "red", linewidth = 0.3, alpha = 0.5) +
+  # Smoothed estimate (white)
+  geom_path(data = smooth_comparison, aes(x = x_mean, y = y_mean),
+            colour = "white", linewidth = 0.5, alpha = 0.8) +
+  # Stations
+  geom_point(data = stations_plot %>% filter(!has_detections),
+             aes(x = station_x, y = station_y),
+             colour = "red", size = 1, shape = 4) +
+  geom_point(data = stations_plot %>% filter(has_detections),
+             aes(x = station_x, y = station_y, size = total_dets),
+             colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
+  scale_size_continuous(range = c(1, 5), name = "Detections") +
+  facet_wrap(~fish_id) +
+  coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
+  theme_minimal() +
+  labs(title = "Forward vs Smoothed Position Estimates",
+       subtitle = "Green = true | Red = forward | White = smoothed")
+
+print(p7)
+
+
+# 8. UTILIZATION DISTRIBUTION =================================================
+
+cat("\n=== Computing Utilization Distributions ===\n")
+ud_results <- pf_utilization_distribution(
+  pf_results = smooth_results,
+  raster = depth_raster,
+  contour_levels = c(0.5, 0.95),
+  by_time = FALSE,
+  verbose = TRUE
+)
+
+cat("\nHome Range Estimates:\n")
+print(ud_results$home_ranges)
+
+# Plot UD for first fish
+first_fish_id <- as.character(unique(smooth_results$positions$fish_id)[1])
+ud_raster_1 <- ud_results$ud_rasters[[first_fish_id]]
+ud_df <- as.data.frame(ud_raster_1, xy = TRUE)
+names(ud_df)[3] <- "prob"
+
+p8 <- ggplot() +
+  geom_raster(data = raster_df, aes(x = x, y = y, fill = layer)) +
+  scale_fill_gradient(low = "blue4", high = "cornflowerblue",
+                      na.value = "transparent", name = "Depth (m)") +
+  ggnewscale::new_scale_fill() +
+  geom_raster(data = ud_df %>% filter(!is.na(prob) & prob > 0),
+              aes(x = x, y = y, fill = prob), alpha = 0.8) +
+  scale_fill_viridis_c(option = "magma", name = "P(use)") +
+  geom_path(data = comparison %>% filter(fish_id == as.integer(first_fish_id)),
+            aes(x = x_true, y = y_true),
+            colour = "green3", linewidth = 0.4, alpha = 0.7) +
+  coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
+  theme_minimal() +
+  labs(title = paste("Utilization Distribution - Fish", first_fish_id),
+       subtitle = "Green = true track | Colour = probability of use")
+
+print(p8)
+
+
+# 9. BENCHMARK SCALING =========================================================
 
 cat("\n=== Benchmarking particle count scaling ===\n")
 for (np in c(100, 500, 1000, 2000)) {
