@@ -57,7 +57,7 @@ start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
 fish_simulation <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,
-  n_paths = 5,
+  n_paths = 6,
   n_steps = 480,
   step_length_mean = 50,
   step_length_sd = 30,
@@ -204,7 +204,7 @@ p1 <- ggplot() +
              aes(x = station_x, y = station_y, size = total_dets),
              colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
   scale_size_continuous(range = c(1, 5), name = "Detections") +
-  facet_wrap(~fish_id) +
+  facet_wrap(~fish_id, ncol = 2) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Particle Filter: Particle Cloud + Resolved Paths",
@@ -237,7 +237,7 @@ p2 <- ggplot() +
   # Stations
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
-  facet_wrap(~fish_id) +
+  facet_wrap(~fish_id, ncol = 2) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Position Estimates with Error and Uncertainty",
@@ -280,7 +280,7 @@ p3 <- ggplot() +
   # Stations
   geom_point(data = stations_plot, aes(x = station_x, y = station_y),
              colour = "grey80", size = 0.5, shape = 3) +
-  facet_wrap(~time, nrow = 2) +
+  facet_wrap(~time, ncol = 2) +
   coord_sf(xlim = range(c(particles_snapshot$x, positions_snapshot$x_mean), na.rm = TRUE) + c(-500, 500),
            ylim = range(c(particles_snapshot$y, positions_snapshot$y_mean), na.rm = TRUE) + c(-500, 500)) +
   theme_minimal() +
@@ -379,12 +379,12 @@ p7 <- ggplot() +
   # True track
   geom_path(data = comparison, aes(x = x_true, y = y_true),
             colour = "green3", linewidth = 0.4, alpha = 0.7) +
-  # Forward estimate (red)
-  geom_path(data = comparison, aes(x = x_mean, y = y_mean),
-            colour = "red", linewidth = 0.3, alpha = 0.5) +
   # Smoothed estimate (white)
   geom_path(data = smooth_comparison, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.5, alpha = 0.8) +
+  # Forward estimate (red)
+  geom_path(data = comparison, aes(x = x_mean, y = y_mean),
+            colour = "red", linewidth = 0.3, alpha = 0.5) +
   # Stations
   geom_point(data = stations_plot %>% filter(!has_detections),
              aes(x = station_x, y = station_y),
@@ -393,7 +393,7 @@ p7 <- ggplot() +
              aes(x = station_x, y = station_y, size = total_dets),
              colour = "orange", fill = NA, shape = 21, stroke = 0.8) +
   scale_size_continuous(range = c(1, 5), name = "Detections") +
-  facet_wrap(~fish_id) +
+  facet_wrap(~fish_id, ncol = 2) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Forward vs Smoothed Position Estimates",
@@ -477,7 +477,7 @@ p9 <- ggplot() +
   # Smoothed track
   geom_path(data = smooth_comparison, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.3, alpha = 0.5) +
-  facet_wrap(~fish_id) +
+  facet_wrap(~fish_id, ncol = 2) +
   coord_sf(xlim = zoom_xlim, ylim = zoom_ylim) +
   theme_minimal() +
   labs(title = "Utilization Distribution Contours (50% and 95%)",
