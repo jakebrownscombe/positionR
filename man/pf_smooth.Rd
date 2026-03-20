@@ -20,7 +20,7 @@ pf_smooth(
   time_col = "datetime",
   station_col = "station_id",
   ess_threshold = 0.5,
-  position_method = "map",
+  position_method = "mean",
   return_particles = FALSE,
   verbose = TRUE
 )

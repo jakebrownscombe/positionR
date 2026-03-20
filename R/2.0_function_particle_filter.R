@@ -258,9 +258,9 @@ pf_position_estimate <- function(px, py, weights, method, raster,
 #' @param station_col Character. Name of station ID column (default "station_id").
 #' @param ess_threshold Numeric. ESS threshold for resampling as fraction of n_particles (default 0.5).
 #' @param position_method Character. Method for computing point position estimates:
-#'   \code{"map"} (default) uses the highest-density raster cell, which always falls
-#'   on valid water cells within the particle cloud; \code{"mean"} uses the
-#'   weighted mean of particle positions (can land on land or between clusters).
+#'   \code{"mean"} (default) uses the weighted mean of particle positions, snapped
+#'   to the nearest valid particle if it lands on land; \code{"map"} uses the
+#'   highest-density raster cell with continuity penalty to avoid track jumping.
 #' @param return_particles Logical. Return full particle histories (default FALSE).
 #' @param verbose Logical. Print progress (default TRUE).
 #'
@@ -277,7 +277,7 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
                                          fish_id_col = "path_id", time_col = "datetime",
                                          station_col = "station_id",
                                          ess_threshold = 0.5,
-                                         position_method = "map",
+                                         position_method = "mean",
                                          return_particles = FALSE, verbose = TRUE) {
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
@@ -478,7 +478,7 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
                        max_distance = 30000, n_backward_particles = NULL,
                        fish_id_col = "path_id", time_col = "datetime",
                        station_col = "station_id", ess_threshold = 0.5,
-                       position_method = "map",
+                       position_method = "mean",
                        return_particles = FALSE, verbose = TRUE) {
 
   if (is.null(pf_results$particles)) {
