@@ -1,3 +1,6 @@
+#' @importFrom data.table := .SD .N data.table as.data.table setkey setkeyv setnames setorderv CJ fifelse rbindlist melt
+NULL
+
 # Helper functions for timezone handling (replicated from walks_detections for consistency)
 standardize_datetime <- function(datetime_col, target_tz = "UTC") {
   if (is.null(datetime_col) || length(datetime_col) == 0) {
@@ -1837,136 +1840,98 @@ aggregate_detections_for_prediction <- function(station_detections,
                                                 time_aggregation = "seconds",
                                                 include_barriers = FALSE) {
 
+  # Convert to data.table for fast operations
+  dt_det <- data.table::as.data.table(station_detections)
+  dt_sd <- data.table::as.data.table(station_distances_df)
+
   # Aggregate detections by fish, time, and station
-  detection_summary <- station_detections %>%
-    dplyr::group_by(fish_id, time_period, station_id) %>%
-    dplyr::summarise(
-      n_detections = ifelse("n_detections" %in% names(station_detections),
-                           sum(n_detections, na.rm = TRUE),
-                           dplyr::n()),  # Use n_detections column if available, otherwise count rows
-      first_detection_time = min(time_period),
-      last_detection_time = max(time_period),
-      mean_detection_prob = mean(detection_prob, na.rm = TRUE),
-      total_distance = mean(distance_to_station, na.rm = TRUE),
-      .groups = 'drop'
-    )
+  has_n_det <- "n_detections" %in% names(dt_det)
+  detection_summary <- dt_det[, .(
+    n_detections = if (has_n_det) sum(n_detections, na.rm = TRUE) else .N,
+    first_detection_time = min(time_period),
+    last_detection_time = max(time_period),
+    mean_detection_prob = mean(detection_prob, na.rm = TRUE),
+    total_distance = mean(distance_to_station, na.rm = TRUE)
+  ), by = .(fish_id, time_period, station_id)]
+
+  # Determine which columns to keep from station_distances
+  barrier_col <- if (include_barriers && "crosses_barrier" %in% names(dt_sd)) "crosses_barrier" else NULL
+  sd_cols <- c("station_no", "cell_id", "x", "y", "raster_value",
+               "cost_distance", "straight_distance", "tortuosity", barrier_col)
+  sd_cols <- intersect(sd_cols, names(dt_sd))
 
   # Use temporal DE prediction if enabled, otherwise use static DE from station_distances_df
   if (use_temporal_de && !is.null(daily_de_lookup)) {
     # Get unique dates from detection data
     if (time_aggregation == "seconds") {
-      # Convert seconds to dates (assuming origin date as in main function)
       origin_date <- as.Date("2025-01-01")
-      detection_dates <- detection_summary %>%
-        dplyr::mutate(detection_date = origin_date + (time_period / 86400)) %>%
-        dplyr::select(fish_id, time_period, detection_date) %>%
-        dplyr::distinct()
+      detection_summary[, detection_date := origin_date + (time_period / 86400)]
     } else {
-      # Extract dates directly from POSIX time_period
-      detection_dates <- detection_summary %>%
-        dplyr::mutate(detection_date = as.Date(as.POSIXct(time_period, origin = "1970-01-01"))) %>%
-        dplyr::select(fish_id, time_period, detection_date) %>%
-        dplyr::distinct()
+      detection_summary[, detection_date := as.Date(as.POSIXct(time_period, origin = "1970-01-01"))]
     }
-    
-    # Merge with temporal DE predictions
-    prediction_data_list <- list()
-    
-    for (i in 1:nrow(detection_dates)) {
-      current_date <- detection_dates$detection_date[i]
-      current_fish <- detection_dates$fish_id[i]
-      current_time <- detection_dates$time_period[i]
-      
-      # Get DE predictions for this date
-      date_key <- as.character(current_date)
-      
-      if (date_key %in% names(daily_de_lookup)) {
-        daily_de <- daily_de_lookup[[date_key]]
-        
-        # Get detection summary for this fish/time
-        current_detections <- detection_summary %>%
-          dplyr::filter(fish_id == current_fish, time_period == current_time)
-        
-        # Merge with temporal DE predictions
-        # Select columns including barriers if requested
-        if (include_barriers) {
-          station_cols_to_select <- c("station_no", "cell_id", "x", "y", "raster_value",
-                                     "cost_distance", "straight_distance", "tortuosity", "crosses_barrier")
-        } else {
-          station_cols_to_select <- c("station_no", "cell_id", "x", "y", "raster_value",
-                                     "cost_distance", "straight_distance", "tortuosity")
-        }
+    detection_summary[, date_key := as.character(detection_date)]
 
-        current_prediction <- current_detections %>%
-          dplyr::left_join(
-            daily_de,
-            by = c("station_id" = "station_no"),
-            relationship = "many-to-many"
-          ) %>%
-          dplyr::left_join(
-            station_distances_df %>%
-              dplyr::select(dplyr::any_of(station_cols_to_select)),
-            by = c("station_id" = "station_no", "cell_id"),
-            relationship = "many-to-many"
-          ) %>%
-          dplyr::filter(!is.na(cell_id))
+    # Vectorized temporal DE: combine all matching daily_de tables at once
+    available_dates <- intersect(detection_summary[, unique(date_key)], names(daily_de_lookup))
 
-        # Apply barrier masking if enabled
-        if (include_barriers && "crosses_barrier" %in% names(current_prediction)) {
-          current_prediction <- current_prediction %>%
-            dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-        }
+    if (length(available_dates) > 0) {
+      # Stack all daily DE tables with their date key
+      daily_de_list <- lapply(available_dates, function(dk) {
+        dt <- data.table::as.data.table(daily_de_lookup[[dk]])
+        dt[, date_key := dk]
+        dt
+      })
+      daily_de_all <- data.table::rbindlist(daily_de_list, fill = TRUE)
 
-        prediction_data_list[[length(prediction_data_list) + 1]] <- current_prediction
+      # Prepare station distances (select columns, remove DE_pred if present to avoid collision)
+      dt_sd_sub <- dt_sd[, ..sd_cols]
+      if ("DE_pred" %in% names(dt_sd_sub)) {
+        dt_sd_sub[, DE_pred := NULL]
       }
-    }
-    
-    if (length(prediction_data_list) > 0) {
-      prediction_data <- dplyr::bind_rows(prediction_data_list)
+
+      # Join: detection_summary -> daily_de (get DE_pred) -> station_distances (get spatial cols)
+      prediction_data <- daily_de_all[detection_summary,
+        on = .(station_no = station_id, date_key),
+        allow.cartesian = TRUE, nomatch = NULL]
+
+      prediction_data <- dt_sd_sub[prediction_data,
+        on = .(station_no, cell_id),
+        nomatch = NULL]
+
+      # Clean up temp columns
+      prediction_data[, c("date_key", "detection_date") := NULL]
     } else {
       # Fallback to static DE if no temporal data available
-      prediction_data <- detection_summary %>%
-        dplyr::left_join(
-          station_distances_df,
-          by = c("station_id" = "station_no"),
-          relationship = "many-to-many"
-        ) %>%
-        dplyr::filter(!is.na(cell_id))
-
-      # Apply barrier masking if enabled
-      if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
-        prediction_data <- prediction_data %>%
-          dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-      }
+      prediction_data <- dt_sd[detection_summary,
+        on = .(station_no = station_id),
+        allow.cartesian = TRUE, nomatch = NULL]
+      detection_summary[, c("date_key", "detection_date") := NULL]
     }
   } else {
-    # Use static DE predictions from station_distances_df
-    prediction_data <- detection_summary %>%
-      dplyr::left_join(
-        station_distances_df,
-        by = c("station_id" = "station_no"),
-        relationship = "many-to-many"
-      ) %>%
-      dplyr::filter(!is.na(cell_id))
-
-    # Apply barrier masking if enabled
-    if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
-      prediction_data <- prediction_data %>%
-        dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-    }
+    # Static DE: keyed join with station_distances_df
+    prediction_data <- dt_sd[detection_summary,
+      on = .(station_no = station_id),
+      allow.cartesian = TRUE, nomatch = NULL]
   }
-  
-  # Select final columns and arrange
-  prediction_data <- prediction_data %>%
-    dplyr::select(
-      fish_id, time_period, station_id, n_detections,
-      first_detection_time, last_detection_time, mean_detection_prob,
-      total_distance, cell_id, x, y, raster_value, cost_distance,
-      straight_distance, tortuosity, DE_pred
-    ) %>%
-    dplyr::arrange(fish_id, time_period, station_id, cell_id)
 
-  return(prediction_data)
+  # Apply barrier masking if enabled
+  if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
+    prediction_data[crosses_barrier == TRUE, DE_pred := 0]
+  }
+
+  # Rename station_no back to station_id for consistency
+  data.table::setnames(prediction_data, "station_no", "station_id")
+
+  # Select final columns and sort
+  final_cols <- c("fish_id", "time_period", "station_id", "n_detections",
+                  "first_detection_time", "last_detection_time", "mean_detection_prob",
+                  "total_distance", "cell_id", "x", "y", "raster_value", "cost_distance",
+                  "straight_distance", "tortuosity", "DE_pred")
+  final_cols <- intersect(final_cols, names(prediction_data))
+  prediction_data <- prediction_data[, ..final_cols]
+  data.table::setorderv(prediction_data, c("fish_id", "time_period", "station_id", "cell_id"))
+
+  return(as.data.frame(prediction_data))
 }
 
 # Function to normalize DE values by station
@@ -1980,203 +1945,215 @@ normalize_DE_by_station <- function(data,
     stop("method must be 'min_max', 'z_score', or 'robust'")
   }
 
-  # Create normalized column name
+  dt <- data.table::as.data.table(data)
   normalized_col <- paste0(DE_col, "_normalized")
 
   if (method == "min_max") {
-    result <- data %>%
-      dplyr::group_by(!!dplyr::sym(station_col)) %>%
-      dplyr::mutate(
-        station_min = min(!!dplyr::sym(DE_col), na.rm = TRUE),
-        station_max = max(!!dplyr::sym(DE_col), na.rm = TRUE),
-        station_range = station_max - station_min,
-        !!normalized_col := ifelse(station_range > 0 & is.finite(station_range),
-                                   (!!dplyr::sym(DE_col) - station_min) / station_range,
-                                   ifelse(is.finite(!!dplyr::sym(DE_col)), 0.5, 0))
-      ) %>%
-      dplyr::select(-station_min, -station_max, -station_range) %>%
-      dplyr::ungroup()
+    dt[, c("station_min", "station_max") := .(
+      min(get(DE_col), na.rm = TRUE),
+      max(get(DE_col), na.rm = TRUE)
+    ), by = c(station_col)]
+    dt[, station_range := station_max - station_min]
+    dt[, (normalized_col) := data.table::fifelse(
+      station_range > 0 & is.finite(station_range),
+      (get(DE_col) - station_min) / station_range,
+      data.table::fifelse(is.finite(get(DE_col)), 0.5, 0))]
+    dt[, c("station_min", "station_max", "station_range") := NULL]
   } else if (method == "z_score") {
-    result <- data %>%
-      dplyr::group_by(!!dplyr::sym(station_col)) %>%
-      dplyr::mutate(
-        station_mean = mean(!!dplyr::sym(DE_col), na.rm = TRUE),
-        station_sd = stats::sd(!!dplyr::sym(DE_col), na.rm = TRUE),
-        !!normalized_col := ifelse(is.finite(station_sd) & station_sd > 0,
-                                   (!!dplyr::sym(DE_col) - station_mean) / station_sd,
-                                   ifelse(is.finite(!!dplyr::sym(DE_col)), 0, 0))
-      ) %>%
-      dplyr::select(-station_mean, -station_sd) %>%
-      dplyr::ungroup()
+    dt[, c("station_mean", "station_sd") := .(
+      mean(get(DE_col), na.rm = TRUE),
+      stats::sd(get(DE_col), na.rm = TRUE)
+    ), by = c(station_col)]
+    dt[, (normalized_col) := data.table::fifelse(
+      is.finite(station_sd) & station_sd > 0,
+      (get(DE_col) - station_mean) / station_sd,
+      data.table::fifelse(is.finite(get(DE_col)), 0, 0))]
+    dt[, c("station_mean", "station_sd") := NULL]
   } else if (method == "robust") {
-    result <- data %>%
-      dplyr::group_by(!!dplyr::sym(station_col)) %>%
-      dplyr::mutate(
-        station_median = stats::median(!!dplyr::sym(DE_col), na.rm = TRUE),
-        station_mad = stats::mad(!!dplyr::sym(DE_col), na.rm = TRUE),
-        !!normalized_col := ifelse(is.finite(station_mad) & station_mad > 0,
-                                   (!!dplyr::sym(DE_col) - station_median) / station_mad,
-                                   ifelse(is.finite(!!dplyr::sym(DE_col)), 0, 0))
-      ) %>%
-      dplyr::select(-station_median, -station_mad) %>%
-      dplyr::ungroup()
+    dt[, c("station_median", "station_mad") := .(
+      stats::median(get(DE_col), na.rm = TRUE),
+      stats::mad(get(DE_col), na.rm = TRUE)
+    ), by = c(station_col)]
+    dt[, (normalized_col) := data.table::fifelse(
+      is.finite(station_mad) & station_mad > 0,
+      (get(DE_col) - station_median) / station_mad,
+      data.table::fifelse(is.finite(get(DE_col)), 0, 0))]
+    dt[, c("station_median", "station_mad") := NULL]
   }
 
-  return(result)
+  return(as.data.frame(dt))
 }
 
 # Create dataset of non-detecting receivers for each fish-time combination
-create_non_detections <- function(station_detections, 
-                                  points_regular, 
-                                  max_distance_from_detecting = 2000, 
-                                  station_info = NULL, 
-                                  use_temporal_filtering = FALSE, 
+create_non_detections <- function(station_detections,
+                                  points_regular,
+                                  max_distance_from_detecting = 2000,
+                                  station_info = NULL,
+                                  use_temporal_filtering = FALSE,
                                   time_aggregation = "seconds") {
 
-  # Get all unique fish-time combinations from station_detections
-  # Handle both simulation data (with step) and field data (without step)
+  # Convert to data.table
+  dt_det <- data.table::as.data.table(station_detections)
+
+  # Get all unique fish-time combinations
   required_cols <- c("fish_id", "time_period")
-  optional_cols <- c("step", "x", "y")
-  available_cols <- intersect(optional_cols, names(station_detections))
-  
-  fish_time_data <- station_detections %>%
-    dplyr::select(all_of(c(required_cols, available_cols))) %>%
-    dplyr::distinct()
+  optional_cols <- intersect(c("step", "x", "y"), names(dt_det))
+  keep_cols <- c(required_cols, optional_cols)
+  fish_time_data <- unique(dt_det[, ..keep_cols])
 
   # Get all available stations from points_regular
-  # Extract coordinates before dropping geometry
   coords <- sf::st_coordinates(points_regular)
-  all_stations_base <- points_regular %>%
-    sf::st_drop_geometry() %>%
-    dplyr::mutate(
-      station_x = coords[, 1],
-      station_y = coords[, 2]
-    )
-  
-  # Conditionally include raster_value (depth) column if it exists
+  all_stations_base <- sf::st_drop_geometry(points_regular)
+  all_stations_base$station_x <- coords[, 1]
+  all_stations_base$station_y <- coords[, 2]
+
   if ("raster_value" %in% names(all_stations_base)) {
-    all_stations <- all_stations_base %>%
-      dplyr::select(station_id = point_id, station_x, station_y, depth = raster_value)
+    all_stations <- data.table::data.table(
+      station_id = all_stations_base$point_id,
+      station_x = all_stations_base$station_x,
+      station_y = all_stations_base$station_y,
+      depth = all_stations_base$raster_value
+    )
   } else {
-    all_stations <- all_stations_base %>%
-      dplyr::select(station_id = point_id, station_x, station_y) %>%
-      dplyr::mutate(depth = NA_real_)  # Provide default depth value
+    all_stations <- data.table::data.table(
+      station_id = all_stations_base$point_id,
+      station_x = all_stations_base$station_x,
+      station_y = all_stations_base$station_y,
+      depth = NA_real_
+    )
   }
-  
+
   # Filter stations by deployment dates if temporal filtering is enabled
   if (use_temporal_filtering && !is.null(station_info)) {
-    # Add date information to fish_time_data
+    dt_si <- data.table::as.data.table(station_info)
     if (time_aggregation == "seconds") {
-      # Convert seconds to dates (assuming origin date as in main function)
       origin_date <- as.Date("2025-01-01")
-      fish_time_data <- fish_time_data %>%
-        dplyr::mutate(detection_date = origin_date + (time_period / 86400))
+      fish_time_data[, detection_date := origin_date + (time_period / 86400)]
     } else {
-      # Extract dates directly from POSIX time_period
-      fish_time_data <- fish_time_data %>%
-        dplyr::mutate(detection_date = as.Date(as.POSIXct(time_period, origin = "1970-01-01")))
+      fish_time_data[, detection_date := as.Date(as.POSIXct(time_period, origin = "1970-01-01"))]
     }
-    
-    # Create station-date combinations that are valid (station deployed on that date)
-    valid_station_dates <- fish_time_data %>%
-      dplyr::select(fish_id, time_period, detection_date) %>%
-      dplyr::distinct() %>%
-      dplyr::cross_join(station_info %>% dplyr::select(station_id, start_date, end_date)) %>%
-      dplyr::filter(detection_date >= start_date & detection_date <= end_date) %>%
-      dplyr::select(fish_id, time_period, station_id)
-    
-    # Filter all_stations to only include those that were deployed for the fish-time combinations
-    all_stations_filtered <- all_stations %>%
-      dplyr::inner_join(
-        valid_station_dates %>% dplyr::select(station_id) %>% dplyr::distinct(),
-        by = "station_id"
-      )
-    
-    # Use filtered stations for further processing
-    all_stations <- all_stations_filtered
+
+    # Cross join fish-time with station deployment info, filter by date
+    ft_unique <- unique(fish_time_data[, .(fish_id, time_period, detection_date)])
+    si_sub <- dt_si[, .(station_id, start_date, end_date)]
+    # Cross join via dummy key
+    ft_unique[, .cj_key := 1L]
+    si_sub[, .cj_key := 1L]
+    valid_station_dates <- si_sub[ft_unique, on = .(.cj_key), allow.cartesian = TRUE][
+      detection_date >= start_date & detection_date <= end_date,
+      .(fish_id, time_period, station_id)]
+    ft_unique[, .cj_key := NULL]
+
+    valid_ids <- unique(valid_station_dates$station_id)
+    all_stations <- all_stations[station_id %in% valid_ids]
   }
 
   # Get stations that DID detect for each fish-time
-  detecting_stations <- station_detections %>%
-    dplyr::select(fish_id, time_period, station_id) %>%
-    dplyr::distinct()
+  detecting_stations <- unique(dt_det[, .(fish_id, time_period, station_id)])
 
-  # Get coordinates of detecting stations for each fish-time combination
-  detecting_station_coords <- detecting_stations %>%
-    dplyr::left_join(all_stations, by = "station_id") %>%
-    dplyr::select(fish_id, time_period, detecting_station_id = station_id,
-                  detecting_x = station_x, detecting_y = station_y)
-
-  # Filter non-detecting stations based on distance
+  # Pre-compute station-to-station distance matrix (small: n_stations^2)
+  # and filter to nearby pairs — avoids the expensive cross_join
   if (!is.null(max_distance_from_detecting) && max_distance_from_detecting > 0) {
-    candidate_non_detections <- fish_time_data %>%
-      dplyr::left_join(detecting_station_coords, by = c("fish_id", "time_period")) %>%
-      dplyr::cross_join(all_stations %>%
-                          dplyr::rename(candidate_station_id = station_id,
-                                        candidate_x = station_x,
-                                        candidate_y = station_y,
-                                        candidate_depth = depth)) %>%
-      dplyr::mutate(
-        distance_between_stations = sqrt((candidate_x - detecting_x)^2 + (candidate_y - detecting_y)^2)
-      ) %>%
-      dplyr::filter(distance_between_stations <= max_distance_from_detecting) %>%
-      dplyr::select(fish_id, time_period, station_id = candidate_station_id,
-                    station_x = candidate_x, station_y = candidate_y, depth = candidate_depth,
-                    any_of(c("step", "x", "y"))) %>%
-      dplyr::distinct() %>%
-      dplyr::mutate(
-        distance_to_station = ifelse(
-          "x" %in% names(.) & "y" %in% names(.),
-          sqrt((x - station_x)^2 + (y - station_y)^2),
-          NA_real_  # For field data without fish positions
-        )
-      )
+    station_pairs <- data.table::CJ(
+      detecting_id = all_stations$station_id,
+      candidate_id = all_stations$station_id
+    )
+    # Join coordinates for both sides
+    station_pairs <- all_stations[station_pairs, on = .(station_id = detecting_id),
+                                  nomatch = NULL][, .(
+      detecting_id = station_id, detecting_x = station_x, detecting_y = station_y,
+      candidate_id
+    )]
+    station_pairs <- all_stations[station_pairs, on = .(station_id = candidate_id),
+                                  nomatch = NULL]
+    data.table::setnames(station_pairs,
+      c("station_id", "station_x", "station_y", "depth"),
+      c("candidate_id", "candidate_x", "candidate_y", "candidate_depth"))
+
+    # Filter by distance
+    station_pairs[, dist_between := sqrt((candidate_x - detecting_x)^2 +
+                                          (candidate_y - detecting_y)^2)]
+    station_pairs <- station_pairs[dist_between <= max_distance_from_detecting]
+    station_pairs[, c("detecting_x", "detecting_y", "dist_between") := NULL]
+
+    # Join detecting stations -> nearby candidate stations (equi-join, not cross_join)
+    data.table::setnames(detecting_stations, "station_id", "detecting_id")
+    candidates <- station_pairs[detecting_stations, on = .(detecting_id),
+                                 allow.cartesian = TRUE, nomatch = NULL]
+    data.table::setnames(detecting_stations, "detecting_id", "station_id")
+
+    # Deduplicate candidates per fish-time
+    candidates <- unique(candidates[, .(fish_id, time_period,
+      station_id = candidate_id, station_x = candidate_x,
+      station_y = candidate_y, depth = candidate_depth)])
+
+    # Add optional columns from fish_time_data
+    if (length(optional_cols) > 0) {
+      merge_cols <- c("fish_id", "time_period")
+      candidates <- fish_time_data[, c(merge_cols, optional_cols), with = FALSE][
+        candidates, on = merge_cols, allow.cartesian = TRUE]
+    }
+
+    # Compute distance_to_station if fish positions available
+    if (all(c("x", "y") %in% names(candidates))) {
+      candidates[, distance_to_station := sqrt((x - station_x)^2 + (y - station_y)^2)]
+    } else {
+      candidates[, distance_to_station := NA_real_]
+    }
+
+    candidate_non_detections <- candidates
   } else {
-    candidate_non_detections <- fish_time_data %>%
-      dplyr::cross_join(all_stations) %>%
-      dplyr::mutate(
-        distance_to_station = sqrt((x - station_x)^2 + (y - station_y)^2)
-      )
+    # No distance filtering — full cross join via dummy key
+    all_stations[, .cj_key := 1L]
+    fish_time_data[, .cj_key := 1L]
+    candidate_non_detections <- all_stations[fish_time_data, on = .(.cj_key),
+                                              allow.cartesian = TRUE]
+    candidate_non_detections[, .cj_key := NULL]
+    all_stations[, .cj_key := NULL]
+    fish_time_data[, .cj_key := NULL]
+    if (all(c("x", "y") %in% names(candidate_non_detections))) {
+      candidate_non_detections[, distance_to_station := sqrt((x - station_x)^2 + (y - station_y)^2)]
+    } else {
+      candidate_non_detections[, distance_to_station := NA_real_]
+    }
   }
 
-  # Identify non-detecting combinations
-  non_detections <- candidate_non_detections %>%
-    dplyr::anti_join(detecting_stations, by = c("fish_id", "time_period", "station_id")) %>%
-    dplyr::mutate(
-      detected = 0,
-      detection_prob = NA
-    ) %>%
-    dplyr::select(fish_id, any_of(c("step", "x", "y")), time_period, station_id,
-                  distance_to_station, detection_prob, detected,
-                  station_x, station_y, depth) %>%
-    dplyr::arrange(fish_id, time_period, station_id)
-  
+  # Anti-join: remove stations that DID detect
+  candidate_non_detections[, .anti_key := paste(fish_id, time_period, station_id, sep = "_")]
+  detecting_stations[, .anti_key := paste(fish_id, time_period, station_id, sep = "_")]
+  non_detections <- candidate_non_detections[!.anti_key %in% detecting_stations$.anti_key]
+  non_detections[, .anti_key := NULL]
+  detecting_stations[, .anti_key := NULL]
+
+  # Add detection columns
+  non_detections[, `:=`(detected = 0L, detection_prob = NA_real_)]
+
+  # Select and order columns
+  out_cols <- intersect(c("fish_id", optional_cols, "time_period", "station_id",
+                          "distance_to_station", "detection_prob", "detected",
+                          "station_x", "station_y", "depth"), names(non_detections))
+  non_detections <- non_detections[, ..out_cols]
+  data.table::setorderv(non_detections, c("fish_id", "time_period", "station_id"))
+
   # Apply final temporal filtering if enabled
   if (use_temporal_filtering && !is.null(station_info)) {
-    # Add detection dates to non_detections
+    dt_si <- data.table::as.data.table(station_info)
     if (time_aggregation == "seconds") {
       origin_date <- as.Date("2025-01-01")
-      non_detections <- non_detections %>%
-        dplyr::mutate(detection_date = origin_date + (time_period / 86400))
+      non_detections[, detection_date := origin_date + (time_period / 86400)]
     } else {
-      non_detections <- non_detections %>%
-        dplyr::mutate(detection_date = as.Date(as.POSIXct(time_period, origin = "1970-01-01")))
+      non_detections[, detection_date := as.Date(as.POSIXct(time_period, origin = "1970-01-01"))]
     }
-    
-    # Filter to only include stations that were deployed on the detection date
-    non_detections <- non_detections %>%
-      dplyr::left_join(
-        station_info %>% dplyr::select(station_id, start_date, end_date),
-        by = "station_id"
-      ) %>%
-      dplyr::filter(
-        !is.na(start_date) & !is.na(end_date) &
-        detection_date >= start_date & detection_date <= end_date
-      ) %>%
-      dplyr::select(-detection_date, -start_date, -end_date)
+
+    non_detections <- dt_si[, .(station_id, start_date, end_date)][
+      non_detections, on = .(station_id), nomatch = NA]
+    non_detections <- non_detections[
+      !is.na(start_date) & !is.na(end_date) &
+      detection_date >= start_date & detection_date <= end_date]
+    non_detections[, c("detection_date", "start_date", "end_date") := NULL]
   }
 
-  return(non_detections)
+  return(as.data.frame(non_detections))
 }
 
 # Function to aggregate non-detections and generate cells for prediction
@@ -2187,134 +2164,91 @@ aggregate_non_detections <- function(non_detections,
                                      time_aggregation = "seconds",
                                      include_barriers = FALSE) {
 
+  # Convert to data.table for fast operations
+  dt_nd <- data.table::as.data.table(non_detections)
+  dt_sd <- data.table::as.data.table(station_distances_df)
+
   # Aggregate non-detections by fish, time, and station
-  non_detection_summary <- non_detections %>%
-    dplyr::group_by(fish_id, time_period, station_id) %>%
-    dplyr::summarise(
-      n_detections = 0,
-      first_detection_time = NA,
-      last_detection_time = NA,
-      mean_detection_prob = mean(detection_prob, na.rm = TRUE),
-      total_distance = mean(distance_to_station, na.rm = TRUE),
-      .groups = 'drop'
-    )
+  non_detection_summary <- dt_nd[, .(
+    n_detections = 0L,
+    first_detection_time = NA_real_,
+    last_detection_time = NA_real_,
+    mean_detection_prob = mean(detection_prob, na.rm = TRUE),
+    total_distance = mean(distance_to_station, na.rm = TRUE)
+  ), by = .(fish_id, time_period, station_id)]
 
-  # Use temporal DE prediction if enabled, otherwise use static DE from station_distances_df
+  # Determine which columns to keep from station_distances
+  barrier_col <- if (include_barriers && "crosses_barrier" %in% names(dt_sd)) "crosses_barrier" else NULL
+  sd_cols <- c("station_no", "cell_id", "x", "y", "raster_value",
+               "cost_distance", "straight_distance", "tortuosity", barrier_col)
+  sd_cols <- intersect(sd_cols, names(dt_sd))
+
+  # Use temporal DE prediction if enabled, otherwise use static DE
   if (use_temporal_de && !is.null(daily_de_lookup)) {
-    # Get unique dates from non-detection data
     if (time_aggregation == "seconds") {
-      # Convert seconds to dates (assuming origin date as in main function)
       origin_date <- as.Date("2025-01-01")
-      non_detection_dates <- non_detection_summary %>%
-        dplyr::mutate(detection_date = origin_date + (time_period / 86400)) %>%
-        dplyr::select(fish_id, time_period, detection_date) %>%
-        dplyr::distinct()
+      non_detection_summary[, detection_date := origin_date + (time_period / 86400)]
     } else {
-      # Extract dates directly from POSIX time_period
-      non_detection_dates <- non_detection_summary %>%
-        dplyr::mutate(detection_date = as.Date(as.POSIXct(time_period, origin = "1970-01-01"))) %>%
-        dplyr::select(fish_id, time_period, detection_date) %>%
-        dplyr::distinct()
+      non_detection_summary[, detection_date := as.Date(as.POSIXct(time_period, origin = "1970-01-01"))]
     }
-    
-    # Merge with temporal DE predictions
-    prediction_data_list <- list()
-    
-    for (i in 1:nrow(non_detection_dates)) {
-      current_date <- non_detection_dates$detection_date[i]
-      current_fish <- non_detection_dates$fish_id[i]
-      current_time <- non_detection_dates$time_period[i]
-      
-      # Get DE predictions for this date
-      date_key <- as.character(current_date)
-      
-      if (date_key %in% names(daily_de_lookup)) {
-        daily_de <- daily_de_lookup[[date_key]]
-        
-        # Get non-detection summary for this fish/time
-        current_non_detections <- non_detection_summary %>%
-          dplyr::filter(fish_id == current_fish, time_period == current_time)
-        
-        # Merge with temporal DE predictions
-        # Select columns including barriers if requested
-        if (include_barriers) {
-          station_cols_to_select <- c("station_no", "cell_id", "x", "y", "raster_value",
-                                     "cost_distance", "straight_distance", "tortuosity", "crosses_barrier")
-        } else {
-          station_cols_to_select <- c("station_no", "cell_id", "x", "y", "raster_value",
-                                     "cost_distance", "straight_distance", "tortuosity")
-        }
+    non_detection_summary[, date_key := as.character(detection_date)]
 
-        current_prediction <- current_non_detections %>%
-          dplyr::left_join(
-            daily_de,
-            by = c("station_id" = "station_no"),
-            relationship = "many-to-many"
-          ) %>%
-          dplyr::left_join(
-            station_distances_df %>%
-              dplyr::select(dplyr::any_of(station_cols_to_select)),
-            by = c("station_id" = "station_no", "cell_id"),
-            relationship = "many-to-many"
-          ) %>%
-          dplyr::filter(!is.na(cell_id))
+    # Vectorized temporal DE: combine all matching daily_de tables at once
+    available_dates <- intersect(non_detection_summary[, unique(date_key)], names(daily_de_lookup))
 
-        # Apply barrier masking if enabled
-        if (include_barriers && "crosses_barrier" %in% names(current_prediction)) {
-          current_prediction <- current_prediction %>%
-            dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-        }
+    if (length(available_dates) > 0) {
+      daily_de_list <- lapply(available_dates, function(dk) {
+        dt <- data.table::as.data.table(daily_de_lookup[[dk]])
+        dt[, date_key := dk]
+        dt
+      })
+      daily_de_all <- data.table::rbindlist(daily_de_list, fill = TRUE)
 
-        prediction_data_list[[length(prediction_data_list) + 1]] <- current_prediction
+      dt_sd_sub <- dt_sd[, ..sd_cols]
+      if ("DE_pred" %in% names(dt_sd_sub)) {
+        dt_sd_sub[, DE_pred := NULL]
       }
-    }
-    
-    if (length(prediction_data_list) > 0) {
-      prediction_data <- dplyr::bind_rows(prediction_data_list)
+
+      prediction_data <- daily_de_all[non_detection_summary,
+        on = .(station_no = station_id, date_key),
+        allow.cartesian = TRUE, nomatch = NULL]
+
+      prediction_data <- dt_sd_sub[prediction_data,
+        on = .(station_no, cell_id),
+        nomatch = NULL]
+
+      prediction_data[, c("date_key", "detection_date") := NULL]
     } else {
-      # Fallback to static DE if no temporal data available
-      prediction_data <- non_detection_summary %>%
-        dplyr::left_join(
-          station_distances_df,
-          by = c("station_id" = "station_no"),
-          relationship = "many-to-many"
-        ) %>%
-        dplyr::filter(!is.na(cell_id))
-
-      # Apply barrier masking if enabled
-      if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
-        prediction_data <- prediction_data %>%
-          dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-      }
+      prediction_data <- dt_sd[non_detection_summary,
+        on = .(station_no = station_id),
+        allow.cartesian = TRUE, nomatch = NULL]
+      non_detection_summary[, c("date_key", "detection_date") := NULL]
     }
   } else {
-    # Use static DE predictions from station_distances_df
-    prediction_data <- non_detection_summary %>%
-      dplyr::left_join(
-        station_distances_df,
-        by = c("station_id" = "station_no"),
-        relationship = "many-to-many"
-      ) %>%
-      dplyr::filter(!is.na(cell_id))
-
-    # Apply barrier masking if enabled
-    if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
-      prediction_data <- prediction_data %>%
-        dplyr::mutate(DE_pred = ifelse(crosses_barrier, 0, DE_pred))
-    }
+    # Static DE: keyed join with station_distances_df
+    prediction_data <- dt_sd[non_detection_summary,
+      on = .(station_no = station_id),
+      allow.cartesian = TRUE, nomatch = NULL]
   }
-  
-  # Select final columns and arrange
-  prediction_data <- prediction_data %>%
-    dplyr::select(
-      fish_id, time_period, station_id, n_detections,
-      first_detection_time, last_detection_time, mean_detection_prob,
-      total_distance, cell_id, x, y, raster_value, cost_distance,
-      straight_distance, tortuosity, DE_pred
-    ) %>%
-    dplyr::arrange(fish_id, time_period, station_id, cell_id)
 
-  return(prediction_data)
+  # Apply barrier masking if enabled
+  if (include_barriers && "crosses_barrier" %in% names(prediction_data)) {
+    prediction_data[crosses_barrier == TRUE, DE_pred := 0]
+  }
+
+  # Rename station_no back to station_id for consistency
+  data.table::setnames(prediction_data, "station_no", "station_id")
+
+  # Select final columns and sort
+  final_cols <- c("fish_id", "time_period", "station_id", "n_detections",
+                  "first_detection_time", "last_detection_time", "mean_detection_prob",
+                  "total_distance", "cell_id", "x", "y", "raster_value", "cost_distance",
+                  "straight_distance", "tortuosity", "DE_pred")
+  final_cols <- intersect(final_cols, names(prediction_data))
+  prediction_data <- prediction_data[, ..final_cols]
+  data.table::setorderv(prediction_data, c("fish_id", "time_period", "station_id", "cell_id"))
+
+  return(as.data.frame(prediction_data))
 }
 
 # Function to aggregate probabilities
@@ -2328,124 +2262,84 @@ aggregate_probability <- function(df, detection_weight = 0.5, non_detection_weig
     }
   }
 
+  dt <- data.table::as.data.table(df)
+
   # Get unique x,y coordinates for each cell_id
-  cell_coords <- df %>%
-    dplyr::select(cell_id, x, y) %>%
-    dplyr::distinct()
+  cell_coords <- unique(dt[, .(cell_id, x, y)])
 
-  # Separate detection and non-detection data
-  detection_data <- df %>%
-    dplyr::filter(type == "detection") %>%
-    dplyr::group_by(fish_id, time_period, cell_id) %>%
-    dplyr::summarise(
-      weighted_mean_DE_normalized = stats::weighted.mean(DE_pred_normalized, n_detections),
-      detections = dplyr::first(n_detections),
-      .groups = "drop"
-    )
+  # Separate and aggregate detection and non-detection data
+  det <- dt[type == "detection", .(
+    weighted_mean_DE_normalized = stats::weighted.mean(DE_pred_normalized, n_detections),
+    detections = n_detections[1L]
+  ), by = .(fish_id, time_period, cell_id)]
 
-  non_detection_data <- df %>%
-    dplyr::filter(type == "non-detection") %>%
-    dplyr::group_by(fish_id, time_period, cell_id) %>%
-    dplyr::summarise(
-      non_det_DE_normalized = mean(DE_pred_normalized),
-      .groups = "drop"
-    )
+  nondet <- dt[type == "non-detection", .(
+    non_det_DE_normalized = mean(DE_pred_normalized)
+  ), by = .(fish_id, time_period, cell_id)]
 
-  # Join the two datasets
-  combined_data <- dplyr::full_join(
-    detection_data,
-    non_detection_data,
-    by = c("fish_id", "time_period", "cell_id")
-  )
+  # Full join
+  combined <- merge(det, nondet, by = c("fish_id", "time_period", "cell_id"), all = TRUE)
 
-  # Apply normalization based on method
+  # Apply normalization
   if (normalize_method == "global") {
-    combined_data <- combined_data %>%
-      dplyr::mutate(
-        det_min = min(weighted_mean_DE_normalized, na.rm = TRUE),
-        det_max = max(weighted_mean_DE_normalized, na.rm = TRUE),
-        det_range = det_max - det_min,
-        weighted_mean_DE_normalized_scaled = ifelse(is.finite(det_range) & det_range > 0,
-                                                    (weighted_mean_DE_normalized - det_min) / det_range,
-                                                    ifelse(is.finite(weighted_mean_DE_normalized), 0.5, 0)),
-        non_det_min = min(non_det_DE_normalized, na.rm = TRUE),
-        non_det_max = max(non_det_DE_normalized, na.rm = TRUE),
-        non_det_range = non_det_max - non_det_min,
-        non_det_DE_normalized_scaled = ifelse(is.finite(non_det_range) & non_det_range > 0,
-                                              (non_det_DE_normalized - non_det_min) / non_det_range,
-                                              ifelse(is.finite(non_det_DE_normalized), 0.5, 0))
-      ) %>%
-      dplyr::select(-det_min, -det_max, -det_range, -non_det_min, -non_det_max, -non_det_range)
-  } else if (normalize_method == "none") {
-    # Skip second normalization - values already properly weighted
-    combined_data <- combined_data %>%
-      dplyr::mutate(
-        weighted_mean_DE_normalized_scaled = weighted_mean_DE_normalized,
-        non_det_DE_normalized_scaled = non_det_DE_normalized
-      )
+    det_min <- min(combined$weighted_mean_DE_normalized, na.rm = TRUE)
+    det_max <- max(combined$weighted_mean_DE_normalized, na.rm = TRUE)
+    det_range <- det_max - det_min
+    nondet_min <- min(combined$non_det_DE_normalized, na.rm = TRUE)
+    nondet_max <- max(combined$non_det_DE_normalized, na.rm = TRUE)
+    nondet_range <- nondet_max - nondet_min
+
+    if (is.finite(det_range) && det_range > 0) {
+      combined[, weighted_mean_DE_normalized_scaled :=
+        (weighted_mean_DE_normalized - det_min) / det_range]
+    } else {
+      combined[, weighted_mean_DE_normalized_scaled :=
+        fifelse(is.finite(weighted_mean_DE_normalized), 0.5, 0)]
+    }
+    if (is.finite(nondet_range) && nondet_range > 0) {
+      combined[, non_det_DE_normalized_scaled :=
+        (non_det_DE_normalized - nondet_min) / nondet_range]
+    } else {
+      combined[, non_det_DE_normalized_scaled :=
+        fifelse(is.finite(non_det_DE_normalized), 0.5, 0)]
+    }
   } else {
-    # Default case - no normalization
-    combined_data <- combined_data %>%
-      dplyr::mutate(
-        weighted_mean_DE_normalized_scaled = weighted_mean_DE_normalized,
-        non_det_DE_normalized_scaled = non_det_DE_normalized
-      )
+    combined[, weighted_mean_DE_normalized_scaled := weighted_mean_DE_normalized]
+    combined[, non_det_DE_normalized_scaled := non_det_DE_normalized]
   }
 
-  # Calculate integrated probability
-  result <- combined_data %>%
-    dplyr::left_join(cell_coords, by = "cell_id") %>%
-    dplyr::mutate(
-      weighted_mean_DE_normalized_scaled = ifelse(is.na(weighted_mean_DE_normalized_scaled), 0, weighted_mean_DE_normalized_scaled),
-      non_det_DE_normalized_scaled = ifelse(is.na(non_det_DE_normalized_scaled), 0, non_det_DE_normalized_scaled)
-    )
+  # Add cell coordinates
+  combined <- cell_coords[combined, on = .(cell_id)]
 
+  # Replace NAs with 0
+  combined[is.na(weighted_mean_DE_normalized_scaled), weighted_mean_DE_normalized_scaled := 0]
+  combined[is.na(non_det_DE_normalized_scaled), non_det_DE_normalized_scaled := 0]
+
+  # Calculate integrated probability
   if (integration_method == "subtractive") {
-    # Detection field is the base; non-detection carves away from it
-    # Cells with no detection evidence remain at 0
-    result <- result %>%
-      dplyr::mutate(
-        integrated_prob = pmax(0, weighted_mean_DE_normalized_scaled -
-          (non_det_DE_normalized_scaled * non_detection_weight))
-      )
+    combined[, integrated_prob := pmax(0, weighted_mean_DE_normalized_scaled -
+      (non_det_DE_normalized_scaled * non_detection_weight))]
   } else if (integration_method == "multiplicative") {
-    # Detection field scaled down proportionally by non-detection evidence
-    # Smoother penalty than subtractive; naturally non-negative
-    result <- result %>%
-      dplyr::mutate(
-        integrated_prob = weighted_mean_DE_normalized_scaled *
-          (1 - non_det_DE_normalized_scaled * non_detection_weight)
-      )
+    combined[, integrated_prob := weighted_mean_DE_normalized_scaled *
+      (1 - non_det_DE_normalized_scaled * non_detection_weight)]
   } else {
-    # Additive (original WADE formula)
-    # Weighted sum of detection and inverted non-detection probabilities
-    result <- result %>%
-      dplyr::mutate(
-        integrated_prob = (weighted_mean_DE_normalized_scaled * detection_weight) +
-          ((1.0 - non_det_DE_normalized_scaled) * non_detection_weight)
-      )
+    combined[, integrated_prob := (weighted_mean_DE_normalized_scaled * detection_weight) +
+      ((1.0 - non_det_DE_normalized_scaled) * non_detection_weight)]
   }
 
   # Rescale integrated_prob to [0, 1] per fish/time period
-  result <- result %>%
-    dplyr::group_by(fish_id, time_period) %>%
-    dplyr::mutate(
-      ip_min = min(integrated_prob, na.rm = TRUE),
-      ip_max = max(integrated_prob, na.rm = TRUE),
-      ip_range = ip_max - ip_min,
-      integrated_prob = ifelse(ip_range > 0,
-        (integrated_prob - ip_min) / ip_range,
-        integrated_prob)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(-ip_min, -ip_max, -ip_range)
+  combined[, `:=`(
+    ip_min = min(integrated_prob, na.rm = TRUE),
+    ip_max = max(integrated_prob, na.rm = TRUE)
+  ), by = .(fish_id, time_period)]
+  combined[, ip_range := ip_max - ip_min]
+  combined[ip_range > 0, integrated_prob := (integrated_prob - ip_min) / ip_range]
+  combined[, c("ip_min", "ip_max", "ip_range") := NULL]
 
-  result <- result %>%
-    dplyr::select(
-      fish_id, time_period, cell_id, x, y, detections,
-      weighted_mean_DE_normalized, non_det_DE_normalized,
-      weighted_mean_DE_normalized_scaled, non_det_DE_normalized_scaled, integrated_prob
-    )
+  # Select final columns
+  result <- combined[, .(fish_id, time_period, cell_id, x, y, detections,
+    weighted_mean_DE_normalized, non_det_DE_normalized,
+    weighted_mean_DE_normalized_scaled, non_det_DE_normalized_scaled, integrated_prob)]
 
-  return(result)
+  return(as.data.frame(result))
 }

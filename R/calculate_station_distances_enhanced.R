@@ -28,6 +28,63 @@ check_line_crosses_barrier <- function(x1, y1, x2, y2, raster, n_samples = 50) {
   any(is.na(raster_values))
 }
 
+#' Vectorized barrier crossing check for all cells from a single station
+#'
+#' Checks barrier crossings for multiple cell endpoints simultaneously using a
+#' single raster::extract() call instead of one per cell.
+#'
+#' @param x1 Numeric. X coordinate of station
+#' @param y1 Numeric. Y coordinate of station
+#' @param x2 Numeric vector. X coordinates of all cells
+#' @param y2 Numeric vector. Y coordinates of all cells
+#' @param raster RasterLayer to check for barriers
+#' @param n_samples Number of sample points per line (default 50)
+#' @param na_mask Logical vector. TRUE for cells to skip (NA distance)
+#'
+#' @return Logical vector: TRUE if line crosses barrier, NA if masked
+#' @keywords internal
+check_line_crosses_barrier_vectorized <- function(x1, y1, x2, y2, raster,
+                                                   n_samples = 50, na_mask = NULL) {
+  n_cells <- length(x2)
+  t_seq <- seq(0, 1, length.out = n_samples)
+
+  # Determine which cells to actually check
+  if (!is.null(na_mask)) {
+    check_idx <- which(!na_mask)
+  } else {
+    check_idx <- seq_len(n_cells)
+  }
+
+  result <- rep(NA, n_cells)
+
+  if (length(check_idx) == 0) return(result)
+
+  # Generate all sample points for all lines at once
+  # Each line gets n_samples points; total = length(check_idx) * n_samples
+  x2_check <- x2[check_idx]
+  y2_check <- y2[check_idx]
+
+  # Vectorized interpolation: outer product approach
+  # t_seq is length n_samples, x2_check is length n_check
+  x_all <- rep(x1, length(check_idx) * n_samples) +
+    rep(t_seq, length(check_idx)) * rep(x2_check - x1, each = n_samples)
+  y_all <- rep(y1, length(check_idx) * n_samples) +
+    rep(t_seq, length(check_idx)) * rep(y2_check - y1, each = n_samples)
+
+  # Single raster::extract() call for all points
+  all_coords <- cbind(x_all, y_all)
+  all_values <- raster::extract(raster, all_coords)
+
+  # Reshape: each line is n_samples consecutive values
+  # Check if any value in each line's group is NA
+  na_flags <- is.na(all_values)
+  line_idx <- rep(seq_along(check_idx), each = n_samples)
+  crosses <- tapply(na_flags, line_idx, any)
+
+  result[check_idx] <- as.logical(crosses)
+  return(result)
+}
+
 #' Calculate cost distances from receiver stations to all raster cells (Enhanced)
 #'
 #' Enhanced version that supports character station IDs and flexible column naming.
@@ -201,24 +258,16 @@ calculate_station_distances <- function(raster,
       straight_distances[straight_distances > max_distance] <- NA
     }
 
-    # Detect barrier crossings for each cell
+    # Detect barrier crossings for all cells at once (vectorized)
     cat("  Detecting barrier crossings...\n")
-    crosses_barrier <- logical(length(valid_cells))
-    for (j in seq_along(valid_cells)) {
-      # Skip if distance is NA
-      if (is.na(straight_distances[j])) {
-        crosses_barrier[j] <- NA
-        next
-      }
-
-      crosses_barrier[j] <- check_line_crosses_barrier(
-        x1 = station_coords[1],
-        y1 = station_coords[2],
-        x2 = cell_coords[j, 1],
-        y2 = cell_coords[j, 2],
-        raster = raster
-      )
-    }
+    crosses_barrier <- check_line_crosses_barrier_vectorized(
+      x1 = station_coords[1],
+      y1 = station_coords[2],
+      x2 = cell_coords[, 1],
+      y2 = cell_coords[, 2],
+      raster = raster,
+      na_mask = is.na(straight_distances)
+    )
 
     # Calculate hybrid distance: straight when possible, cost when barrier present
     hybrid_distances <- ifelse(
@@ -239,67 +288,61 @@ calculate_station_distances <- function(raster,
     results_df[[barrier_col_name]] <- crosses_barrier
   }
 
-  # Convert to long format
+  # Convert to long format using data.table::melt (much faster than pivot_longer)
   cat("Converting to long format...\n")
 
-  # Separate cost, straight distance, and barrier columns
-  cost_cols <- grep("^cost_dist_station_", names(results_df), value = TRUE)
-  straight_cols <- grep("^straight_dist_station_", names(results_df), value = TRUE)
-  barrier_cols <- grep("^crosses_barrier_station_", names(results_df), value = TRUE)
+  dt_results <- data.table::as.data.table(results_df)
 
-  # Create a mapping of safe column names back to original station IDs
-  station_mapping <- data.frame(
-    safe_name = gsub("[^[:alnum:]_]", "_", as.character(station_ids)),
-    original_id = station_ids,
-    stringsAsFactors = FALSE
+  # Identify column groups
+  cost_cols <- grep("^cost_dist_station_", names(dt_results), value = TRUE)
+  straight_cols <- grep("^straight_dist_station_", names(dt_results), value = TRUE)
+  barrier_cols <- grep("^crosses_barrier_station_", names(dt_results), value = TRUE)
+
+  # Create station ID mapping
+  safe_names <- gsub("[^[:alnum:]_]", "_", as.character(station_ids))
+  station_map <- data.table::data.table(
+    safe_name = safe_names,
+    station_no = station_ids
   )
 
-  # Pivot cost distances to long format (now contains hybrid distances)
-  cost_long <- results_df %>%
-    dplyr::select(cell_id, x, y, raster_value, dplyr::all_of(cost_cols)) %>%
-    tidyr::pivot_longer(cols = dplyr::all_of(cost_cols),
-                        names_to = "station_col",
-                        values_to = "cost_distance") %>%
-    dplyr::mutate(safe_name = gsub("cost_dist_station_", "", station_col)) %>%
-    dplyr::left_join(station_mapping, by = "safe_name") %>%
-    dplyr::rename(station_no = original_id) %>%
-    dplyr::select(-station_col, -safe_name)
+  # Melt all three column groups separately
+  id_cols <- c("cell_id", "x", "y", "raster_value")
 
-  # Pivot straight distances to long format
-  straight_long <- results_df %>%
-    dplyr::select(cell_id, dplyr::all_of(straight_cols)) %>%
-    tidyr::pivot_longer(cols = dplyr::all_of(straight_cols),
-                        names_to = "station_col",
-                        values_to = "straight_distance") %>%
-    dplyr::mutate(safe_name = gsub("straight_dist_station_", "", station_col)) %>%
-    dplyr::left_join(station_mapping, by = "safe_name") %>%
-    dplyr::rename(station_no = original_id) %>%
-    dplyr::select(-station_col, -safe_name)
+  cost_long <- data.table::melt(dt_results, id.vars = id_cols,
+    measure.vars = cost_cols, variable.name = "station_col", value.name = "cost_distance",
+    variable.factor = FALSE)
+  cost_long[, safe_name := gsub("cost_dist_station_", "", station_col)]
+  cost_long <- station_map[cost_long, on = .(safe_name)]
+  cost_long[, c("station_col", "safe_name") := NULL]
 
-  # Pivot barrier flags to long format
-  barrier_long <- results_df %>%
-    dplyr::select(cell_id, dplyr::all_of(barrier_cols)) %>%
-    tidyr::pivot_longer(cols = dplyr::all_of(barrier_cols),
-                        names_to = "station_col",
-                        values_to = "crosses_barrier") %>%
-    dplyr::mutate(safe_name = gsub("crosses_barrier_station_", "", station_col)) %>%
-    dplyr::left_join(station_mapping, by = "safe_name") %>%
-    dplyr::rename(station_no = original_id) %>%
-    dplyr::select(-station_col, -safe_name)
+  straight_long <- data.table::melt(dt_results, id.vars = "cell_id",
+    measure.vars = straight_cols, variable.name = "station_col", value.name = "straight_distance",
+    variable.factor = FALSE)
+  straight_long[, safe_name := gsub("straight_dist_station_", "", station_col)]
+  straight_long <- station_map[straight_long, on = .(safe_name)]
+  straight_long[, c("station_col", "safe_name") := NULL]
+
+  barrier_long <- data.table::melt(dt_results, id.vars = "cell_id",
+    measure.vars = barrier_cols, variable.name = "station_col", value.name = "crosses_barrier",
+    variable.factor = FALSE)
+  barrier_long[, safe_name := gsub("crosses_barrier_station_", "", station_col)]
+  barrier_long <- station_map[barrier_long, on = .(safe_name)]
+  barrier_long[, c("station_col", "safe_name") := NULL]
 
   # Combine all components
-  final_df <- cost_long %>%
-    dplyr::left_join(straight_long, by = c("cell_id", "station_no")) %>%
-    dplyr::left_join(barrier_long, by = c("cell_id", "station_no")) %>%
-    dplyr::mutate(tortuosity = cost_distance / straight_distance) %>%
-    dplyr::filter(!is.na(cost_distance)) %>%
-    dplyr::select(cell_id, x, y, raster_value, station_no, cost_distance,
-                  straight_distance, tortuosity, crosses_barrier) %>%
-    dplyr::arrange(station_no, cell_id)
+  final_dt <- cost_long[straight_long, on = .(cell_id, station_no)]
+  final_dt <- final_dt[barrier_long, on = .(cell_id, station_no)]
+  final_dt[, tortuosity := cost_distance / straight_distance]
+  final_dt <- final_dt[!is.na(cost_distance)]
+  final_dt <- final_dt[, .(cell_id, x, y, raster_value, station_no, cost_distance,
+                            straight_distance, tortuosity, crosses_barrier)]
+  data.table::setorderv(final_dt, c("station_no", "cell_id"))
+
+  final_df <- as.data.frame(final_dt)
 
   cat("Distance calculations complete!\n")
   cat("Result contains", nrow(final_df), "station-cell combinations\n")
-  cat("Station IDs (", class(final_df$station_no), "):", 
+  cat("Station IDs (", class(final_df$station_no), "):",
       paste(head(unique(final_df$station_no), 5), collapse = ", "),
       if(length(unique(final_df$station_no)) > 5) "..." else "", "\n")
 

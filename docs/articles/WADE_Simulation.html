@@ -86,7 +86,7 @@ Application</h3>
                         <h4 data-toc-skip class="author">Jake
 Brownscombe</h4>
             
-            <h4 data-toc-skip class="date">2026-03-19</h4>
+            <h4 data-toc-skip class="date">2026-03-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/jakebrownscombe/positionR/blob/HEAD/vignettes/WADE_Simulation.Rmd" class="external-link"><code>vignettes/WADE_Simulation.Rmd</code></a></small>
       <div class="d-none name"><code>WADE_Simulation.Rmd</code></div>
@@ -331,16 +331,16 @@ and animal behaviour.</p>
 <span><span class="co">## Station IDs ( integer ): 1, 2, 3, 4, 5 ...</span></span></code></pre>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">station_distances</span><span class="op">)</span> <span class="co">#contains shortest path, euclidean distances, tortuosity, and barrier info</span></span></code></pre></div>
-<pre><code><span><span class="co">## tibble [366,168 x 9] (S3: tbl_df/tbl/data.frame)</span></span>
-<span><span class="co">##  $ cell_id          : int [1:366168] 156 157 158 159 160 321 322 323 324 325 ...</span></span>
-<span><span class="co">##  $ x                : num [1:366168] 735854 735954 736054 736154 736254 ...</span></span>
-<span><span class="co">##  $ y                : num [1:366168] 4941891 4941891 4941891 4941891 4941891 ...</span></span>
-<span><span class="co">##  $ raster_value     : num [1:366168] -0.03541 -0.25052 -0.85191 -0.4325 -0.00829 ...</span></span>
-<span><span class="co">##  $ station_no       : int [1:366168] 1 1 1 1 1 1 1 1 1 1 ...</span></span>
-<span><span class="co">##  $ cost_distance    : num [1:366168] 20488 20588 20688 20788 20888 ...</span></span>
-<span><span class="co">##  $ straight_distance: num [1:366168] 19477 19556 19635 19715 19794 ...</span></span>
-<span><span class="co">##  $ tortuosity       : num [1:366168] 1.05 1.05 1.05 1.05 1.06 ...</span></span>
-<span><span class="co">##  $ crosses_barrier  : logi [1:366168] TRUE TRUE TRUE TRUE TRUE TRUE ...</span></span></code></pre>
+<pre><code><span><span class="co">## 'data.frame':    366168 obs. of  9 variables:</span></span>
+<span><span class="co">##  $ cell_id          : int  156 157 158 159 160 321 322 323 324 325 ...</span></span>
+<span><span class="co">##  $ x                : num  735854 735954 736054 736154 736254 ...</span></span>
+<span><span class="co">##  $ y                : num  4941891 4941891 4941891 4941891 4941891 ...</span></span>
+<span><span class="co">##  $ raster_value     : num  -0.03541 -0.25052 -0.85191 -0.4325 -0.00829 ...</span></span>
+<span><span class="co">##  $ station_no       : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span><span class="co">##  $ cost_distance    : num  20488 20588 20688 20788 20888 ...</span></span>
+<span><span class="co">##  $ straight_distance: num  19477 19556 19635 19715 19794 ...</span></span>
+<span><span class="co">##  $ tortuosity       : num  1.05 1.05 1.05 1.05 1.06 ...</span></span>
+<span><span class="co">##  $ crosses_barrier  : logi  TRUE TRUE TRUE TRUE TRUE TRUE ...</span></span></code></pre>
 <p>The <code><a href="../reference/calculate_station_distances.html">calculate_station_distances()</a></code> function automatically
 computes barrier information (whether line-of-sight crosses land) that
 can be used to prevent unrealistic detections through obstacles.</p>
