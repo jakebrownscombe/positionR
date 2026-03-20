@@ -178,7 +178,7 @@ sampled_times <- pf_times[seq(1, length(pf_times), by = 10)]
 particles_sub <- pf_results$particles %>%
   filter(time %in% sampled_times) %>%
   group_by(fish_id, time) %>%
-  slice_sample(n = 50) %>%
+  slice_sample(n = 500) %>%
   ungroup()
 
 p1 <- ggplot() +
@@ -187,7 +187,7 @@ p1 <- ggplot() +
                       na.value = "transparent", name = "Depth (m)") +
   # Particle cloud (light, transparent)
   geom_point(data = particles_sub, aes(x = x, y = y),
-             colour = "yellow", alpha = 0.02, size = 0.3) +
+             colour = "yellow", alpha = 0.1, size = 0.3) +
   # Estimated track (white)
   geom_path(data = comparison, aes(x = x_mean, y = y_mean),
             colour = "white", linewidth = 0.5, alpha = 0.8) +
@@ -486,7 +486,59 @@ p9 <- ggplot() +
 print(p9)
 
 
-# 9. BENCHMARK SCALING =========================================================
+# 9. DETECTION GAP ANALYSIS ====================================================
+
+cat("\n=== Detection Gap Analysis ===\n")
+gap_results <- pf_analyze_gaps(
+  pf_results = smooth_results,
+  true_tracks = fish_simulation$tracks %>%
+    rename(fish_id = path_id, time = datetime, x_true = x, y_true = y) %>%
+    select(fish_id, time, x_true, y_true)
+)
+
+cat("Total gaps identified:", nrow(gap_results$gaps), "\n")
+if (nrow(gap_results$gaps) > 0) {
+  cat("Gap duration range:",
+      round(min(gap_results$gaps$gap_duration_min), 1), "-",
+      round(max(gap_results$gaps$gap_duration_min), 1), "min\n")
+  cat("Mean max error during gaps:",
+      round(mean(gap_results$gaps$max_error_in_gap, na.rm = TRUE), 1), "m\n")
+}
+
+# Plot: error vs time since last detection
+ts <- gap_results$time_series
+p10 <- ggplot(ts, aes(x = time_since_last_detection_sec / 60, y = error_m)) +
+  geom_point(alpha = 0.3, size = 0.5, colour = "steelblue") +
+  geom_smooth(method = "loess", colour = "red", se = TRUE, linewidth = 0.8) +
+  theme_minimal() +
+  labs(title = "Position Error vs Time Since Last Detection",
+       x = "Time since last detection (min)", y = "Error (m)")
+
+print(p10)
+
+# Plot: error trajectories per gap, coloured by gap duration
+if (nrow(gap_results$gaps) > 0) {
+  gap_ts <- ts %>% filter(!is.na(gap_id))
+  gap_ts <- gap_ts %>%
+    left_join(gap_results$gaps %>% select(gap_id, gap_duration_min),
+              by = "gap_id")
+
+  p11 <- ggplot(gap_ts, aes(x = time_since_last_detection_sec / 60,
+                              y = error_m,
+                              group = gap_id,
+                              colour = gap_duration_min)) +
+    geom_line(alpha = 0.5, linewidth = 0.4) +
+    scale_colour_viridis_c(name = "Gap\nduration\n(min)") +
+    theme_minimal() +
+    labs(title = "Error Growth During Detection Gaps",
+         subtitle = "Each line = one gap event",
+         x = "Time since last detection (min)", y = "Error (m)")
+
+  print(p11)
+}
+
+
+# 10. BENCHMARK SCALING =========================================================
 
 cat("\n=== Benchmarking particle count scaling ===\n")
 for (np in c(100, 500, 1000, 2000)) {
