@@ -188,6 +188,16 @@ Design effective receiver arrays using multiple placement strategies, model dete
 vignette("Array_Design_Simulation", package = "positionR")
 ```
 
+### 🎯 **Particle Filter Positioning Tutorial**
+**Sequential Monte Carlo positioning with continuous path estimation**
+
+Estimate fish positions using a particle filter that tracks continuous movement paths. Compares position estimates against simulated ground truth, with visualisations of particle clouds, resolved paths, and receiver arrays.
+
+```r
+# Standalone R script (not an Rmd vignette)
+file.edit(system.file("vignettes/Particle_Filter_Simulation.R", package = "positionR"))
+```
+
 ### 🔍 **Browse All Tutorials**
 ```r
 browseVignettes("positionR")
