@@ -184,6 +184,29 @@ pf_prepare_detections <- function(detection_data, fish_id_col, time_col, station
 }
 
 
+#' Compute MAP or mean position estimate from weighted particles
+#' @keywords internal
+pf_position_estimate <- function(px, py, weights, method, raster) {
+  if (method == "map") {
+    # MAP: highest-density raster cell
+    cell_ids <- raster::cellFromXY(raster, cbind(px, py))
+    valid <- !is.na(cell_ids)
+    if (!any(valid)) {
+      # Fallback to weighted mean if no valid cells
+      return(list(x = sum(px * weights), y = sum(py * weights)))
+    }
+    dt_cells <- data.table::data.table(cell = cell_ids[valid], w = weights[valid])
+    cell_sums <- dt_cells[, .(total_w = sum(w)), by = cell]
+    best_cell <- cell_sums$cell[which.max(cell_sums$total_w)]
+    xy <- raster::xyFromCell(raster, best_cell)
+    list(x = xy[1, 1], y = xy[1, 2])
+  } else {
+    # Weighted mean
+    list(x = sum(px * weights), y = sum(py * weights))
+  }
+}
+
+
 # ============================================================================
 # Main particle filter
 # ============================================================================
@@ -209,11 +232,15 @@ pf_prepare_detections <- function(detection_data, fish_id_col, time_col, station
 #' @param time_col Character. Name of time column (default "datetime").
 #' @param station_col Character. Name of station ID column (default "station_id").
 #' @param ess_threshold Numeric. ESS threshold for resampling as fraction of n_particles (default 0.5).
+#' @param position_method Character. Method for computing point position estimates:
+#'   \code{"map"} (default) uses the highest-density raster cell, which always falls
+#'   on valid water cells within the particle cloud; \code{"mean"} uses the
+#'   weighted mean of particle positions (can land on land or between clusters).
 #' @param return_particles Logical. Return full particle histories (default FALSE).
 #' @param verbose Logical. Print progress (default TRUE).
 #'
 #' @return A list with components:
-#'   \item{positions}{Data frame with weighted mean position estimates per fish/time}
+#'   \item{positions}{Data frame with position estimates per fish/time}
 #'   \item{particles}{(Optional) Data frame with all particle positions and weights}
 #'
 #' @export
@@ -225,6 +252,7 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
                                          fish_id_col = "path_id", time_col = "datetime",
                                          station_col = "station_id",
                                          ess_threshold = 0.5,
+                                         position_method = "map",
                                          return_particles = FALSE, verbose = TRUE) {
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
@@ -293,7 +321,8 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
     detecting_ids <- unique(dets_t$station_id)
     weights <- pf_calculate_likelihoods(px, py, detecting_ids, stn, de_lookup)
     weights <- weights / sum(weights)
-    xm <- sum(px * weights); ym <- sum(py * weights)
+    pos_est <- pf_position_estimate(px, py, weights, position_method, raster)
+    xm <- pos_est$x; ym <- pos_est$y
     data.table::set(fish_positions, 1L, "x_mean", xm)
     data.table::set(fish_positions, 1L, "y_mean", ym)
     data.table::set(fish_positions, 1L, "x_sd", sqrt(sum(weights * (px - xm)^2)))
@@ -339,7 +368,8 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
         ess <- n_particles; did_resample <- TRUE
       }
 
-      xm <- sum(px * weights); ym <- sum(py * weights)
+      pos_est <- pf_position_estimate(px, py, weights, position_method, raster)
+      xm <- pos_est$x; ym <- pos_est$y
       ti <- as.integer(t)
       data.table::set(fish_positions, ti, "x_mean", xm)
       data.table::set(fish_positions, ti, "y_mean", ym)
@@ -415,6 +445,7 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
                        max_distance = 30000, n_backward_particles = NULL,
                        fish_id_col = "path_id", time_col = "datetime",
                        station_col = "station_id", ess_threshold = 0.5,
+                       position_method = "map",
                        return_particles = FALSE, verbose = TRUE) {
 
   if (is.null(pf_results$particles)) {
@@ -554,8 +585,8 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
       all_w <- exp(all_log_w)
       all_w <- all_w / sum(all_w)
 
-      xm <- sum(all_x * all_w)
-      ym <- sum(all_y * all_w)
+      pos_est <- pf_position_estimate(all_x, all_y, all_w, position_method, raster)
+      xm <- pos_est$x; ym <- pos_est$y
 
       dets_t <- fish_dt[time == time_steps_vec[t] & detected == 1]
 
