@@ -75,6 +75,8 @@ Correlated Random Walk, then weighted by detection likelihood at each time step.
 <span>  step_length_sd <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  turning_angle_sd <span class="op">=</span> <span class="fl">45</span>,</span>
 <span>  time_step <span class="op">=</span> <span class="fl">180</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"basic"</span>,</span>
+<span>  species <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_distance <span class="op">=</span> <span class="fl">30000</span>,</span>
 <span>  fish_id_col <span class="op">=</span> <span class="st">"path_id"</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="st">"datetime"</span>,</span>
@@ -123,6 +125,18 @@ station ID, and detection status.</p></dd>
 
 <dt>time_step</dt>
 <dd><p>Numeric. Reference time step in seconds for movement scaling (default 180).</p></dd>
+
+
+<dt>mode</dt>
+<dd><p>Character. Movement mode: <code>"basic"</code> (default, parametric CRW)
+or <code>"species_empirical"</code> (resample from empirical VPS distributions,
+requires <code>species</code>).</p></dd>
+
+
+<dt>species</dt>
+<dd><p>Character. Species name for empirical CRW ("Walleye",
+"Smallmouth Bass", "Muskellunge", "Generic"). Required when
+<code>mode = "species_empirical"</code>. Default is NULL.</p></dd>
 
 
 <dt>max_distance</dt>
