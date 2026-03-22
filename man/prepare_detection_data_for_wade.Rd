@@ -117,5 +117,5 @@ wade_data_hourly <- prepare_detection_data_for_wade(
 
 }
 \seealso{
-\code{\link{calculate_fish_positions}}, \code{\link{particle_filter_positioning}}
+\code{\link{calculate_fish_positions}}
 }

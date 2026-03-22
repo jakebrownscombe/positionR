@@ -4,7 +4,7 @@
 
 **Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, & Array Design**
 
-`positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology and particle filtering, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
+`positionR` provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies. 
 
 ## Conceptual Diagram
 
@@ -25,9 +25,6 @@ Complete workflow for fish positioning using WADE methodology with simulated dat
 
 ### 🐟 <a href="vignettes/WADE_Field_App.R" target="_blank">WADE Field Application Tutorial</a>
 Application of WADE positioning to real acoustic telemetry data
-
-### 🎯 <a href="https://jakebrownscombe.github.io/positionR/articles/Particle_Filter_Simulation.html" target="_blank">Particle Filter Positioning Tutorial</a>
-Sequential Monte Carlo positioning with continuous movement path estimation
 
 ### 🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>
 Advanced movement model simulations using species specific parameters (beta)

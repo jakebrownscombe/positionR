@@ -52,7 +52,6 @@
   <div class="dropdown-menu" aria-labelledby="dropdown--tutorials">
     <a class="dropdown-item" href="articles/WADE_Simulation.html">🐟 WADE Positioning Tutorial</a>
     <a class="dropdown-item" href="articles/Array_Design_Simulation.html">📡 Array Design &amp; Simulation</a>
-    <a class="dropdown-item" href="articles/Particle_Filter_Simulation.html">🎯 Particle Filter Positioning</a>
   </div>
 </li>
 <li class="nav-item">
@@ -85,7 +84,7 @@
 </div>
 <p><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a></p>
 <p><strong>Tools for Analyzing Acoustic Telemetry Data - Positioning, Simulation, &amp; Array Design</strong></p>
-<p><code>positionR</code> provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology and particle filtering, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies.</p>
+<p><code>positionR</code> provides comprehensive tools for acoustic telemetry array design, fish movement simulation, animal positioning using Weighted Average Detection Efficiency (WADE) methodology, and point generation for habitat selection studies that integrate sampling regions. One major advancement is the integration of receiver detection efficiency models into fish positioning, array performance, and habitat selection. This integrated analysis ecosystem provides powerful methodology to assess positioning and habitat selection model performance with simulations to inform best practices for assessing these metrics with real world aquatic animal tracking studies.</p>
 <div class="section level2">
 <h2 id="conceptual-diagram">Conceptual Diagram<a class="anchor" aria-label="anchor" href="#conceptual-diagram"></a>
 </h2>
@@ -114,12 +113,6 @@
 <a class="anchor" aria-label="anchor" href="#fish-wade-field-application-tutorial"></a>
 </h3>
 <p>Application of WADE positioning to real acoustic telemetry data</p>
-</div>
-<div class="section level3">
-<h3 id="dart-particle-filter-positioning-tutorial">🎯 <a href="https://jakebrownscombe.github.io/positionR/articles/Particle_Filter_Simulation.html" target="_blank">Particle Filter Positioning Tutorial</a>
-<a class="anchor" aria-label="anchor" href="#dart-particle-filter-positioning-tutorial"></a>
-</h3>
-<p>Sequential Monte Carlo positioning with continuous movement path estimation</p>
 </div>
 <div class="section level3">
 <h3 id="microscope-advanced-simulation-tutorial">🔬 <a href="vignettes/Simulation_Advanced.R" target="_blank">Advanced Simulation Tutorial</a>
@@ -285,9 +278,9 @@
 <li>
 <code><a href="reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> - WADE positioning algorithm</li>
 <li>
-<code><a href="reference/particle_filter_positioning.html">particle_filter_positioning()</a></code> - Particle filter positioning with continuous path estimation</li>
+<code>particle_filter_positioning()</code> - Particle filter positioning with continuous path estimation</li>
 <li>
-<code><a href="reference/create_de_lookup.html">create_de_lookup()</a></code> - Pre-compute detection efficiency grid for fast lookup</li>
+<code>create_de_lookup()</code> - Pre-compute detection efficiency grid for fast lookup</li>
 </ul>
 </div>
 <div class="section level3">
@@ -374,8 +367,8 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"Array_Design_Simulation"</span>, package <span class="op">=</span> <span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="dart-particle-filter-positioning-tutorial-1">🎯 <strong>Particle Filter Positioning Tutorial</strong>
-<a class="anchor" aria-label="anchor" href="#dart-particle-filter-positioning-tutorial-1"></a>
+<h3 id="dart-particle-filter-positioning-tutorial">🎯 <strong>Particle Filter Positioning Tutorial</strong>
+<a class="anchor" aria-label="anchor" href="#dart-particle-filter-positioning-tutorial"></a>
 </h3>
 <p><strong>Sequential Monte Carlo positioning with continuous path estimation</strong></p>
 <p>Estimate fish positions using a particle filter that tracks continuous movement paths. Compares position estimates against simulated ground truth, with visualisations of particle clouds, resolved paths, and receiver arrays.</p>

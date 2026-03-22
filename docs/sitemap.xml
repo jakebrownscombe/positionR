@@ -7,9 +7,6 @@
     <loc>https://jakebrownscombe.github.io/positionR/articles/Array_Design_Simulation.html</loc>
   </url>
   <url>
-    <loc>https://jakebrownscombe.github.io/positionR/articles/Particle_Filter_Simulation.html</loc>
-  </url>
-  <url>
     <loc>https://jakebrownscombe.github.io/positionR/articles/WADE_Simulation.html</loc>
   </url>
   <url>
@@ -223,30 +220,6 @@
     <loc>https://jakebrownscombe.github.io/positionR/reference/line_intersects_box.html</loc>
   </url>
   <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/particle_filter_positioning.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_analyze_gaps.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_compute_single_ud.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_position_estimate.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_prepare_detections.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_prepare_stations.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_smooth.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/pf_utilization_distribution.html</loc>
-  </url>
-  <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/plot_behavioral_states.html</loc>
   </url>
   <url>
@@ -290,9 +263,6 @@
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/point_in_polygon.html</loc>
-  </url>
-  <url>
-    <loc>https://jakebrownscombe.github.io/positionR/reference/prepare_detection_data_for_pf.html</loc>
   </url>
   <url>
     <loc>https://jakebrownscombe.github.io/positionR/reference/prepare_detection_data_for_wade.html</loc>
