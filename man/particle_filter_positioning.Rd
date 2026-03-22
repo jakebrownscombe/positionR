@@ -14,6 +14,8 @@ particle_filter_positioning(
   step_length_sd = 30,
   turning_angle_sd = 45,
   time_step = 180,
+  mode = "basic",
+  species = NULL,
   max_distance = 30000,
   fish_id_col = "path_id",
   time_col = "datetime",
@@ -43,6 +45,14 @@ station ID, and detection status.}
 \item{turning_angle_sd}{Numeric. SD of turning angle in degrees (default 45).}
 
 \item{time_step}{Numeric. Reference time step in seconds for movement scaling (default 180).}
+
+\item{mode}{Character. Movement mode: \code{"basic"} (default, parametric CRW)
+or \code{"species_empirical"} (resample from empirical VPS distributions,
+requires \code{species}).}
+
+\item{species}{Character. Species name for empirical CRW ("Walleye",
+"Smallmouth Bass", "Muskellunge", "Generic"). Required when
+\code{mode = "species_empirical"}. Default is NULL.}
 
 \item{max_distance}{Numeric. Maximum DE lookup distance in metres (default 30000).}
 

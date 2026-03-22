@@ -183,9 +183,8 @@ fish_simulation <- simulate_fish_tracks(
   include_barriers = TRUE                # Prevent detections through land
 
   # Optional species-specific parameters:
-  # species = "Walleye",              # Available: "Walleye", "Smallmouth Bass", "Muskellunge"
-  # fish_size_cm = 45,                # Fish length in cm
-  # behavioral_states = TRUE,         # Three-state movement model
+  # mode = "species_empirical",    # or "species_theory" for 3-state behavioral model
+  # species = "Walleye",           # Available: "Walleye", "Smallmouth Bass", "Muskellunge", "Generic"
 )
 
 

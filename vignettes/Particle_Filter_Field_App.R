@@ -269,48 +269,4 @@ p3 <- ggplot() +
 print(p3)
 
 
-# 10. DETECTION GAP ANALYSIS ================================================
-
-cat("\n=== Detection Gap Analysis ===\n")
-gap_results <- pf_analyze_gaps(
-  pf_results = smooth_results,
-  true_tracks = NULL  # No ground truth for field data
-)
-
-cat("Total gaps:", nrow(gap_results$gaps), "\n")
-if (nrow(gap_results$gaps) > 0) {
-  cat("Gap duration range:",
-      round(min(gap_results$gaps$gap_duration_min), 1), "-",
-      round(max(gap_results$gaps$gap_duration_min), 1), "min\n")
-  cat("Mean uncertainty during gaps:",
-      round(mean(gap_results$gaps$mean_uncertainty, na.rm = TRUE), 1), "m\n")
-}
-
-# Plot: uncertainty vs time since last detection
-ts <- gap_results$time_series
-p4 <- ggplot(ts, aes(x = time_since_last_detection_sec / 60,
-                       y = x_sd + y_sd)) +
-  geom_point(alpha = 0.3, size = 0.5, colour = "steelblue") +
-  geom_smooth(method = "loess", colour = "red", se = TRUE, linewidth = 0.8) +
-  theme_minimal() +
-  labs(title = "Position Uncertainty vs Time Since Last Detection",
-       x = "Time since last detection (min)",
-       y = "Uncertainty (x_sd + y_sd, m)")
-
-print(p4)
-
-# Plot: ESS over time
-p5 <- ggplot(pos, aes(x = time, y = ess)) +
-  geom_line(alpha = 0.5) +
-  geom_point(aes(colour = n_detecting > 0), size = 0.5) +
-  scale_colour_manual(values = c("FALSE" = "grey50", "TRUE" = "green3"),
-                      name = "Detected", labels = c("No", "Yes")) +
-  geom_hline(yintercept = 1000 * 0.5, linetype = "dashed", colour = "red") +
-  theme_minimal() +
-  labs(title = "Effective Sample Size Over Time",
-       subtitle = "Red dashed = resampling threshold",
-       x = "Time", y = "ESS")
-
-print(p5)
-
 cat("\nDone!\n")

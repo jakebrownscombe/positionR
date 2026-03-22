@@ -14,6 +14,8 @@ pf_smooth(
   step_length_sd = 30,
   turning_angle_sd = 45,
   time_step = 180,
+  mode = "basic",
+  species = NULL,
   max_distance = 30000,
   n_backward_particles = NULL,
   fish_id_col = "path_id",
@@ -39,6 +41,12 @@ pf_smooth(
 
 \item{step_length_mean, step_length_sd, turning_angle_sd, time_step}{Movement
 parameters (should match the forward filter).}
+
+\item{mode}{Character. Movement mode (\code{"basic"} or
+\code{"species_empirical"}). Should match the forward filter. Default is \code{"basic"}.}
+
+\item{species}{Character. Species for empirical CRW (should match the forward
+filter). Default is NULL.}
 
 \item{max_distance}{Maximum DE lookup distance (default 30000).}
 

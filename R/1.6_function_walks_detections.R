@@ -145,157 +145,146 @@ get_depth_bias <- function(current_depth, spawning_phase, species_params) {
   return(0.3)  # Strong bias to move toward spawning areas
 }
 
-#' Simulate fish tracks with correlated random walks and detection events (ROBUST)
+#' Simulate fish tracks with correlated random walks and detection events
 #'
-#' Automatically detects column names and optimizes for speed.
+#' Simulates fish movement paths using one of three modes, then generates
+#' detection events based on receiver array configuration and detection
+#' efficiency.
 #'
 #' @param raster A RasterLayer object defining the study area boundaries.
 #' @param station_distances Data frame with receiver detection probabilities.
+#' @param mode Character. Movement generation mode. One of:
+#'   \describe{
+#'     \item{\code{"basic"}}{User-specified parametric CRW using
+#'       \code{step_length_mean}/\code{step_length_sd} and
+#'       \code{turning_angle_mean}/\code{turning_angle_sd}.}
+#'     \item{\code{"species_empirical"}}{Resamples step lengths and turn angles
+#'       from empirical VPS distributions. Requires \code{species}.}
+#'     \item{\code{"species_theory"}}{3-state behavioral model (cruise/search/rest)
+#'       with temperature-dependent state transitions, optional spawning behavior,
+#'       and depth-dependent state bias. Requires \code{species}.}
+#'   }
+#'   Default is \code{"basic"}.
+#' @param species Character. Species name ("Walleye", "Smallmouth Bass",
+#'   "Muskellunge", "Generic"). Required for \code{species_empirical} and
+#'   \code{species_theory} modes. Default is NULL.
 #' @param n_paths Integer. Number of fish paths to simulate. Default is 1.
 #' @param n_steps Integer. Number of steps per path. Default is 100.
-#' @param step_length_mean Numeric. Mean step length in map units. Default is 50.
-#' @param step_length_sd Numeric. Standard deviation of step length. Default is 20.
-#' @param turning_angle_mean Numeric. Mean turning angle in degrees. Default is 0.
-#' @param turning_angle_sd Numeric. Standard deviation of turning angle in degrees. Default is 45.
+#' @param step_length_mean Numeric. Mean step length in map units (basic mode). Default is 50.
+#' @param step_length_sd Numeric. SD of step length (basic mode). Default is 20.
+#' @param turning_angle_mean Numeric. Mean turning angle in degrees (basic mode). Default is 0.
+#' @param turning_angle_sd Numeric. SD of turning angle in degrees (basic mode). Default is 45.
 #' @param time_step Numeric. Time between steps in seconds. Default is 60.
+#'   Overridden by empirical data in \code{species_empirical} mode.
 #' @param start_locations Matrix or data frame with x,y coordinates for starting locations. Default is NULL.
 #' @param start_time POSIXct object for simulation start time. Default is July 1, 2025 08:00:00 EST.
 #' @param seed Numeric. Random seed for reproducible results. Default is NULL.
-#' @param station_info Data frame with station deployment information including start/end dates. Default is NULL.
-#' @param temporal_info Data frame with daily environmental conditions. Default is NULL.
-#' @param de_model Model object for predicting detection efficiency based on temporal conditions. Default is NULL.
-#' @param spawning_behavior Logical. Whether to enable spawning behavior modifications. Default is FALSE.
-#' @param depth_state_bias Logical. Whether to enable depth-dependent behavioural
-#'   state transition bias. When TRUE, fish in shallow water are more likely to
-#'   transition to search state, and fish in deep water are more likely to transition
-#'   to rest state. Depth thresholds are defined in species_behavioral_params.
-#'   Default is FALSE.
-#' @param species Character. Species name for preset movement parameters ("Walleye", "Smallmouth Bass", "Muskellunge"). Default is NULL.
-#' @param fish_size_cm Numeric. Fish length in centimeters for size-scaled movement parameters. Default is NULL.
+#' @param fish_size_cm Numeric. Fish length in cm for size-scaled parameters (species_theory mode). Default is NULL.
 #' @param species_params Data frame with custom species movement parameters. Default is NULL.
-#' @param temperature_data Data frame with daily temperature data. Default is NULL.
-#' @param behavioral_states Logical. Whether to use 3-state behavioral model (cruise/search/rest). Default is TRUE when species specified.
-#' @param goal_locations Matrix or data frame with x,y goal coordinates, one row per path. When provided,
-#'   fish navigate toward the goal using a biased correlated random walk and stop upon arrival.
-#'   Requires \code{start_locations} to be specified. Default is NULL.
-#' @param goal_bias Numeric between 0 and 1. Strength of directional bias toward goal.
-#'   0 = pure CRW (no bias), 1 = beeline toward goal. Default is 0.5.
-#' @param goal_tolerance Numeric. Distance (map units) at which fish is considered "arrived" at goal.
-#'   Defaults to \code{step_length_mean} if NULL.
-#' @param include_barriers Logical. Whether to apply barrier masking to prevent detections through land obstacles. Default is FALSE.
-#'   When TRUE, detection efficiency is set to 0 for any receiver where the line-of-sight crosses a barrier.
-#'   Requires \code{crosses_barrier} column in \code{station_distances} (generated by \code{calculate_station_distances()} with \code{barrier_raster} parameter).
+#' @param temperature_data Data frame with daily temperature data (species_theory mode). Default is NULL.
+#' @param spawning_behavior Logical. Enable spawning behavior modifications (species_theory mode). Default is FALSE.
+#' @param depth_state_bias Logical. Enable depth-dependent state transition bias (species_theory mode). Default is FALSE.
+#' @param goal_locations Matrix or data frame with x,y goal coordinates, one row per path. Default is NULL.
+#' @param goal_bias Numeric between 0 and 1. Strength of directional bias toward goal. Default is 0.5.
+#' @param goal_tolerance Numeric. Distance at which fish is considered "arrived". Default is \code{step_length_mean}.
+#' @param station_info Data frame with station deployment info for temporal DE. Default is NULL.
+#' @param temporal_info Data frame with daily environmental conditions for temporal DE. Default is NULL.
+#' @param de_model Model object for temporal DE prediction. Default is NULL.
+#' @param include_barriers Logical. Apply barrier masking for detections. Default is FALSE.
 #'
 #' @return A list containing tracks and station_detections data frames.
 #'
 #' @details
-#' When \code{include_barriers = TRUE}, the function masks detections at receivers where the direct path
-#' from the fish location crosses a land barrier. This prevents physically impossible detections through
-#' islands, shorelines, or other obstacles. The barrier information must be pre-computed in the
-#' \code{station_distances} data frame using \code{calculate_station_distances()} with a barrier raster.
+#' The \code{mode} parameter controls how step lengths and turning angles are generated:
+#' \itemize{
+#'   \item \code{basic}: Draws from normal (step) and von Mises (turn) distributions
+#'   \item \code{species_empirical}: Resamples from empirical VPS-derived distributions
+#'   \item \code{species_theory}: Uses a 3-state behavioral model with temperature effects
+#' }
+#'
+#' Goal-directed movement (\code{goal_locations}), barrier masking (\code{include_barriers}),
+#' and temporal detection efficiency can be combined with any mode.
 #'
 #' @export
-simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps = 100,
-                                 step_length_mean = NULL, step_length_sd = NULL,
-                                 turning_angle_mean = NULL, turning_angle_sd = NULL,
+simulate_fish_tracks <- function(raster, station_distances,
+                                 mode = "basic",
+                                 species = NULL,
+                                 n_paths = 1, n_steps = 100,
+                                 step_length_mean = 50, step_length_sd = 20,
+                                 turning_angle_mean = 0, turning_angle_sd = 45,
                                  time_step = 60, start_locations = NULL,
                                  start_time = as.POSIXct("2025-07-01 08:00:00", tz = "America/Toronto"),
-                                 seed = NULL, station_info = NULL, temporal_info = NULL, de_model = NULL,
-                                 species = NULL, fish_size_cm = NULL, species_params = NULL,
-                                 temperature_data = NULL, behavioral_states = NULL, spawning_behavior = FALSE,
+                                 seed = NULL,
+                                 fish_size_cm = NULL, species_params = NULL,
+                                 temperature_data = NULL, spawning_behavior = FALSE,
                                  depth_state_bias = FALSE,
                                  goal_locations = NULL, goal_bias = 0.5, goal_tolerance = NULL,
+                                 station_info = NULL, temporal_info = NULL, de_model = NULL,
                                  include_barriers = FALSE) {
 
   if (!is.null(seed)) set.seed(seed)
-  
-  # Handle species-specific movement parameters and behavioral states
-  movement_params_resolved <- FALSE
+
+  # ---- Mode Resolution ----
+  mode <- match.arg(mode, c("basic", "species_empirical", "species_theory"))
+
+  empirical_steps <- NULL
+  empirical_turns <- NULL
   use_behavioral_states <- FALSE
   species_row <- NULL
-  
-  if (!is.null(species)) {
+
+  if (mode %in% c("species_empirical", "species_theory") && is.null(species)) {
+    stop("'species' is required for mode '", mode, "'")
+  }
+
+  if (mode == "species_empirical") {
+    # Load empirical distributions
+    data("crw_empirical_distributions", envir = environment())
+    if (!species %in% names(crw_empirical_distributions)) {
+      stop("species '", species, "' not found in empirical distributions. Available: ",
+           paste(names(crw_empirical_distributions), collapse = ", "))
+    }
+    emp_dist <- crw_empirical_distributions[[species]]
+    empirical_steps <- emp_dist$step_lengths
+    empirical_turns <- emp_dist$turn_angles
+    time_step <- emp_dist$step_duration_s
+    cat("Mode: species_empirical (", species, ",",
+        length(empirical_steps), "steps, time_step =", time_step, "s)\n")
+  }
+
+  if (mode == "species_theory") {
     # Load species behavioral parameters
     if (is.null(species_params)) {
       data("species_behavioral_params", envir = environment())
       species_params <- species_behavioral_params
     }
-    
-    # Find species in parameters
     species_row <- species_params[species_params$species == species, ]
-    
     if (nrow(species_row) == 0) {
-      stop(paste("Species", species, "not found in species_params. Available species:", 
-                paste(unique(species_params$species), collapse = ", ")))
+      stop("Species '", species, "' not found in species_params. Available: ",
+           paste(unique(species_params$species), collapse = ", "))
     }
-    
-    # Calculate size-adjusted parameters
     if (is.null(fish_size_cm)) {
       fish_size_cm <- species_row$typical_size_cm
-      cat("Using typical size for", species, ":", fish_size_cm, "cm\n")
     }
-    
-    # Determine if using behavioral states
-    if (is.null(behavioral_states)) {
-      use_behavioral_states <- TRUE  # Default to behavioral states when species specified
-    } else {
-      use_behavioral_states <- behavioral_states
-    }
-    
-    if (use_behavioral_states) {
-      cat("Using 3-state behavioral model for", species, "(size:", fish_size_cm, "cm)\n")
-      cat("  States: cruise, search, rest\n")
-      cat("  Temperature-dependent state switching enabled\n")
-      if (depth_state_bias) cat("  Depth-dependent state bias enabled\n")
-      cat("  Movement style:", species_row$movement_description, "\n")
-    } else {
-      # Use simple speed-based parameters (backward compatibility)
-      speed_mean_base <- (species_row$cruise_speed_mean_ms + species_row$search_speed_mean_ms) / 2
-      speed_sd_base <- (species_row$cruise_speed_sd_ms + species_row$search_speed_sd_ms) / 2
-      
-      # Calculate size-adjusted speed
-      size_speed_mean <- speed_mean_base + (species_row$speed_mean_size_scalar * fish_size_cm)
-      size_speed_sd <- speed_sd_base + (species_row$speed_sd_size_scalar * fish_size_cm)
-      
-      # Convert to step lengths (fallback for simple mode)
-      if (is.null(step_length_mean)) {
-        step_length_mean <- size_speed_mean * time_step
-      }
-      if (is.null(step_length_sd)) {
-        step_length_sd <- size_speed_sd * time_step
-      }
-      if (is.null(turning_angle_mean)) {
-        turning_angle_mean <- 0  # Default
-      }
-      if (is.null(turning_angle_sd)) {
-        turning_angle_sd <- (species_row$cruise_turn_sd + species_row$search_turn_sd) / 2
-      }
-      
-      cat("Using", species, "simple movement parameters (size:", fish_size_cm, "cm):\n")
-      cat("  Step length mean:", round(step_length_mean, 1), "m\n")
-      cat("  Step length SD:", round(step_length_sd, 1), "m\n")
-      cat("  Turning angle SD:", turning_angle_sd, "degrees\n")
-    }
-    
-    movement_params_resolved <- TRUE
+    use_behavioral_states <- TRUE
+    cat("Mode: species_theory (", species, ", size:", fish_size_cm, "cm)\n")
+    cat("  States: cruise, search, rest\n")
+    if (spawning_behavior) cat("  Spawning behavior enabled\n")
+    if (depth_state_bias) cat("  Depth-dependent state bias enabled\n")
   }
 
-  # Validate depth_state_bias columns
-  if (depth_state_bias) {
+  if (mode == "basic") {
+    cat("Mode: basic (step_mean =", step_length_mean,
+        ", step_sd =", step_length_sd, ")\n")
+  }
+
+  # Validate depth_state_bias columns (species_theory only)
+  if (depth_state_bias && mode == "species_theory") {
     required_cols <- c("search_depth_preferred_max", "search_depth_max",
                        "rest_depth_min", "rest_depth_preferred_min", "depth_bias_strength")
     missing <- setdiff(required_cols, names(species_row))
     if (length(missing) > 0) {
       stop("depth_state_bias requires columns in species_params: ", paste(missing, collapse = ", "))
     }
-  }
-
-  # Set default values if not specified and no species used
-  if (!movement_params_resolved) {
-    if (is.null(step_length_mean)) step_length_mean <- 50
-    if (is.null(step_length_sd)) step_length_sd <- 20
-    if (is.null(turning_angle_mean)) turning_angle_mean <- 0
-    if (is.null(turning_angle_sd)) turning_angle_sd <- 45
   }
 
   # Validate inputs
@@ -322,7 +311,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
   # Validate goal-directed movement parameters
   if (!is.null(goal_locations)) {
     if (is.null(start_locations)) {
-      stop("goal_locations requires start_locations to be specified — goal-directed walks need a defined start")
+      stop("goal_locations requires start_locations to be specified - goal-directed walks need a defined start")
     }
     goal_locations <- as.matrix(goal_locations)
     if (ncol(goal_locations) < 2) {
@@ -402,7 +391,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
   start_time_utc <- standardize_datetime(start_time, "UTC")
 
   # Load temperature data if using behavioral states
-  if (use_behavioral_states && !is.null(species_row)) {
+  if (mode == "species_theory") {
     if (is.null(temperature_data)) {
       data("daily_temperature", envir = environment())
       temperature_data <- daily_temperature
@@ -534,7 +523,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
   valid_coords <- raster::xyFromCell(raster, valid_cells)
 
   # Initialize behavioral state tracking if using behavioral states
-  if (use_behavioral_states && !is.null(species_row)) {
+  if (mode == "species_theory") {
     # Initialize state for all paths (start in cruise state)
     current_states <- rep("cruise", n_paths)
     state_history <- list()  # Track state changes for analysis
@@ -569,7 +558,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
     track_x[1] <- start_x
     track_y[1] <- start_y
 
-    # Set initial bearing — toward goal if goal-directed, else random
+    # Set initial bearing - toward goal if goal-directed, else random
     if (!is.null(goal_locations)) {
       goal_x <- goal_locations[path_id, 1]
       goal_y <- goal_locations[path_id, 2]
@@ -579,7 +568,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
     }
 
     # Initialize path-specific state tracking
-    if (use_behavioral_states && !is.null(species_row)) {
+    if (mode == "species_theory") {
       path_state_history <- rep("cruise", n_steps + 1)  # Track state for each step
     }
     
@@ -595,7 +584,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       if (!is.null(goal_locations)) {
         dist_to_goal <- sqrt((goal_x - track_x[step])^2 + (goal_y - track_y[step])^2)
         if (dist_to_goal <= goal_tolerance) {
-          # Fish arrived — fill remaining steps with goal position
+          # Fish arrived - fill remaining steps with goal position
           track_x[(step + 1):(n_steps + 1)] <- goal_x
           track_y[(step + 1):(n_steps + 1)] <- goal_y
           cat("  Path", path_id, "arrived at goal on step", step, "\n")
@@ -604,7 +593,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       }
 
       # Handle behavioral state transitions and movement
-      if (use_behavioral_states && !is.null(species_row)) {
+      if (mode == "species_theory") {
         # Get current date for temperature lookup
         current_time <- track_time_posix[step + 1]
         current_date <- as.Date(current_time)
@@ -781,6 +770,10 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
           turning_angle <- circular::rvonmises(1, mu = 0, kappa = 1 / (turn_sd_rad^2))
         })
         
+      } else if (mode == "species_empirical") {
+        # Empirical resampling from VPS distributions
+        step_length <- sample(empirical_steps, 1)
+        turning_angle <- sample(empirical_turns, 1)
       } else {
         # Traditional fixed-parameter approach
         step_length <- max(stats::rnorm(1, step_length_mean, step_length_sd), 5)
@@ -844,7 +837,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       )
     
     # Add behavioral state information if using behavioral states
-    if (use_behavioral_states && !is.null(species_row)) {
+    if (mode == "species_theory") {
       # Add state information (trim to match track_df length after filtering)
       if (nrow(track_df) <= length(path_state_history)) {
         track_df$behavioral_state <- path_state_history[1:nrow(track_df)]
@@ -869,7 +862,7 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
     }
     
     # Add temperature information if using behavioral states with species
-    if (use_behavioral_states && !is.null(species_row) && !is.null(temperature_data)) {
+    if (mode == "species_theory" && !is.null(temperature_data)) {
       track_df$water_temp_c <- NA
       for (i in 1:nrow(track_df)) {
         current_date <- as.Date(track_df$datetime[i])
@@ -984,8 +977,8 @@ simulate_fish_tracks <- function(raster, station_distances, n_paths = 1, n_steps
       start_time = start_time,
       species = species,
       fish_size_cm = fish_size_cm,
-      behavioral_states = use_behavioral_states,
-      temperature_dependent = use_behavioral_states && !is.null(temperature_data),
+      behavioral_states = (mode == "species_theory"),
+      temperature_dependent = (mode == "species_theory") && !is.null(temperature_data),
       spawning_behavior = spawning_behavior,
       depth_state_bias = depth_state_bias,
       goal_directed = !is.null(goal_locations),
@@ -2052,7 +2045,7 @@ analyze_behavioral_temperature <- function(simulation_results, n_temp_bins = 5,
           dplyr::filter(behavioral_state != next_state)
         
         p2 <- ggplot2::ggplot(complete_transitions, 
-                             ggplot2::aes(x = mean_temp, y = paste(behavioral_state, "→", next_state),
+                             ggplot2::aes(x = mean_temp, y = paste(behavioral_state, "->", next_state),
                                          fill = transition_prob)) +
           ggplot2::geom_tile(color = "white", size = 0.5) +
           ggplot2::scale_fill_viridis_c(option = "plasma", name = "Transition\nProbability",
@@ -2081,7 +2074,7 @@ analyze_behavioral_temperature <- function(simulation_results, n_temp_bins = 5,
           dplyr::filter(behavioral_state != next_state)
         
         p2 <- ggplot2::ggplot(complete_transitions, 
-                             ggplot2::aes(x = mean_temp, y = paste(behavioral_state, "→", next_state),
+                             ggplot2::aes(x = mean_temp, y = paste(behavioral_state, "->", next_state),
                                          fill = transition_prob)) +
           ggplot2::geom_tile(color = "white", size = 0.5) +
           ggplot2::scale_fill_viridis_c(option = "plasma", name = "Transition\nProbability",

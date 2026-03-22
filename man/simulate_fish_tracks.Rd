@@ -2,34 +2,34 @@
 % Please edit documentation in R/1.6_function_walks_detections.R
 \name{simulate_fish_tracks}
 \alias{simulate_fish_tracks}
-\title{Simulate fish tracks with correlated random walks and detection events (ROBUST)}
+\title{Simulate fish tracks with correlated random walks and detection events}
 \usage{
 simulate_fish_tracks(
   raster,
   station_distances,
+  mode = "basic",
+  species = NULL,
   n_paths = 1,
   n_steps = 100,
-  step_length_mean = NULL,
-  step_length_sd = NULL,
-  turning_angle_mean = NULL,
-  turning_angle_sd = NULL,
+  step_length_mean = 50,
+  step_length_sd = 20,
+  turning_angle_mean = 0,
+  turning_angle_sd = 45,
   time_step = 60,
   start_locations = NULL,
   start_time = as.POSIXct("2025-07-01 08:00:00", tz = "America/Toronto"),
   seed = NULL,
-  station_info = NULL,
-  temporal_info = NULL,
-  de_model = NULL,
-  species = NULL,
   fish_size_cm = NULL,
   species_params = NULL,
   temperature_data = NULL,
-  behavioral_states = NULL,
   spawning_behavior = FALSE,
   depth_state_bias = FALSE,
   goal_locations = NULL,
   goal_bias = 0.5,
   goal_tolerance = NULL,
+  station_info = NULL,
+  temporal_info = NULL,
+  de_model = NULL,
   include_barriers = FALSE
 )
 }
@@ -38,19 +38,37 @@ simulate_fish_tracks(
 
 \item{station_distances}{Data frame with receiver detection probabilities.}
 
+\item{mode}{Character. Movement generation mode. One of:
+\describe{
+\item{\code{"basic"}}{User-specified parametric CRW using
+\code{step_length_mean}/\code{step_length_sd} and
+\code{turning_angle_mean}/\code{turning_angle_sd}.}
+\item{\code{"species_empirical"}}{Resamples step lengths and turn angles
+from empirical VPS distributions. Requires \code{species}.}
+\item{\code{"species_theory"}}{3-state behavioral model (cruise/search/rest)
+with temperature-dependent state transitions, optional spawning behavior,
+and depth-dependent state bias. Requires \code{species}.}
+}
+Default is \code{"basic"}.}
+
+\item{species}{Character. Species name ("Walleye", "Smallmouth Bass",
+"Muskellunge", "Generic"). Required for \code{species_empirical} and
+\code{species_theory} modes. Default is NULL.}
+
 \item{n_paths}{Integer. Number of fish paths to simulate. Default is 1.}
 
 \item{n_steps}{Integer. Number of steps per path. Default is 100.}
 
-\item{step_length_mean}{Numeric. Mean step length in map units. Default is 50.}
+\item{step_length_mean}{Numeric. Mean step length in map units (basic mode). Default is 50.}
 
-\item{step_length_sd}{Numeric. Standard deviation of step length. Default is 20.}
+\item{step_length_sd}{Numeric. SD of step length (basic mode). Default is 20.}
 
-\item{turning_angle_mean}{Numeric. Mean turning angle in degrees. Default is 0.}
+\item{turning_angle_mean}{Numeric. Mean turning angle in degrees (basic mode). Default is 0.}
 
-\item{turning_angle_sd}{Numeric. Standard deviation of turning angle in degrees. Default is 45.}
+\item{turning_angle_sd}{Numeric. SD of turning angle in degrees (basic mode). Default is 45.}
 
-\item{time_step}{Numeric. Time between steps in seconds. Default is 60.}
+\item{time_step}{Numeric. Time between steps in seconds. Default is 60.
+Overridden by empirical data in \code{species_empirical} mode.}
 
 \item{start_locations}{Matrix or data frame with x,y coordinates for starting locations. Default is NULL.}
 
@@ -58,53 +76,46 @@ simulate_fish_tracks(
 
 \item{seed}{Numeric. Random seed for reproducible results. Default is NULL.}
 
-\item{station_info}{Data frame with station deployment information including start/end dates. Default is NULL.}
-
-\item{temporal_info}{Data frame with daily environmental conditions. Default is NULL.}
-
-\item{de_model}{Model object for predicting detection efficiency based on temporal conditions. Default is NULL.}
-
-\item{species}{Character. Species name for preset movement parameters ("Walleye", "Smallmouth Bass", "Muskellunge"). Default is NULL.}
-
-\item{fish_size_cm}{Numeric. Fish length in centimeters for size-scaled movement parameters. Default is NULL.}
+\item{fish_size_cm}{Numeric. Fish length in cm for size-scaled parameters (species_theory mode). Default is NULL.}
 
 \item{species_params}{Data frame with custom species movement parameters. Default is NULL.}
 
-\item{temperature_data}{Data frame with daily temperature data. Default is NULL.}
+\item{temperature_data}{Data frame with daily temperature data (species_theory mode). Default is NULL.}
 
-\item{behavioral_states}{Logical. Whether to use 3-state behavioral model (cruise/search/rest). Default is TRUE when species specified.}
+\item{spawning_behavior}{Logical. Enable spawning behavior modifications (species_theory mode). Default is FALSE.}
 
-\item{spawning_behavior}{Logical. Whether to enable spawning behavior modifications. Default is FALSE.}
+\item{depth_state_bias}{Logical. Enable depth-dependent state transition bias (species_theory mode). Default is FALSE.}
 
-\item{depth_state_bias}{Logical. Whether to enable depth-dependent behavioural
-state transition bias. When TRUE, fish in shallow water are more likely to
-transition to search state, and fish in deep water are more likely to transition
-to rest state. Depth thresholds are defined in species_behavioral_params.
-Default is FALSE.}
+\item{goal_locations}{Matrix or data frame with x,y goal coordinates, one row per path. Default is NULL.}
 
-\item{goal_locations}{Matrix or data frame with x,y goal coordinates, one row per path. When provided,
-fish navigate toward the goal using a biased correlated random walk and stop upon arrival.
-Requires \code{start_locations} to be specified. Default is NULL.}
+\item{goal_bias}{Numeric between 0 and 1. Strength of directional bias toward goal. Default is 0.5.}
 
-\item{goal_bias}{Numeric between 0 and 1. Strength of directional bias toward goal.
-0 = pure CRW (no bias), 1 = beeline toward goal. Default is 0.5.}
+\item{goal_tolerance}{Numeric. Distance at which fish is considered "arrived". Default is \code{step_length_mean}.}
 
-\item{goal_tolerance}{Numeric. Distance (map units) at which fish is considered "arrived" at goal.
-Defaults to \code{step_length_mean} if NULL.}
+\item{station_info}{Data frame with station deployment info for temporal DE. Default is NULL.}
 
-\item{include_barriers}{Logical. Whether to apply barrier masking to prevent detections through land obstacles. Default is FALSE.
-When TRUE, detection efficiency is set to 0 for any receiver where the line-of-sight crosses a barrier.
-Requires \code{crosses_barrier} column in \code{station_distances} (generated by \code{calculate_station_distances()} with \code{barrier_raster} parameter).}
+\item{temporal_info}{Data frame with daily environmental conditions for temporal DE. Default is NULL.}
+
+\item{de_model}{Model object for temporal DE prediction. Default is NULL.}
+
+\item{include_barriers}{Logical. Apply barrier masking for detections. Default is FALSE.}
 }
 \value{
 A list containing tracks and station_detections data frames.
 }
 \description{
-Automatically detects column names and optimizes for speed.
+Simulates fish movement paths using one of three modes, then generates
+detection events based on receiver array configuration and detection
+efficiency.
 }
 \details{
-When \code{include_barriers = TRUE}, the function masks detections at receivers where the direct path
-from the fish location crosses a land barrier. This prevents physically impossible detections through
-islands, shorelines, or other obstacles. The barrier information must be pre-computed in the
-\code{station_distances} data frame using \code{calculate_station_distances()} with a barrier raster.
+The \code{mode} parameter controls how step lengths and turning angles are generated:
+\itemize{
+\item \code{basic}: Draws from normal (step) and von Mises (turn) distributions
+\item \code{species_empirical}: Resamples from empirical VPS-derived distributions
+\item \code{species_theory}: Uses a 3-state behavioral model with temperature effects
+}
+
+Goal-directed movement (\code{goal_locations}), barrier masking (\code{include_barriers}),
+and temporal detection efficiency can be combined with any mode.
 }

@@ -11,6 +11,9 @@
 
 
 library(positionR)
+library(raster)
+library(dplyr)
+library(ggplot2)
 
 
 #load and process necessary data
@@ -55,13 +58,13 @@ start_time <- as.POSIXct("2025-07-15 12:00:00", tz = "UTC")
 walleye_sim <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,
+  mode = "species_theory",
+  species = "Muskellunge",          # Available: "Walleye", "Smallmouth Bass", "Muskellunge"
   n_paths = 1,
   n_steps = 1000,
   time_step = 60,
   seed = 123,
-  species = "Muskellunge",          # Available: "Walleye", "Smallmouth Bass", "Muskellunge"
   fish_size_cm = 45,                # Fish length in cm (defaults to typical_size_cm if not specified)
-  behavioral_states = TRUE,         #three state movement model
   start_time = start_time,
   temperature_data = temporal_info
 )
@@ -93,11 +96,12 @@ start_time <- as.POSIXct("2025-02-01 12:00:00", tz = "UTC")
 walleye_spawn_sim <- simulate_fish_tracks(
   raster = depth_raster,
   station_distances = station_distances,
+  mode = "species_theory",
+  species = "Walleye",
   n_paths = 1,
   n_steps = 30000,
   time_step = 120,
   seed = 123,
-  species = "Walleye",
   spawning_behavior = TRUE,  # Enable spawning behavior
   temperature_data = temporal_info,  # Required for spawning
   start_time = start_time

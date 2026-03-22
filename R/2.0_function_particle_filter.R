@@ -81,11 +81,18 @@ pf_is_valid <- function(x, y, raster, raster_ext) {
 #' @keywords internal
 pf_move_particles <- function(px, py, headings, time_diff_sec,
                                step_length_mean, step_length_sd, kappa,
-                               time_step, raster, raster_ext) {
+                               time_step, raster, raster_ext,
+                               empirical_steps = NULL, empirical_turns = NULL) {
   n <- length(px)
   time_scale <- time_diff_sec / time_step
-  steps <- pmax(stats::rnorm(n, step_length_mean, step_length_sd), 5) * time_scale
-  turns <- as.numeric(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
+
+  if (!is.null(empirical_steps)) {
+    steps <- sample(empirical_steps, n, replace = TRUE) * time_scale
+    turns <- sample(empirical_turns, n, replace = TRUE)
+  } else {
+    steps <- pmax(stats::rnorm(n, step_length_mean, step_length_sd), 5) * time_scale
+    turns <- as.numeric(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
+  }
   new_headings <- headings + turns
   new_x <- px + steps * cos(new_headings)
   new_y <- py + steps * sin(new_headings)
@@ -252,6 +259,12 @@ pf_position_estimate <- function(px, py, weights, method, raster,
 #' @param step_length_sd Numeric. SD of step length (default 30).
 #' @param turning_angle_sd Numeric. SD of turning angle in degrees (default 45).
 #' @param time_step Numeric. Reference time step in seconds for movement scaling (default 180).
+#' @param mode Character. Movement mode: \code{"basic"} (default, parametric CRW)
+#'   or \code{"species_empirical"} (resample from empirical VPS distributions,
+#'   requires \code{species}).
+#' @param species Character. Species name for empirical CRW ("Walleye",
+#'   "Smallmouth Bass", "Muskellunge", "Generic"). Required when
+#'   \code{mode = "species_empirical"}. Default is NULL.
 #' @param max_distance Numeric. Maximum DE lookup distance in metres (default 30000).
 #' @param fish_id_col Character. Name of fish ID column (default "path_id").
 #' @param time_col Character. Name of time column (default "datetime").
@@ -273,12 +286,34 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
                                          n_particles = 1000,
                                          step_length_mean = 50, step_length_sd = 30,
                                          turning_angle_sd = 45, time_step = 180,
+                                         mode = "basic",
+                                         species = NULL,
                                          max_distance = 30000,
                                          fish_id_col = "path_id", time_col = "datetime",
                                          station_col = "station_id",
                                          ess_threshold = 0.5,
                                          position_method = "mean",
                                          return_particles = FALSE, verbose = TRUE) {
+
+  # Resolve movement mode
+  mode <- match.arg(mode, c("basic", "species_empirical"))
+  empirical_steps <- NULL
+  empirical_turns <- NULL
+
+  if (mode == "species_empirical") {
+    if (is.null(species)) stop("'species' is required for mode 'species_empirical'")
+    data("crw_empirical_distributions", envir = environment())
+    if (!species %in% names(crw_empirical_distributions)) {
+      stop("species '", species, "' not found in empirical distributions. Available: ",
+           paste(names(crw_empirical_distributions), collapse = ", "))
+    }
+    emp_dist <- crw_empirical_distributions[[species]]
+    empirical_steps <- emp_dist$step_lengths
+    empirical_turns <- emp_dist$turn_angles
+    time_step <- emp_dist$step_duration_s
+    if (verbose) cat("Mode: species_empirical (", species, ",",
+                      length(empirical_steps), "steps, time_step =", time_step, "s)\n")
+  }
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
   stn <- pf_prepare_stations(station_info)
@@ -376,7 +411,9 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
 
       moved <- pf_move_particles(px, py, headings, time_diff_sec,
                                   step_length_mean, step_length_sd, kappa,
-                                  time_step, raster, raster_ext)
+                                  time_step, raster, raster_ext,
+                                  empirical_steps = empirical_steps,
+                                  empirical_turns = empirical_turns)
       px <- moved$x; py <- moved$y; headings <- moved$heading
 
       dets_t <- fish_dt[time == time_steps_vec[t] & detected == 1]
@@ -450,6 +487,10 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
 #' @param raster Study area RasterLayer.
 #' @param step_length_mean,step_length_sd,turning_angle_sd,time_step Movement
 #'   parameters (should match the forward filter).
+#' @param mode Character. Movement mode (\code{"basic"} or
+#'   \code{"species_empirical"}). Should match the forward filter. Default is \code{"basic"}.
+#' @param species Character. Species for empirical CRW (should match the forward
+#'   filter). Default is NULL.
 #' @param max_distance Maximum DE lookup distance (default 30000).
 #' @param n_backward_particles Number of backward particles per fish. Defaults
 #'   to the same as the forward filter.
@@ -475,6 +516,8 @@ particle_filter_positioning <- function(detection_data, station_info, de_model, 
 pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster,
                        step_length_mean = 50, step_length_sd = 30,
                        turning_angle_sd = 45, time_step = 180,
+                       mode = "basic",
+                       species = NULL,
                        max_distance = 30000, n_backward_particles = NULL,
                        fish_id_col = "path_id", time_col = "datetime",
                        station_col = "station_id", ess_threshold = 0.5,
@@ -483,6 +526,25 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
 
   if (is.null(pf_results$particles)) {
     stop("pf_results must include particles (run particle_filter_positioning with return_particles = TRUE)")
+  }
+
+  # Resolve movement mode
+  mode <- match.arg(mode, c("basic", "species_empirical"))
+  empirical_steps <- NULL
+  empirical_turns <- NULL
+
+  if (mode == "species_empirical") {
+    if (is.null(species)) stop("'species' is required for mode 'species_empirical'")
+    data("crw_empirical_distributions", envir = environment())
+    if (!species %in% names(crw_empirical_distributions)) {
+      stop("species '", species, "' not found in empirical distributions. Available: ",
+           paste(names(crw_empirical_distributions), collapse = ", "))
+    }
+    emp_dist <- crw_empirical_distributions[[species]]
+    empirical_steps <- emp_dist$step_lengths
+    empirical_turns <- emp_dist$turn_angles
+    time_step <- emp_dist$step_duration_s
+    if (verbose) cat("Mode: species_empirical (", species, ")\n")
   }
 
   dt <- pf_prepare_detections(detection_data, fish_id_col, time_col, station_col)
@@ -562,7 +624,9 @@ pf_smooth <- function(pf_results, detection_data, station_info, de_model, raster
       # Move backward (same CRW, different headings naturally explore backward)
       moved <- pf_move_particles(bpx, bpy, b_headings, time_diff_sec,
                                   step_length_mean, step_length_sd, kappa,
-                                  time_step, raster, raster_ext)
+                                  time_step, raster, raster_ext,
+                                  empirical_steps = empirical_steps,
+                                  empirical_turns = empirical_turns)
       bpx <- moved$x; bpy <- moved$y; b_headings <- moved$heading
 
       # Weight by likelihood at this time step

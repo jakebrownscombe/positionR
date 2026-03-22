@@ -16,6 +16,7 @@ library(sf)
 library(ggplot2)
 library(dplyr)
 library(patchwork)
+library(randomForest)
 
 # Set seed for reproducibility
 set.seed(123)

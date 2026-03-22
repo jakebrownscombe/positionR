@@ -9,6 +9,9 @@
 
 
 library(positionR)
+library(raster)
+library(dplyr)
+library(ggplot2)
 
 
 #load and process necessary data
