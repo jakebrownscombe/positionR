@@ -135,8 +135,6 @@ The vignettes folder has a range of R worksheets providing example code for gett
 - `simulate_fish_tracks()` - Behavioral movement simulation with species parameters
 - `prepare_detection_data_for_wade()` - Process field detection data
 - `calculate_fish_positions()` - WADE positioning algorithm
-- `particle_filter_positioning()` - Particle filter positioning with continuous path estimation
-- `create_de_lookup()` - Pre-compute detection efficiency grid for fast lookup
 
 ### 📈 **Space Use Analysis**
 - `calculate_space_use()` - Multiple space use estimation methods
@@ -183,16 +181,6 @@ Design effective receiver arrays using multiple placement strategies, model dete
 
 ```r
 vignette("Array_Design_Simulation", package = "positionR")
-```
-
-### 🎯 **Particle Filter Positioning Tutorial**
-**Sequential Monte Carlo positioning with continuous path estimation**
-
-Estimate fish positions using a particle filter that tracks continuous movement paths. Compares position estimates against simulated ground truth, with visualisations of particle clouds, resolved paths, and receiver arrays.
-
-```r
-# Standalone R script (not an Rmd vignette)
-file.edit(system.file("vignettes/Particle_Filter_Simulation.R", package = "positionR"))
 ```
 
 ### 🔍 **Browse All Tutorials**

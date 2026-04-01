@@ -2,14 +2,6 @@
 
 ## New Features
 
-* **Particle filter positioning**: New `particle_filter_positioning()` function
-  implements Sequential Monte Carlo positioning for acoustic telemetry. Tracks
-  continuous movement paths using a Correlated Random Walk model with detection
-  likelihood weighting. Key optimizations include a pre-computed DE lookup grid
-  (`create_de_lookup()`) replacing `stats::predict()` calls, fully vectorized
-  movement and likelihood calculations, and systematic resampling. Achieves
-  ~1s runtime for 5 fish x 480 time steps x 1000 particles x 80 stations.
-
 * **Effort-balanced non-detection weighting**: New `scale_non_detections`
   parameter (default TRUE) in `calculate_fish_positions()` scales non-detection
   evidence by total detections per fish/time period, balancing the

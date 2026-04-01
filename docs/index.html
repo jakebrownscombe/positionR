@@ -277,10 +277,6 @@
 <code><a href="reference/prepare_detection_data_for_wade.html">prepare_detection_data_for_wade()</a></code> - Process field detection data</li>
 <li>
 <code><a href="reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> - WADE positioning algorithm</li>
-<li>
-<code>particle_filter_positioning()</code> - Particle filter positioning with continuous path estimation</li>
-<li>
-<code>create_de_lookup()</code> - Pre-compute detection efficiency grid for fast lookup</li>
 </ul>
 </div>
 <div class="section level3">
@@ -367,20 +363,10 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"Array_Design_Simulation"</span>, package <span class="op">=</span> <span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="dart-particle-filter-positioning-tutorial">🎯 <strong>Particle Filter Positioning Tutorial</strong>
-<a class="anchor" aria-label="anchor" href="#dart-particle-filter-positioning-tutorial"></a>
-</h3>
-<p><strong>Sequential Monte Carlo positioning with continuous path estimation</strong></p>
-<p>Estimate fish positions using a particle filter that tracks continuous movement paths. Compares position estimates against simulated ground truth, with visualisations of particle clouds, resolved paths, and receiver arrays.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Standalone R script (not an Rmd vignette)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/file.edit.html" class="external-link">file.edit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"vignettes/Particle_Filter_Simulation.R"</span>, package <span class="op">=</span> <span class="st">"positionR"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
 <h3 id="mag-browse-all-tutorials">🔍 <strong>Browse All Tutorials</strong>
 <a class="anchor" aria-label="anchor" href="#mag-browse-all-tutorials"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/browseVignettes.html" class="external-link">browseVignettes</a></span><span class="op">(</span><span class="st">"positionR"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Online Documentation</strong>: Visit our <a href="https://jakebrownscombe.github.io/positionR">package website</a> for enhanced tutorials with interactive examples and detailed methodology explanations.</p>
 </div>

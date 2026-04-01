@@ -55,8 +55,8 @@
 <h2 class="pkg-version" data-toc-text="1.5.0" id="positionr-150">positionR 1.5.0<a class="anchor" aria-label="anchor" href="#positionr-150"></a></h2>
 <div class="section level3">
 <h3 id="new-features-1-5-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-5-0"></a></h3>
-<ul><li><p><strong>Particle filter positioning</strong>: New <code>particle_filter_positioning()</code> function implements Sequential Monte Carlo positioning for acoustic telemetry. Tracks continuous movement paths using a Correlated Random Walk model with detection likelihood weighting. Key optimizations include a pre-computed DE lookup grid (<code>create_de_lookup()</code>) replacing <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">stats::predict()</a></code> calls, fully vectorized movement and likelihood calculations, and systematic resampling. Achieves ~1s runtime for 5 fish x 480 time steps x 1000 particles x 80 stations.</p></li>
-<li><p><strong>Effort-balanced non-detection weighting</strong>: New <code>scale_non_detections</code> parameter (default TRUE) in <code><a href="../reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> scales non-detection evidence by total detections per fish/time period, balancing the detection-weighted mean that favours high-count stations.</p></li>
+<ul><li>
+<strong>Effort-balanced non-detection weighting</strong>: New <code>scale_non_detections</code> parameter (default TRUE) in <code><a href="../reference/calculate_fish_positions.html">calculate_fish_positions()</a></code> scales non-detection evidence by total detections per fish/time period, balancing the detection-weighted mean that favours high-count stations.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="performance-1-5-0">Performance<a class="anchor" aria-label="anchor" href="#performance-1-5-0"></a></h3>
