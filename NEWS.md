@@ -1,3 +1,40 @@
+# positionR 1.6.0
+
+## WADE default changes
+
+* **`integration_method` default changed from `"subtractive"` to `"additive"`**
+  in `calculate_fish_positions()`. Empirical per-track comparisons showed that
+  subtractive integration combined with per-group [0, 1] rescaling (introduced
+  in v1.4.0) over-penalises legitimate detection zones and produces visually
+  and metrically incorrect WADE fields. The additive formulation
+  `(det * detection_weight) + ((1 - nondet) * non_detection_weight)` restores
+  graded, detection-centred probability. The subtractive method remains
+  available by setting `integration_method = "subtractive"` explicitly.
+
+* **New parameter `min_detection_prob` (default 0.05)** in
+  `calculate_fish_positions()` drops cells with
+  `weighted_mean_DE_normalized <= min_detection_prob` from
+  `position_probabilities` before returning. Under the additive formula,
+  cells far from any receiver would otherwise receive positive
+  `integrated_prob` via the `(1 - nondet) * non_detection_weight` term alone,
+  inflating downstream point clouds, UDs, and habitat-selection estimates.
+  Set `min_detection_prob = 0` to disable.
+
+* **`non_detection_weight` default changed from `1` to `0.5`** so the default
+  additive integration satisfies the required sum-to-1 constraint
+  (`detection_weight + non_detection_weight == 1`). Workflows that explicitly
+  set `integration_method = "subtractive"` and pass `non_detection_weight = 1`
+  are unaffected. Under subtractive/multiplicative methods `detection_weight`
+  is ignored, so this default change only affects additive integration.
+
+## Migration
+
+To reproduce pre-1.6.0 behaviour exactly, pass
+`integration_method = "subtractive", non_detection_weight = 1,
+min_detection_prob = 0`. Workflows that already set these parameters
+explicitly are unaffected by the default changes.
+
+
 # positionR 1.5.0
 
 ## New Features

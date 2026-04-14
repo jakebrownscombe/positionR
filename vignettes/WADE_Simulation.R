@@ -153,7 +153,8 @@ positioning_results <- calculate_fish_positions(
   station_distances_df = station_distances,
   station_info = points_regular,
   de_model = logistic_DE$log_model,
-  integration_method = "subtractive",  # "subtractive", "multiplicative", or "additive"
+  integration_method = "additive",  # "additive" (default), "subtractive", or "multiplicative"
+  min_detection_prob = 0.05,          # drop far-from-receiver cells (default 0.05)
   max_non_detection_distance = 2000,   # Maximum range for non-detection inference (m)
   weighting_method = "normalize_stations",  # Normalize across stations
   # weighting_method = "information_theoretic",  # Alternative weighting approach
