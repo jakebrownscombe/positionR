@@ -191,6 +191,10 @@ get_depth_bias <- function(current_depth, spawning_phase, species_params) {
 #' @param temporal_info Data frame with daily environmental conditions for temporal DE. Default is NULL.
 #' @param de_model Model object for temporal DE prediction. Default is NULL.
 #' @param include_barriers Logical. Apply barrier masking for detections. Default is FALSE.
+#' @param max_escape_tries Integer. Number of alternative bearings tried when a
+#'   proposed step falls on land or outside the raster extent, before the walk
+#'   holds position for that step. Default is 20. Every accepted position is
+#'   verified against the raster, so a track cannot leave the water mask.
 #'
 #' @return A list containing tracks and station_detections data frames.
 #'
@@ -220,7 +224,8 @@ simulate_fish_tracks <- function(raster, station_distances,
                                  depth_state_bias = FALSE,
                                  goal_locations = NULL, goal_bias = 0.5, goal_tolerance = NULL,
                                  station_info = NULL, temporal_info = NULL, de_model = NULL,
-                                 include_barriers = FALSE) {
+                                 include_barriers = FALSE,
+                                 max_escape_tries = 20) {
 
   if (!is.null(seed)) set.seed(seed)
 
@@ -249,6 +254,18 @@ simulate_fish_tracks <- function(raster, station_distances,
     time_step <- emp_dist$step_duration_s
     cat("Mode: species_empirical (", species, ",",
         length(empirical_steps), "steps, time_step =", time_step, "s)\n")
+    # 1.7.0 metadata: say plainly when a species does not carry its own
+    # distribution, and when its turning was not resolved above positioning error.
+    if (isTRUE(emp_dist$borrowed)) {
+      cat("  NOTE: ", species, " has no distribution of its own at ", emp_dist$cutoff,
+          " (", emp_dist$n_fish, " fish, ", emp_dist$n_steps,
+          " steps). Borrowed from: ", emp_dist$borrowed_from, "\n", sep = "")
+    }
+    if (!is.null(emp_dist$turn_resolved) && !isTRUE(emp_dist$turn_resolved)) {
+      cat("  NOTE: turning is not resolved above positioning error for ", species,
+          " at ", emp_dist$cutoff,
+          "; the turn angles are the empirical distribution, not a fitted persistence.\n", sep = "")
+    }
   }
 
   if (mode == "species_theory") {
@@ -544,6 +561,15 @@ simulate_fish_tracks <- function(raster, station_distances,
     } else {
       start_x <- start_locations[path_id, 1]
       start_y <- start_locations[path_id, 2]
+      # A start on land puts the whole track off the mask; say so rather than walk from it.
+      start_in_extent <- start_x >= raster_extent@xmin && start_x <= raster_extent@xmax &&
+        start_y >= raster_extent@ymin && start_y <= raster_extent@ymax
+      if (!start_in_extent ||
+          is.na(raster::extract(raster, matrix(c(start_x, start_y), ncol = 2)))) {
+        warning("start_locations row ", path_id,
+                " is outside the raster extent or on a masked (NA) cell; ",
+                "the walk will hold position until a valid step is found")
+      }
     }
 
     # Initialize path tracking
@@ -557,6 +583,9 @@ simulate_fish_tracks <- function(raster, station_distances,
     # Set starting position and direction
     track_x[1] <- start_x
     track_y[1] <- start_y
+
+    # Land/boundary rejection counters for this path (reported after the loop)
+    n_blocked <- 0L; n_reflected <- 0L; n_resampled <- 0L; n_stalled <- 0L
 
     # Set initial bearing - toward goal if goal-directed, else random
     if (!is.null(goal_locations)) {
@@ -798,27 +827,90 @@ simulate_fish_tracks <- function(raster, station_distances,
       new_x <- track_x[step] + step_length * cos(current_bearing)
       new_y <- track_y[step] + step_length * sin(current_bearing)
 
-      # Boundary checking
-      if (new_x >= raster_extent@xmin && new_x <= raster_extent@xmax &&
-          new_y >= raster_extent@ymin && new_y <= raster_extent@ymax) {
-        cell_value <- raster::extract(raster, matrix(c(new_x, new_y), ncol = 2))
-        if (!is.na(cell_value)) {
-          track_x[step + 1] <- new_x
-          track_y[step + 1] <- new_y
-        } else {
-          current_bearing <- current_bearing + pi
-          new_x <- track_x[step] + step_length * cos(current_bearing)
-          new_y <- track_y[step] + step_length * sin(current_bearing)
-          track_x[step + 1] <- new_x
-          track_y[step + 1] <- new_y
-        }
-      } else {
-        current_bearing <- current_bearing + pi
-        new_x <- track_x[step] + step_length * cos(current_bearing)
-        new_y <- track_y[step] + step_length * sin(current_bearing)
+      # ---- Boundary and land masking: propose, then VERIFY before accepting ----
+      # A proposal is accepted only when it lies inside the raster extent AND on
+      # a non-NA (water) cell. Before 1.7.0 a proposal that failed either test
+      # was reflected by pi and written to the track with no second check, so a
+      # walk whose reflection also landed on land was placed on land and then
+      # walked freely off the mask. Measured on the 51 animals of
+      # Stoney.telemetry 33_movement_parameters, 2026-09-04: 1,983 of 129,651
+      # simulated positions sat off the water mask, one track 956 of its 961 and
+      # up to 1,927 m beyond the raster extent.
+      # Order of attempts: reflect, then up to max_escape_tries random bearings
+      # at the same step length, then a half-length step, then stay in place.
+      accept_xy <- function(px, py) {
+        if (px < raster_extent@xmin || px > raster_extent@xmax ||
+            py < raster_extent@ymin || py > raster_extent@ymax) return(FALSE)
+        !is.na(raster::extract(raster, matrix(c(px, py), ncol = 2)))
+      }
+
+      if (accept_xy(new_x, new_y)) {
         track_x[step + 1] <- new_x
         track_y[step + 1] <- new_y
+      } else {
+        n_blocked <- n_blocked + 1L
+        accepted <- FALSE
+
+        # 1. reflection, re-checked
+        b_try <- current_bearing + pi
+        px <- track_x[step] + step_length * cos(b_try)
+        py <- track_y[step] + step_length * sin(b_try)
+        if (accept_xy(px, py)) {
+          current_bearing <- b_try
+          track_x[step + 1] <- px
+          track_y[step + 1] <- py
+          accepted <- TRUE
+          n_reflected <- n_reflected + 1L
+        }
+
+        # 2. random bearings from the current position, same step length
+        if (!accepted) {
+          for (attempt in seq_len(max_escape_tries)) {
+            b_try <- stats::runif(1, 0, 2 * pi)
+            px <- track_x[step] + step_length * cos(b_try)
+            py <- track_y[step] + step_length * sin(b_try)
+            if (accept_xy(px, py)) {
+              current_bearing <- b_try
+              track_x[step + 1] <- px
+              track_y[step + 1] <- py
+              accepted <- TRUE
+              n_resampled <- n_resampled + 1L
+              break
+            }
+          }
+        }
+
+        # 3. half-length step in a random bearing (narrow inlets and channels)
+        if (!accepted) {
+          for (attempt in seq_len(max_escape_tries)) {
+            b_try <- stats::runif(1, 0, 2 * pi)
+            px <- track_x[step] + 0.5 * step_length * cos(b_try)
+            py <- track_y[step] + 0.5 * step_length * sin(b_try)
+            if (accept_xy(px, py)) {
+              current_bearing <- b_try
+              track_x[step + 1] <- px
+              track_y[step + 1] <- py
+              accepted <- TRUE
+              n_resampled <- n_resampled + 1L
+              break
+            }
+          }
+        }
+
+        # 4. no water reachable this step: stay in place, re-randomise bearing
+        if (!accepted) {
+          track_x[step + 1] <- track_x[step]
+          track_y[step + 1] <- track_y[step]
+          current_bearing <- stats::runif(1, 0, 2 * pi)
+          n_stalled <- n_stalled + 1L
+        }
       }
+    }
+
+    if (n_blocked > 0) {
+      cat("  Land/boundary blocks on path", path_id, ":", n_blocked,
+          "of", n_steps, "steps (reflected", n_reflected,
+          ", resampled", n_resampled, ", stalled in place", n_stalled, ")\n")
     }
 
     # Create track dataframe with both time formats

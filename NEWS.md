@@ -1,3 +1,56 @@
+# positionR 1.7.0
+
+## Empirical CRW distributions rebuilt at a stated accuracy gate
+
+* **`crw_empirical_distributions` replaced.** The bundled step and turn
+  distributions came from the 2026-03-21 VPS table, which kept 18.2 per cent of
+  VPS steps behind a 20 m minimum-step filter and carried no positional-accuracy
+  gate. They are now derived at **HPE <= 7.36**, the gate JWB set at checkpoint
+  CP3 of `Stoney.telemetry/analysis/04_fish_positioning/33_movement_parameters`
+  (report rev 2, 2026-09-04), after the final mortality guard and a
+  near-stationary transmitter screen. Median bundled step per 180 s moves from
+  19.87 to 4.84 m (Walleye), 18.94 to 1.67 m (Smallmouth Bass) and 26.01 to
+  4.39 m (Muskellunge): the old values were the long tail the 20 m filter
+  selected, not the species' step distribution.
+
+* **Four species added**, so the object now holds Walleye, Smallmouth Bass,
+  Muskellunge, Lake Whitefish, Largemouth Bass, Yellow Perch, Black Crappie and
+  Generic. Walleye (73 fish, 102,342 steps), Smallmouth Bass (34, 103,280) and
+  Muskellunge (25, 139,080) carry their own distributions; the other four are
+  below the 10-fish and 5,000-step minimum at the gate and carry the Generic
+  pooled distribution (144 fish, 351,636 steps) with `borrowed = TRUE`.
+
+* **New metadata per entry**: `source`, `cutoff`, `borrowed`, `borrowed_from`,
+  `n_fish`, `n_steps`, `n_steps_bundled`, `turn_resolved`.
+  `simulate_fish_tracks(mode = "species_empirical")` prints a note when a species
+  borrows and when its turning was not resolved above positioning error, which
+  is every species in this release: no species showed directional persistence at
+  180, 600, 1,800 or 3,600 s once the 20 m filter was removed.
+
+* Each entry's vectors are capped at 50,000 seeded draws so the package data stay
+  a reasonable size; the uncapped vectors live with the analysis.
+
+## Simulation: tracks can no longer leave the water mask
+
+* **`simulate_fish_tracks()` now verifies every proposed position before
+  accepting it.** Through 1.6.0 a step that fell on land or outside the raster
+  extent was reflected by pi and written to the track with no second check, so a
+  walk whose reflection also hit land was placed on land and then walked free of
+  the mask. Measured on the 51 simulated animals of `33_movement_parameters`:
+  1,983 of 129,651 positions off the water mask, 838 outside the raster extent,
+  30 of 51 animals affected, one track 956 of its 961 positions and up to 1,927 m
+  beyond the extent. With the fix, on the same 51 seeds: 0 of 129,651 off the
+  mask and 0 outside the extent.
+
+* The rejection ladder is reflect, then up to `max_escape_tries` (new argument,
+  default 20) random bearings at the same step length, then the same at half the
+  step length, then hold position for that step and re-randomise the bearing.
+  Blocked, reflected, resampled and stalled steps are counted and printed per
+  path.
+
+* **`start_locations` is validated.** A start outside the extent or on a masked
+  cell now warns instead of silently producing a track on land.
+
 # positionR 1.6.0
 
 ## WADE default changes

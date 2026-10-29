@@ -30,7 +30,8 @@ simulate_fish_tracks(
   station_info = NULL,
   temporal_info = NULL,
   de_model = NULL,
-  include_barriers = FALSE
+  include_barriers = FALSE,
+  max_escape_tries = 20
 )
 }
 \arguments{
@@ -99,6 +100,11 @@ Overridden by empirical data in \code{species_empirical} mode.}
 \item{de_model}{Model object for temporal DE prediction. Default is NULL.}
 
 \item{include_barriers}{Logical. Apply barrier masking for detections. Default is FALSE.}
+
+\item{max_escape_tries}{Integer. Number of alternative bearings tried when a
+proposed step falls on land or outside the raster extent, before the walk
+holds position for that step. Default is 20. Every accepted position is
+verified against the raster, so a track cannot leave the water mask.}
 }
 \value{
 A list containing tracks and station_detections data frames.
