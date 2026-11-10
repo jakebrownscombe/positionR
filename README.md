@@ -50,7 +50,7 @@ remotes::install_github("jakebrownscombe/arraydesignR")
 positionR::positionR_packages()
 #> positionR: 4 packages, 4 installed
 #> 
-#> detqc 0.1.0
+#> detqc 0.1.1
 #>   read, check and filter detections
 #>   https://jakebrownscombe.github.io/detqc/
 #> 
