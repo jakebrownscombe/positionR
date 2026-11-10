@@ -20,7 +20,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jacob Brownscombe \email{jakebrownscombe@gmail.com} (\href{https://orcid.org/0000-0003-2496-8764}{ORCID}) [copyright holder]
+\strong{Maintainer}: Jacob W. Brownscombe \email{jakebrownscombe@gmail.com} (\href{https://orcid.org/0000-0003-2496-8764}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

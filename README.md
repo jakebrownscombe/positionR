@@ -7,21 +7,22 @@
 3)](https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 positionR is a suite of four R packages for studies that track aquatic
-animals with fixed acoustic receivers. A detection set cleaned in detqc
-is the input of detfield, which positions the animals. A detection-range
-model from detfield is the input of the simulations of arraydesign, and
-the arraydesignR app runs arraydesign. The packages share one set of
-column names and one example, Stoney Lake, Ontario. The **positionR**
-package installs all four and does not attach them; each can also be
-installed on its own.
+animals with fixed acoustic receivers. The tools span end-to-end
+functionality, including designing telemetry arrays, simulating animal
+movements, loading and filtering datasets, and estimating animal
+positions. The packages can generate data, as well as integrating user
+data from telemetry studies. The **positionR** package installs all four
+and does not attach them; each can also be installed on its own.
 
 - **detqc** reads detection, tagging and receiver deployment files from
-  OTN, GLATOS and InnovaSea, checks them, filters false detections and
-  reviews mortality.
-- **detfield** fits a detection-range model and positions each animal as
-  a probability surface over the water, by default one per hour.
-- **arraydesign** simulates animal tracks and their detections, and
-  scores how well a receiver array positions them.
+  OTN, GLATOS and InnovaSea, runs a range of data checks and filters,
+  and generates a processing report.
+- **detfield** generates estimates of animal positions as a probability
+  surface using patterns of detection, non-detection, and the associated
+  detection range models.
+- **arraydesign** assesses receiver array design coverage, simulates
+  animal tracks and their detections, and scores how well a receiver
+  array positions them.
 - **arraydesignR** is arraydesign as a point-and-click app.
 
 ## Install
@@ -186,8 +187,9 @@ remotes::install_github("jakebrownscombe/positionR@v1.7.0")
 
 ## Cite
 
-Brownscombe J (2026). *positionR: tools for acoustic telemetry studies*.
-R package version 2.0.0, <https://jakebrownscombe.github.io/positionR/>.
+Brownscombe JW (2026). *positionR: tools for acoustic telemetry
+studies*. R package version 2.0.0,
+<https://jakebrownscombe.github.io/positionR/>.
 
 ## How the code was written
 

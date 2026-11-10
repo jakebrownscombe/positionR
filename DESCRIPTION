@@ -2,7 +2,7 @@ Package: positionR
 Title: Tools for Acoustic Telemetry Studies
 Version: 2.0.0
 Authors@R:
-    person("Jacob", "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre", "cph"),
+    person(c("Jacob", "W."), "Brownscombe", , "jakebrownscombe@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-2496-8764"))
 Description: Installs the four packages of the positionR suite for
     acoustic telemetry studies: 'detqc' reads, checks and filters detections;
