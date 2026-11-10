@@ -20,13 +20,8 @@ deployments from OTN and GLATOS exports, and animals from OTN tagging
 records and GLATOS workbooks and exports.
 
 detfield and arraydesign take a depth raster in a projected CRS in
-metres, such as the UTM zone of the lake. The scale of that CRS at the
-raster centre must be within 1 percent of 1. Both packages refuse any
-other CRS, including one whose scale at the raster centre cannot be
-measured. The arraydesignR app also takes a raster in longitude and
-latitude, with longitudes from -180 to 180 or from 0 to 360. That raster
-may span at most 12 degrees of longitude and 12 degrees of latitude. The
-app projects it to the six-degree UTM zone of its centre.
+metres, such as the UTM zone of the lake. The arraydesignR app also
+takes a raster in longitude and latitude and projects it to UTM.
 
 ## Install
 
