@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>positionR — Conceptual Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0a1a;
+    --bg-mid: #0f1628;
+    --gold: #f1c40f;
+    --gold-dim: #f1c40f88;
+    --red: #e74c3c;
+    --text: #ecf0f1;
+    --text-dim: #8395a7;
+    --divider: #2c3e50;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 40%, var(--bg-deep) 100%);
+    color: var(--text);
+    font-family: 'Instrument Serif', Georgia, serif;
+    min-height: 100vh;
+    padding: 28px 24px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #f1c40f, #e67e22, #f39c12);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .workflows {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .wf-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    padding: 8px 18px;
+    border-radius: 22px;
+    border: 1px solid var(--divider);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .wf-btn:hover { border-color: #556; color: #bbb; }
+  .wf-btn.active-sim { border: 2px solid #9b59b6; background: #9b59b622; color: #9b59b6; }
+  .wf-btn.active-field { border: 2px solid #27ae60; background: #27ae6022; color: #27ae60; }
+  .wf-btn.active-design { border: 2px solid #e67e22; background: #e67e2222; color: #e67e22; }
+
+  .wf-desc {
+    display: block;
+    font-size: 8.5px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .clear-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 8px 14px;
+    border-radius: 22px;
+    border: 1px solid #555;
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    align-self: center;
+    display: none;
+  }
+
+  .clear-btn.show { display: inline-block; }
+
+  .diagram-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  svg.diagram {
+    width: 100%;
+    max-width: 1120px;
+    height: auto;
+  }
+
+  /* Module boxes */
+  .module-box {
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+    position: relative;
+  }
+
+  .module-box:hover { transform: scale(1.02); }
+  .module-box.active { border-width: 2px !important; border-color: var(--gold) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
+  .module-box.dimmed { opacity: 0.18; }
+
+  .mod-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.2px;
+    line-height: 1.25;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  .mod-sublabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--gold-dim);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .mod-items {
+    margin-top: 8px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .mod-item {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 9px;
+    color: rgba(255,255,255,0.82);
+    line-height: 1.55;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mod-item .chevron { color: var(--gold-dim); margin-right: 4px; }
+
+  /* Arrow paths */
+  .arrow-path {
+    fill: none;
+    stroke: var(--text-dim);
+    stroke-width: 1.5;
+    opacity: 0.3;
+    transition: all 0.3s;
+  }
+
+  .arrow-path.highlighted {
+    stroke: var(--red);
+    stroke-width: 2.5;
+    opacity: 1;
+  }
+
+  .arrow-path.dimmed { opacity: 0.06; }
+  .arrow-path.dashed { stroke-dasharray: 6 4; }
+
+  .arrow-label {
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+
+  .arrow-label.show { opacity: 1; }
+
+  .group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    fill: var(--text-dim);
+    letter-spacing: 3px;
+    opacity: 0.5;
+  }
+
+  .divider-line {
+    stroke: var(--divider);
+    stroke-width: 0.5;
+    stroke-dasharray: 4 6;
+    opacity: 0.4;
+  }
+
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: #7f8c8d;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend svg { vertical-align: middle; margin-right: 4px; }
+
+  .wade-callout {
+    background: rgba(192, 57, 43, 0.12);
+    border: 1px solid rgba(192, 57, 43, 0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: opacity 0.3s;
+  }
+
+  .wade-callout.dimmed { opacity: 0.25; }
+
+  .wade-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    color: var(--red);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .wade-step {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    color: #bdc3c7;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>positionR</h1>
+  <div class="subtitle">Acoustic Telemetry · Positioning · Simulation · Array Design</div>
+</div>
+
+<div class="workflows">
+  <button class="wf-btn" data-wf="simulation" onclick="toggleWorkflow('simulation')">
+    🔬 Simulation Workflow
+    <span class="wf-desc">Design → Simulate → Position → Validate</span>
+  </button>
+  <button class="wf-btn" data-wf="field" onclick="toggleWorkflow('field')">
+    🐟 Field Application
+    <span class="wf-desc">Real Data → DE Model → WADE → Ecology</span>
+  </button>
+  <button class="wf-btn" data-wf="design" onclick="toggleWorkflow('design')">
+    📡 Array Optimization
+    <span class="wf-desc">Design → Simulate → Evaluate → Refine</span>
+  </button>
+  <button class="clear-btn" id="clearBtn" onclick="clearAll()">✕ Clear</button>
+</div>
+
+<div class="diagram-wrap">
+<svg class="diagram" viewBox="0 0 1120 780" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#8395a7" opacity="0.5"/>
+    </marker>
+    <marker id="ah-active" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#e74c3c"/>
+    </marker>
+  </defs>
+
+  <!-- Group labels -->
+  <text class="group-label" x="16" y="19">FOUNDATION</text>
+  <text class="group-label" x="16" y="209">CORE ENGINE</text>
+  <text class="group-label" x="16" y="394">ANALYSIS</text>
+  <text class="group-label" x="16" y="589">OUTPUT &amp; VALIDATION</text>
+
+  <!-- Dividers -->
+  <line class="divider-line" x1="20" y1="185" x2="1100" y2="185"/>
+  <line class="divider-line" x1="20" y1="370" x2="1100" y2="370"/>
+  <line class="divider-line" x1="20" y1="565" x2="1100" y2="565"/>
+
+  <!-- Arrows (drawn first, under boxes) -->
+  <g id="arrows"></g>
+
+  <!-- Module foreignObjects -->
+  <g id="modules"></g>
+
+  <!-- Arrow labels ON TOP of modules -->
+  <g id="arrow-labels"></g>
+
+  <!-- WADE callout -->
+  <foreignObject x="80" y="408" width="165" height="135">
+    <div class="wade-callout" id="wadeCallout" xmlns="http://www.w3.org/1999/xhtml">
+      <div class="wade-title">WADE Algorithm</div>
+      <div class="wade-step">① Detection integration</div>
+      <div class="wade-step">② Non-detection weighting</div>
+      <div class="wade-step">③ Temporal aggregation</div>
+      <div class="wade-step">④ Spatial weighting</div>
+      <div class="wade-step">⑤ Probability surfaces</div>
+    </div>
+  </foreignObject>
+</svg>
+</div>
+
+<div class="legend">
+  <span><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#8395a7" stroke-width="1.5"/></svg>Data flow</span>
+  <span><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#8395a7" stroke-width="1.5" stroke-dasharray="4 3"/></svg>Alternative / validation path</span>
+  <span><span style="color:#f1c40f">■</span> Hover modules to explore connections</span>
+  <span><span style="color:#9b59b6">■</span> Click workflows to trace paths</span>
+  <span><span style="font-family:'JetBrains Mono',monospace;font-size:7.5px;color:#fff;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:2px;padding:0 4px;margin-right:3px">GUI</span> Shiny app interface available</span>
+</div>
+
+<script>
+const MODULES = {
+  inputs:      { id:"inputs",      label:"Input Data",                sublabel:"Environmental & Field Data",    items:["Bathymetry raster","Fish detections","Receiver deployments","Water temperature"], color:"#1a5276", x:80,  y:30,  w:260, h:140 },
+  array:       { id:"array",       label:"Array Design",              sublabel:"Receiver Placement",            items:["run_array_design() — Shiny app","generate_regular_points()","generate_spaced_points()","generate_random_points()"], color:"#0e6655", x:430, y:30,  w:260, h:140, gui:true },
+  distances:   { id:"distances",   label:"Distance Calculation",      sublabel:"Spatial Connectivity",          items:["calculate_station_distances()","Cost-weighted shortest paths","Barrier (land) crossing detection","Tortuosity metrics"], color:"#1a5276", x:780, y:30,  w:260, h:140 },
+  de_model:    { id:"de_model",    label:"Detection Efficiency Model", sublabel:"Distance × Depth Response",   items:["create_logistic_curve_depth()","Logistic GLM: DE ~ dist × depth","Configurable D50, D95 parameters"], color:"#0e6655", x:80,  y:220, w:260, h:130, gui:true },
+  de_system:   { id:"de_system",   label:"Detection System",          sublabel:"System-wide DE Surface",        items:["calculate_detection_system()","Per-cell detection probability","Coverage analysis & metrics"], color:"#1a5276", x:430, y:220, w:260, h:130, gui:true },
+  simulation:  { id:"simulation",  label:"Movement Simulation",       sublabel:"Virtual Fish Tracks",           items:["simulate_fish_tracks()","Correlated random walk","Behavioral states & temperature","Detection event generation"], color:"#7d3c98", x:780, y:220, w:260, h:130 },
+  wade:        { id:"wade",        label:"WADE Positioning",          sublabel:"Core Algorithm",                items:["prepare_detection_data_for_wade()","calculate_fish_positions()","Temporal aggregation (hourly/daily)","Probability surfaces"], color:"#c0392b", x:255, y:405, w:290, h:140 },
+  points:      { id:"points",      label:"Point Generation",          sublabel:"Presence / Absence",            items:["generate_random_points_in_space_use()","generate_space_use_absences()","Probability-weighted sampling"], color:"#c0392b", x:620, y:405, w:260, h:140 },
+  space_use:   { id:"space_use",   label:"Space Use Analysis",        sublabel:"Home Range Estimation",         items:["calculate_space_use()","Convex hulls & grid cells","compare_space_use_thresholds()"], color:"#af601a", x:80,  y:600, w:280, h:130 },
+  habitat:     { id:"habitat",     label:"Habitat Selection",         sublabel:"Ecological Inference",          items:["analyze_comparative_habitat_selection()","randomForest modeling","Simulation vs. field validation"], color:"#af601a", x:430, y:600, w:280, h:130 },
+  performance: { id:"performance", label:"Performance Analysis",      sublabel:"System Evaluation",             items:["analyze_detection_performance()","Positioning accuracy assessment","Array optimization feedback"], color:"#af601a", x:780, y:600, w:260, h:130, gui:true }
+};
+
+const CONNECTIONS = [
+  { from:"inputs",    to:"array",       label:"bathymetry",               lOff:{x:0, y:-22} },
+  { from:"inputs",    to:"de_model",    label:"depth data",               lOff:{x:-40, y:0} },
+  { from:"inputs",    to:"simulation",  label:"temperature",              lOff:{x:0, y:-45} },
+  { from:"array",     to:"distances",   label:["receiver","locations"],   lOff:{x:0, y:-26} },
+  { from:"distances", to:"de_system",   label:["distance","matrices"],    lOff:{x:40, y:0} },
+  { from:"de_model",  to:"de_system",   label:"DE model",                 lOff:{x:0, y:-22} },
+  { from:"de_system", to:"simulation",  label:"DE surface",               lOff:{x:0, y:-22} },
+  { from:"de_system", to:"wade",        label:"DE surface",               lOff:{x:-45, y:0} },
+  { from:"simulation",to:"wade",        label:["simulated","detections"], lOff:{x:40, y:0} },
+  { from:"wade",      to:"points",      label:"positions",                lOff:{x:0, y:-22} },
+  { from:"points",    to:"space_use",   label:["home","ranges"],          lOff:{x:-45, y:0} },
+  { from:"points",    to:"habitat",     label:["presence/","absence"],    lOff:{x:0, y:-26} },
+  { from:"de_system", to:"points",      label:["sampling","regions"],     lOff:{x:55, y:0} },
+  { from:"de_system", to:"performance", label:["coverage","metrics"],     lOff:{x:55, y:0} },
+  { from:"simulation",to:"performance", label:"true tracks",              lOff:{x:40, y:0} },
+  { from:"wade",      to:"performance", label:["estimated","positions"],  lOff:{x:45, y:0} },
+  { from:"simulation",to:"habitat",     label:["true tracks","(validation)"], lOff:{x:55, y:0}, style:"dashed" },
+  { from:"inputs",    to:"wade",        label:["field","detections"],     lOff:{x:-50, y:0}, style:"dashed" }
+];
+
+const WORKFLOWS = {
+  simulation: { modules:["inputs","array","distances","de_model","de_system","simulation","wade","points","space_use","habitat","performance"] },
+  field:      { modules:["inputs","distances","de_model","de_system","wade","points","space_use","habitat"] },
+  design:     { modules:["inputs","array","distances","de_model","de_system","simulation","performance"] }
+};
+
+let activeModule = null;
+let activeWorkflow = null;
+
+function center(m) { return { x: m.x + m.w/2, y: m.y + m.h/2 }; }
+
+function edgePoint(m, tx, ty) {
+  const cx = m.x + m.w/2, cy = m.y + m.h/2;
+  const dx = tx - cx, dy = ty - cy;
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+  const hw = m.w/2, hh = m.h/2;
+  if (adx * hh > ady * hw) {
+    const s = dx > 0 ? 1 : -1;
+    return { x: cx + s * hw, y: cy + dy * hw / adx };
+  } else {
+    const s = dy > 0 ? 1 : -1;
+    return { x: cx + dx * hh / ady, y: cy + s * hh };
+  }
+}
+
+function getConnected(modId) {
+  const s = new Set([modId]);
+  CONNECTIONS.forEach(c => { if (c.from === modId) s.add(c.to); if (c.to === modId) s.add(c.from); });
+  return s;
+}
+
+function buildModules() {
+  const g = document.getElementById('modules');
+  g.innerHTML = '';
+  Object.values(MODULES).forEach(m => {
+    const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+    fo.setAttribute('x', m.x - 4); fo.setAttribute('y', m.y - 4);
+    fo.setAttribute('width', m.w + 8); fo.setAttribute('height', m.h + 8);
+
+    const div = document.createElement('div');
+    div.className = 'module-box';
+    div.id = 'mod-' + m.id;
+    div.style.width = m.w + 'px';
+    div.style.height = m.h + 'px';
+    div.style.margin = '4px';
+    div.style.background = `linear-gradient(145deg, ${m.color}ee, ${m.color}cc)`;
+    div.style.border = `1px solid ${m.color}88`;
+    div.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+
+    div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="mod-title">${m.label}</div>
+        ${m.gui ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:8px;color:#fff;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:1px 5px;letter-spacing:0.5px;white-space:nowrap;flex-shrink:0">GUI</span>' : ''}
+      </div>
+      <div class="mod-sublabel">${m.sublabel}</div>
+      <div class="mod-items">${m.items.map(i => `<div class="mod-item"><span class="chevron">›</span>${i}</div>`).join('')}</div>
+    `;
+
+    div.addEventListener('mouseenter', () => { if (!activeWorkflow) { activeModule = m.id; render(); } });
+    div.addEventListener('mouseleave', () => { activeModule = null; render(); });
+
+    fo.appendChild(div);
+    g.appendChild(fo);
+  });
+}
+
+function buildArrows() {
+  const g = document.getElementById('arrows');
+  const lg_group = document.getElementById('arrow-labels');
+  g.innerHTML = '';
+  lg_group.innerHTML = '';
+
+  CONNECTIONS.forEach((c, i) => {
+    const fm = MODULES[c.from], tm = MODULES[c.to];
+    const fc = center(fm), tc = center(tm);
+    const start = edgePoint(fm, tc.x, tc.y);
+    const end = edgePoint(tm, fc.x, fc.y);
+    const dx = end.x - start.x, dy = end.y - start.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx/len, uy = dy/len;
+    const ae = { x: end.x - ux*6, y: end.y - uy*6 };
+    const mx = (start.x + ae.x)/2, my = (start.y + ae.y)/2;
+    const off = c.lOff || (Math.abs(dx) > Math.abs(dy) ? { x:0, y:-35 } : { x:35, y:0 });
+    const cx = mx + off.x, cy = my + off.y;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${start.x} ${start.y} Q ${cx} ${cy} ${ae.x} ${ae.y}`);
+    path.setAttribute('class', 'arrow-path' + (c.style === 'dashed' ? ' dashed' : ''));
+    path.setAttribute('marker-end', 'url(#ah)');
+    path.id = 'arrow-' + i;
+    g.appendChild(path);
+
+    if (c.label) {
+      const lines = Array.isArray(c.label) ? c.label : [c.label];
+      const maxLineLen = Math.max(...lines.map(l => l.length));
+      const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+      const lw = maxLineLen * 6.5 + 14;
+      const lh = lines.length * 14 + 6;
+      fo.setAttribute('x', cx - lw/2);
+      fo.setAttribute('y', cy - lh/2);
+      fo.setAttribute('width', lw);
+      fo.setAttribute('height', lh);
+      fo.setAttribute('class', 'arrow-label');
+      fo.id = 'alabel-' + i;
+
+      const div = document.createElement('div');
+      div.style.cssText = `
+        width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+        background:rgba(10,10,30,0.92); border-radius:3px;
+        font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+        color:#f1c40f; white-space:nowrap; pointer-events:none; line-height:1.3;
+      `;
+      div.innerHTML = lines.join('<br>');
+      fo.appendChild(div);
+
+      lg_group.appendChild(fo);
+    }
+  });
+}
+
+function render() {
+  const connected = activeModule ? getConnected(activeModule) : null;
+  const wfMods = activeWorkflow ? new Set(WORKFLOWS[activeWorkflow].modules) : null;
+
+  Object.values(MODULES).forEach(m => {
+    const el = document.getElementById('mod-' + m.id);
+    if (!el) return;
+    el.classList.remove('active', 'dimmed');
+
+    if (wfMods) {
+      if (wfMods.has(m.id)) el.classList.add('active');
+      else el.classList.add('dimmed');
+    } else if (connected) {
+      if (connected.has(m.id)) el.classList.add('active');
+      else el.classList.add('dimmed');
+    }
+  });
+
+  CONNECTIONS.forEach((c, i) => {
+    const path = document.getElementById('arrow-' + i);
+    const label = document.getElementById('alabel-' + i);
+    if (!path) return;
+
+    let highlighted = false, dimmed = false;
+
+    if (wfMods) {
+      highlighted = wfMods.has(c.from) && wfMods.has(c.to);
+      dimmed = !highlighted;
+    } else if (connected) {
+      highlighted = c.from === activeModule || c.to === activeModule;
+      dimmed = !highlighted;
+    }
+
+    path.classList.remove('highlighted', 'dimmed');
+    if (highlighted) { path.classList.add('highlighted'); path.setAttribute('marker-end','url(#ah-active)'); }
+    else if (dimmed) { path.classList.add('dimmed'); path.setAttribute('marker-end','url(#ah)'); }
+    else { path.setAttribute('marker-end','url(#ah)'); }
+
+    if (label) {
+      label.classList.toggle('show', highlighted);
+    }
+  });
+
+  const wc = document.getElementById('wadeCallout');
+  if (wc) wc.classList.toggle('dimmed', !!(activeModule || activeWorkflow));
+
+  document.getElementById('clearBtn').classList.toggle('show', !!activeWorkflow);
+}
+
+function toggleWorkflow(wf) {
+  activeModule = null;
+  activeWorkflow = activeWorkflow === wf ? null : wf;
+
+  document.querySelectorAll('.wf-btn').forEach(btn => {
+    btn.className = 'wf-btn';
+    if (activeWorkflow && btn.dataset.wf === activeWorkflow) {
+      btn.classList.add('active-' + activeWorkflow);
+    }
+  });
+
+  render();
+}
+
+function clearAll() {
+  activeWorkflow = null;
+  activeModule = null;
+  document.querySelectorAll('.wf-btn').forEach(btn => btn.className = 'wf-btn');
+  render();
+}
+
+// Init
+buildModules();
+buildArrows();
+render();
+</script>
+</body>
+</html>
