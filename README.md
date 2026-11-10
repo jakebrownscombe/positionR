@@ -10,13 +10,13 @@ positionR is a suite of four R packages for studies that track aquatic
 animals with fixed acoustic receivers. The tools span end-to-end
 functionality, including designing telemetry arrays, simulating animal
 movements, loading and filtering datasets, and estimating animal
-positions. The packages can generate data, as well as integrating user
-data from telemetry studies. The **positionR** package installs all four
-and does not attach them; each can also be installed on its own.
+positions. The packages can generate data and integrate user data from
+telemetry studies. The **positionR** package installs all four and does
+not attach them; each can also be installed on its own.
 
 - **detqc** reads detection, tagging and receiver deployment files from
   OTN, GLATOS and InnovaSea, runs a range of data checks and filters,
-  and generates a processing report.
+  reviews mortality, and generates a processing report.
 - **detfield** generates estimates of animal positions as a probability
   surface using patterns of detection, non-detection, and the associated
   detection range models.
