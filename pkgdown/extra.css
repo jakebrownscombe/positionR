@@ -1,0 +1,20 @@
+/* Figure captions in italics, as on the other positionR sites. */
+.caption {
+  font-style: italic;
+}
+
+/* The positionR logo in the navbar, left of the site title. pkgdown 2.0.9 has
+   no navbar logo setting, and a template include is the same text on every
+   page, so a relative path in it breaks below the site root. This file is
+   copied to the site root beside logo.png, and url() resolves against the
+   file, so the logo shows on every page. */
+.navbar-brand::before {
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border-radius: 4px;
+  background: url(logo.png) center / contain no-repeat;
+}

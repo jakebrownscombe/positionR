@@ -1,0 +1,15 @@
+linters: linters_with_defaults(
+    # Functions at most 80 lines and exports at most 6 formals: lintr has no
+    # linter for either, so tools/check_gates.R enforces both.
+    line_length_linter(100),
+    object_name_linter(styles = "snake_case"),
+    cyclocomp_linter(15)
+  )
+exclusions: list(
+    # Test files call helper functions, testthat functions and data.table
+    # columns that object_usage_linter cannot see, so it is off for them;
+    # every other linter runs. A glob, because lintr 3.4 turns a folder
+    # given here into a whole-file exclusion of every linter.
+    "tests/testthat/*.R" = list(object_usage_linter = Inf)
+  )
+encoding: "UTF-8"
