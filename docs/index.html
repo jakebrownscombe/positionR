@@ -86,14 +86,14 @@
 </h1>
 </div>
 <p><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"><img src="https://img.shields.io/badge/license-GPL%20(%3E%3D%203)-blue.svg" alt="License: GPL (&gt;= 3)"></a></p>
-<p>positionR is a suite of four R packages for studies that track aquatic animals with fixed acoustic receivers. A detection set cleaned in detqc is the input of detfield, which positions the animals. A detection-range model from detfield is the input of the simulations of arraydesign, and the arraydesignR app runs arraydesign. The packages share one set of column names and one example, Stoney Lake, Ontario. The <strong>positionR</strong> package installs all four and does not attach them; each can also be installed on its own.</p>
+<p>positionR is a suite of four R packages for studies that track aquatic animals with fixed acoustic receivers. The tools span end-to-end functionality, including designing telemetry arrays, simulating animal movements, loading and filtering datasets, and estimating animal positions. The packages can generate data, as well as integrating user data from telemetry studies. The <strong>positionR</strong> package installs all four and does not attach them; each can also be installed on its own.</p>
 <ul>
 <li>
-<strong>detqc</strong> reads detection, tagging and receiver deployment files from OTN, GLATOS and InnovaSea, checks them, filters false detections and reviews mortality.</li>
+<strong>detqc</strong> reads detection, tagging and receiver deployment files from OTN, GLATOS and InnovaSea, runs a range of data checks and filters, and generates a processing report.</li>
 <li>
-<strong>detfield</strong> fits a detection-range model and positions each animal as a probability surface over the water, by default one per hour.</li>
+<strong>detfield</strong> generates estimates of animal positions as a probability surface using patterns of detection, non-detection, and the associated detection range models.</li>
 <li>
-<strong>arraydesign</strong> simulates animal tracks and their detections, and scores how well a receiver array positions them.</li>
+<strong>arraydesign</strong> assesses receiver array design coverage, simulates animal tracks and their detections, and scores how well a receiver array positions them.</li>
 <li>
 <strong>arraydesignR</strong> is arraydesign as a point-and-click app.</li>
 </ul>
@@ -196,7 +196,7 @@
 <div class="section level2">
 <h2 id="cite">Cite<a class="anchor" aria-label="anchor" href="#cite"></a>
 </h2>
-<p>Brownscombe J (2026). <em>positionR: tools for acoustic telemetry studies</em>. R package version 2.0.0, <a href="https://jakebrownscombe.github.io/positionR/" class="uri">https://jakebrownscombe.github.io/positionR/</a>.</p>
+<p>Brownscombe JW (2026). <em>positionR: tools for acoustic telemetry studies</em>. R package version 2.0.0, <a href="https://jakebrownscombe.github.io/positionR/" class="uri">https://jakebrownscombe.github.io/positionR/</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="how-the-code-was-written">How the code was written<a class="anchor" aria-label="anchor" href="#how-the-code-was-written"></a>
@@ -234,7 +234,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Jacob Brownscombe <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0003-2496-8764" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Jacob W. Brownscombe <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0003-2496-8764" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
 </ul>
 </div>
 
@@ -245,7 +245,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Jacob Brownscombe.</p>
+  <p>Developed by Jacob W. Brownscombe.</p>
 </div>
 
 <div class="pkgdown-footer-right">
