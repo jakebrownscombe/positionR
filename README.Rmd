@@ -26,12 +26,13 @@ arraydesign, and the arraydesignR app runs arraydesign. The packages share one s
 names and one example, Stoney Lake, Ontario. The **positionR** package installs all four and
 does not attach them; each can also be installed on its own.
 
-detqc reads detections from OTN, GLATOS and InnovaSea exports, receiver deployments from OTN and
-GLATOS exports, and animals from OTN tagging records and GLATOS workbooks and exports.
-
-detfield and arraydesign take a depth raster in a projected CRS in metres, such as the UTM zone
-of the lake. The arraydesignR app also takes a raster in longitude and latitude and projects it
-to UTM.
+- **detqc** reads detection, tagging and receiver deployment files from OTN, GLATOS and
+  InnovaSea, checks them, filters false detections and reviews mortality.
+- **detfield** fits a detection-range model and positions each animal as a probability surface
+  over the water, by default one per hour.
+- **arraydesign** simulates animal tracks and their detections, and scores how well a receiver
+  array positions them.
+- **arraydesignR** is arraydesign as a point-and-click app.
 
 ## Install
 
