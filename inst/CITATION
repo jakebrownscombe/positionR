@@ -1,0 +1,13 @@
+bibentry(
+  bibtype = "Manual",
+  title = "positionR: tools for acoustic telemetry studies",
+  author = person("Jacob", "Brownscombe", email = "jakebrownscombe@gmail.com",
+                  comment = c(ORCID = "0000-0003-2496-8764")),
+  year = "2026",
+  note = paste("R package version", meta$Version),
+  url = "https://jakebrownscombe.github.io/positionR/",
+  textVersion = paste0(
+    "Brownscombe J (2026). positionR: tools for acoustic telemetry studies. ",
+    "R package version ", meta$Version, ", https://jakebrownscombe.github.io/positionR/."
+  )
+)

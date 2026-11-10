@@ -1,0 +1,16 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^\.lintr$
+^pkgdown$
+^docs$
+^_pkgdown\.yml$
+(^|/)\.DS_Store$
+^LICENSE\.md$
+^tools$
+^Rplots\.pdf$
+^README\.Rmd$
+^outputs$
+^man/figures/concept_suite\.png$
+^man/figures/suite_.*\.png$
+^inst/release$

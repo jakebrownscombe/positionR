@@ -1,0 +1,72 @@
+url: https://jakebrownscombe.github.io/positionR/
+
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+  # The fonts load from Google at view time, so the site bundles no font files.
+  # web-font-path false drops the import of the Cosmo font, which base_font
+  # replaces. bslib still copies every font file it bundles into
+  # docs/deps/bootstrap-*/fonts; nothing references them, so delete that folder
+  # and its font.css after each build.
+  # base_font and code_font add the Google stylesheets but name one family
+  # each. The two font-family variables are applied after them, so they set
+  # the stacks: when Google is blocked, the browser uses a system font of the
+  # same kind. Headings inherit the body stack.
+  bslib:
+    primary: "#2C5AA0"
+    web-font-path: false
+    base_font: {google: {family: "Source Sans 3", local: false}}
+    code_font: {google: {family: "Source Code Pro", local: false}}
+    font-family-base: >-
+      "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif
+    font-family-monospace: >-
+      "Source Code Pro", SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace
+
+home:
+  title: "positionR: tools for acoustic telemetry studies"
+  # The Links section is set here in full, so pkgdown adds none of its own
+  # (no CRAN, rdrr.io or issue links).
+  sidebar:
+    structure: [links, license, citation, authors, dev]
+    components:
+      links:
+        title: Links
+        text: >
+          [**detqc**](https://jakebrownscombe.github.io/detqc/),
+          [**detfield**](https://jakebrownscombe.github.io/detfield/),
+          [**arraydesign**](https://jakebrownscombe.github.io/arraydesign/) and
+          [**arraydesignR**](https://jakebrownscombe.github.io/arraydesignR/), the four
+          packages of positionR. The source code is at
+          github.com/jakebrownscombe/positionR.
+
+navbar:
+  structure:
+    left: [reference, news]
+    right: [suite, search, github]
+  components:
+    suite:
+      text: positionR
+      menu:
+        - text: positionR, the suite
+          href: https://jakebrownscombe.github.io/positionR/
+        - text: detqc, read, check and filter detections
+          href: https://jakebrownscombe.github.io/detqc/
+        - text: detfield, detection fields and positions
+          href: https://jakebrownscombe.github.io/detfield/
+        - text: arraydesign, design and test tracking systems
+          href: https://jakebrownscombe.github.io/arraydesign/
+        - text: arraydesignR, arraydesign as a point-and-click application
+          href: https://jakebrownscombe.github.io/arraydesignR/
+
+reference:
+  - title: The suite
+    desc: >
+      The four packages of positionR, with what each does, the version installed and the
+      address of its site.
+    contents:
+      - positionR_packages
+
+code:
+  width: 76
