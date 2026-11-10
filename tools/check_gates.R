@@ -11,7 +11,8 @@
 #   tarball_size     the built tarball is at most 2,000,000 bytes, or the
 #                    limit in the package's DESCRIPTION field
 #                    Config/positionR/tarball_limit (bytes)
-#   example_time     no Rd example takes more than 5 s, elapsed or CPU
+#   example_time     no Rd example takes more than 5 s, elapsed or CPU, or
+#                    the seconds in POSITIONR_EXAMPLE_SECONDS
 #   pages_cover      every export is on a site page; runs only in a checkout
 #                    of the whole suite
 # Two more enforce the suite's naming rules:
@@ -39,7 +40,9 @@ max_export_formals <- 6L
 # The default; a package that needs more sets Config/positionR/tarball_limit
 # in its DESCRIPTION, so this file stays the same in every package.
 max_tarball_bytes <- 2e6
-max_example_seconds <- 5
+# POSITIONR_EXAMPLE_SECONDS sets another limit for a slower machine, such as a
+# shared CI runner, where examples that take under 5 s here took up to 6 s.
+max_example_seconds <- as.numeric(Sys.getenv("POSITIONR_EXAMPLE_SECONDS", "5"))
 max_app_lines <- c(app_ui = 40L, app_server = 30L)
 # POSITIONR_BASE_GRAPHICS=report turns the base_graphics gate into a report
 # for a package that draws with base graphics.
