@@ -14,9 +14,10 @@ positions. The packages can generate data and integrate user data from
 telemetry studies. The **positionR** package installs all four and does
 not attach them; each can also be installed on its own.
 
-- **detqc** reads detection, tagging and receiver deployment files from
-  OTN, GLATOS and InnovaSea, runs a range of data checks and filters,
-  reviews mortality, and generates a processing report.
+- **detqc** reads detection files from OTN, GLATOS and InnovaSea, and
+  tagging and receiver deployment files from OTN and GLATOS, runs a
+  range of data checks and filters, reviews mortality, and generates a
+  processing report.
 - **detfield** generates estimates of animal positions as a probability
   surface using patterns of detection, non-detection, and the associated
   detection range models.
